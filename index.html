@@ -13,7 +13,7 @@
             line-height: 1.6;
             color: #333;
         }
-       .top-bar {
+        .top-bar {
             background-color: #000;
             color: #fff;
             padding: 10px 20px;
@@ -99,13 +99,21 @@
             font-size: 1.5em;
             margin-bottom: 30px;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
         .button {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
             padding: 10px 20px;
-            margin: 10px;
             border-radius: 20px;
             text-decoration: none;
             font-weight: bold;
+            height: 44px; /* Set a fixed height for both buttons */
         }
         .button-primary {
             background-color: #0071e3;
@@ -116,12 +124,12 @@
             color: #0071e3;
         }
         .download-button {
-            display: inline-block;
-            margin: 10px;
+            display: inline-flex;
+            align-items: center;
         }
         .download-button img {
-            width: 150px; /* Adjust as needed */
-            height: auto;
+            height: 44px; /* Match the height of the Learn More button */
+            width: auto;
         }
         .device-overlay {
             position: absolute;
@@ -173,10 +181,12 @@
             </div>
             <h2 class="app-title">StatCoach</h2>
             <p class="app-description">Young football team live stats coach enhanced with AI</p>
-            <a href="#" class="button button-primary">Learn More</a>
-            <a href="#" class="download-button">
-                <img src="images/downloadbutton.png" alt="Download on App Store">
-            </a>
+            <div class="button-container">
+                <a href="#" class="button button-primary">Learn More</a>
+                <a href="#" class="download-button">
+                    <img src="images/downloadbutton.png" alt="Download on App Store">
+                </a>
+            </div>
         </div>
         <img src="/api/placeholder/500/900" alt="StatCoach on iPhone" class="device-overlay">
     </div>
@@ -188,10 +198,12 @@
             </div>
             <h2 class="app-title">MockupM</h2>
             <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
-            <a href="#" class="button button-primary">Learn More</a>
-            <a href="#" class="download-button">
-                <img src="images/downloadbutton.png" alt="Download on App Store">
-            </a>
+            <div class="button-container">
+                <a href="#" class="button button-primary">Learn More</a>
+                <a href="#" class="download-button">
+                    <img src="images/downloadbutton.png" alt="Download on App Store">
+                </a>
+            </div>
         </div>
         <img src="/api/placeholder/500/900" alt="Mockupm on iPhone" class="device-overlay">
     </div>
@@ -203,10 +215,12 @@
             </div>
             <h2 class="app-title">ClipM</h2>
             <p class="app-description">AI enhanced clipboard manager but more!</p>
-            <a href="#" class="button button-primary">Learn More</a>
-            <a href="#" class="download-button">
-                <img src="images/downloadbutton.png" alt="Download on App Store">
-            </a>
+            <div class="button-container">
+                <a href="#" class="button button-primary">Learn More</a>
+                <a href="#" class="download-button">
+                    <img src="images/downloadbutton.png" alt="Download on App Store">
+                </a>
+            </div>
         </div>
         <img src="/api/placeholder/500/900" alt="ClipM on iPhone" class="device-overlay">
     </div>

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,11 +114,16 @@
             position: relative;
             margin: 30px auto;
             max-width: 1000px;
+            cursor: pointer;
         }
         .app-banner {
             width: 100%;
             height: auto;
             border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .banner-container:hover .app-banner {
+            transform: scale(1.05);
         }
         .banner-overlay {
             position: absolute;
@@ -184,6 +188,36 @@
             font-weight: bold;
             background-color: #0071e3;
             color: white;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .overlay-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        .close-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -283,20 +317,25 @@
         </div>
     </div>
 
-   <div class="app-section" id="contact">
-    <div class="app-content">
-        <h2 class="app-title">Get in Touch</h2>
-        <p class="app-description">Connect with us on social media, join our Telegram support group, or send an email</p>
-        <a href="https://x.com/SeanKly" class="button">X (Twitter)</a>
-        <a href="https://t.me/+urxfCpCtJYllMjhk" class="button">Telegram Support</a>
-        <a href="mailto:showcreative@icloud.com" class="button">Email</a>
+    <div class="app-section" id="contact">
+        <div class="app-content">
+            <h2 class="app-title">Get in Touch</h2>
+            <p class="app-description">Connect with us on social media, join our Telegram support group, or send an email</p>
+            <a href="https://x.com/SeanKly" class="button">X (Twitter)</a>
+            <a href="https://t.me/+urxfCpCtJYllMjhk" class="button">Telegram Support</a>
+            <a href="mailto:showcreative@icloud.com" class="button">Email</a>
+        </div>
     </div>
-</div>
 
     <footer class="footer">
         <p>&copy; 2024 Show Creative. All rights reserved.</p>
         <p><a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
     </footer>
+
+    <div class="overlay" id="imageOverlay">
+        <span class="close-overlay" onclick="closeOverlay()">&times;</span>
+        <img src="" alt="Full size image" class="overlay-image" id="overlayImage">
+    </div>
 
     <script>
         function toggleDropdown() {
@@ -312,6 +351,35 @@
                 }
             }
         }
+
+        function showOverlay(imageSrc) {
+            const overlay = document.getElementById('imageOverlay');
+            const overlayImage = document.getElementById('overlayImage');
+            
+            overlayImage.src = imageSrc;
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+            }, 50);
+        }
+
+        function closeOverlay() {
+            const overlay = document.getElementById('imageOverlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
+
+        // Add click event listeners to all banner images
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannerImages = document.querySelectorAll('.app-banner');
+            bannerImages.forEach(image => {
+                image.addEventListener('click', function() {
+                    showOverlay(this.src);
+                });
+            });
+        });
     </script>
 </body>
 </html>

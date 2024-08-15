@@ -66,6 +66,7 @@
             cursor: pointer;
             font-size: 24px;
             z-index: 1001;
+            padding: 10px;
         }
         .dropdown {
             position: fixed;
@@ -78,12 +79,13 @@
             transition: top 0.3s ease, opacity 0.3s ease;
             opacity: 0;
             padding: 80px 20px 20px;
-            display: flex;
+            display: none;
             justify-content: center;
         }
         .dropdown.show {
             top: 0;
             opacity: 1;
+            display: flex;
         }
         .dropdown-content {
             display: flex;
@@ -128,7 +130,7 @@
             margin-bottom: 10px;
         }
         .blur-overlay {
-            display: block;
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -139,13 +141,16 @@
             transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
         }
         .blur-overlay.show {
+            display: block;
             pointer-events: auto;
             backdrop-filter: blur(10px);
             background-color: rgba(0, 0, 0, 0.5);
         }
         @media (hover: hover) and (pointer: fine) {
-            .menu-container:hover .dropdown,
-            .menu-container:hover .blur-overlay {
+            .menu-icon:hover + .dropdown,
+            .menu-icon:hover + .blur-overlay,
+            .dropdown:hover,
+            .dropdown:hover + .blur-overlay {
                 display: flex;
                 opacity: 1;
                 top: 0;
@@ -335,7 +340,6 @@
         </div>
         <div class="menu-container">
             <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-            <div class="blur-overlay" id="blurOverlay"></div>
             <div class="dropdown" id="myDropdown">
                 <div class="dropdown-content">
                     <div class="app-links">
@@ -352,6 +356,7 @@
                     </div>
                 </div>
             </div>
+            <div class="blur-overlay" id="blurOverlay"></div>
         </div>
     </div>
 
@@ -413,14 +418,14 @@
             <div class="button-container">
                 <a href="https://apps.apple.com/gb/app/clipm/id6523435496" class="download-button">
                     <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
+                    </a>
             </div>
         </div>
     </div>
 
     <div id="contact" class="app-section">
         <h2>Contact Me</h2>
-       <p>Have questions or want to collaborate? Feel free to reach out!</p>
+        <p>Have questions or want to collaborate? Feel free to reach out!</p>
         <a href="mailto:showcreative@icloud.com" class="button">Send an Email</a>
     </div>
 
@@ -497,8 +502,8 @@
 
             if (!supportsHover) {
                 // For mobile devices, add touch event listeners
-                const menuContainer = document.querySelector('.menu-container');
-                menuContainer.addEventListener('touchstart', function(e) {
+                const menuIcon = document.querySelector('.menu-icon');
+                menuIcon.addEventListener('touchstart', function(e) {
                     e.preventDefault(); // Prevent default touch behavior
                     toggleDropdown();
                 });

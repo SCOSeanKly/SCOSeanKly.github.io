@@ -31,15 +31,18 @@
             color: #333;
         }
         .top-bar {
-            background-color: #000;
+            background-color: rgba(0, 0, 0, 0.8);
             color: #fff;
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
         .logo-container {
             display: flex;
@@ -61,25 +64,29 @@
             z-index: 1001;
         }
         .dropdown {
-            display: none;
             position: fixed;
+            left: 0;
             right: 0;
-            top: 0;
+            top: -100%;
             background-color: rgba(0, 0, 0, 0.9);
-            width: 250px;
-            height: 100vh;
-            box-shadow: -5px 0px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            padding-top: 60px;
-            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            transition: top 0.3s ease;
+            padding: 80px 20px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .dropdown.show {
+            top: 0;
         }
         .dropdown a {
             color: white;
-            padding: 15px 25px;
             text-decoration: none;
             display: block;
             font-weight: bold;
             font-size: 1.1em;
+            padding: 10px 20px;
             transition: background-color 0.3s ease;
         }
         .dropdown a:hover {
@@ -93,13 +100,20 @@
             width: 100%;
             height: 100%;
             backdrop-filter: blur(5px);
-            z-index: 999;
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .blur-overlay.show {
+            display: block;
+            opacity: 1;
         }
         .app-section {
             padding: 60px 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
+            margin-top: 50px;
         }
         .app-section:nth-child(odd) {
             background-color: #000;
@@ -364,15 +378,9 @@
         function toggleDropdown() {
             var dropdown = document.getElementById("myDropdown");
             var blurOverlay = document.getElementById("blurOverlay");
-            if (dropdown.style.display === "block") {
-                dropdown.style.display = "none";
-                blurOverlay.style.display = "none";
-                document.body.style.overflow = "auto";
-            } else {
-                dropdown.style.display = "block";
-                blurOverlay.style.display = "block";
-                document.body.style.overflow = "hidden";
-            }
+            dropdown.classList.toggle("show");
+            blurOverlay.classList.toggle("show");
+            document.body.style.overflow = dropdown.classList.contains("show") ? "hidden" : "auto";
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -397,11 +405,11 @@
             // Close dropdown when clicking outside
             document.addEventListener('click', function(event) {
                 var dropdown = document.getElementById("myDropdown");
-                var blurOverlay = document.getElementById("blurOverlay");
+               var blurOverlay = document.getElementById("blurOverlay");
                 var menuIcon = document.querySelector('.menu-icon');
-                if (event.target !== menuIcon && !dropdown.contains(event.target) && dropdown.style.display === "block") {
-                   dropdown.style.display = "none";
-                    blurOverlay.style.display = "none";
+                if (!event.target.closest('.dropdown') && !event.target.matches('.menu-icon') && dropdown.classList.contains("show")) {
+                    dropdown.classList.remove("show");
+                    blurOverlay.classList.remove("show");
                     document.body.style.overflow = "auto";
                 }
             });

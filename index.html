@@ -54,6 +54,8 @@
         .app-section {
             padding: 60px 20px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
         .app-section:nth-child(odd) {
             background-color: #000;
@@ -62,6 +64,17 @@
         .app-section:nth-child(even) {
             background-color: #fff;
             color: #000;
+        }
+        .app-content {
+            position: relative;
+            z-index: 2;
+        }
+        .app-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 22px;
+            overflow: hidden;
         }
         .app-title {
             font-size: 3em;
@@ -84,8 +97,18 @@
             color: white;
         }
         .button-secondary {
-            background-color: rgba(0,0,0,0.1);
+            background-color: rgba(255,255,255,0.1);
             color: #0071e3;
+        }
+        .device-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 500px;
+            z-index: 1;
+            opacity: 0.7;
         }
         .footer {
             background-color: #f5f5f7;
@@ -118,32 +141,52 @@
     </div>
 
     <div class="app-section" id="statcoach">
-        <h2 class="app-title">StatCoach</h2>
-        <p class="app-description">Young football team live stats coach enhanced with AI</p>
-        <a href="#" class="button button-primary">Learn More</a>
-        <a href="#" class="button button-secondary">Download on App Store</a>
+        <div class="app-content">
+            <div class="app-icon">
+                <img src="/api/placeholder/120/120" alt="StatCoach Icon">
+            </div>
+            <h2 class="app-title">StatCoach</h2>
+            <p class="app-description">Young football team live stats coach enhanced with AI</p>
+            <a href="#" class="button button-primary">Learn More</a>
+            <a href="#" class="button button-secondary">Download on App Store</a>
+        </div>
+        <img src="/api/placeholder/500/900" alt="StatCoach on iPhone" class="device-overlay">
     </div>
 
     <div class="app-section" id="mockupm">
-        <h2 class="app-title">Mockupm</h2>
-        <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
-        <a href="#" class="button button-primary">Learn More</a>
-        <a href="#" class="button button-secondary">Download on App Store</a>
+        <div class="app-content">
+            <div class="app-icon">
+                <img src="/api/placeholder/120/120" alt="Mockupm Icon">
+            </div>
+            <h2 class="app-title">Mockupm</h2>
+            <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
+            <a href="#" class="button button-primary">Learn More</a>
+            <a href="#" class="button button-secondary">Download on App Store</a>
+        </div>
+        <img src="/api/placeholder/500/900" alt="Mockupm on iPhone" class="device-overlay">
     </div>
 
     <div class="app-section" id="clipm">
-        <h2 class="app-title">ClipM</h2>
-        <p class="app-description">AI enhanced clipboard manager but more!</p>
-        <a href="#" class="button button-primary">Learn More</a>
-        <a href="#" class="button button-secondary">Download on App Store</a>
+        <div class="app-content">
+            <div class="app-icon">
+                <img src="/api/placeholder/120/120" alt="ClipM Icon">
+            </div>
+            <h2 class="app-title">ClipM</h2>
+            <p class="app-description">AI enhanced clipboard manager but more!</p>
+            <a href="#" class="button button-primary">Learn More</a>
+            <a href="#" class="button button-secondary">Download on App Store</a>
+        </div>
+        <img src="/api/placeholder/500/900" alt="ClipM on iPhone" class="device-overlay">
     </div>
 
     <div class="app-section" id="contact">
-        <h2 class="app-title">Get in Touch</h2>
-        <p class="app-description">Connect with us on social media or send an email</p>
-        <a href="#" class="button button-primary">Twitter</a>
-        <a href="#" class="button button-primary">LinkedIn</a>
-        <a href="mailto:your.email@example.com" class="button button-primary">Email</a>
+        <div class="app-content">
+            <h2 class="app-title">Get in Touch</h2>
+            <p class="app-description">Connect with us on social media or send an email</p>
+            <a href="#" class="button button-primary">Twitter</a>
+            <a href="#" class="button button-primary">LinkedIn</a>
+            <a href="mailto:your.email@example.com" class="button button-primary">Email</a>
+        </div>
     </div>
 
     <footer class="footer">

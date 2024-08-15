@@ -59,14 +59,10 @@
             font-size: 1.2em;
             font-weight: bold;
         }
-        .menu-container {
-            position: relative;
-        }
         .menu-icon {
             cursor: pointer;
             font-size: 24px;
             z-index: 1001;
-            padding: 10px;
         }
         .dropdown {
             position: fixed;
@@ -79,13 +75,12 @@
             transition: top 0.3s ease, opacity 0.3s ease;
             opacity: 0;
             padding: 80px 20px 20px;
-            display: none;
+            display: flex;
             justify-content: center;
         }
         .dropdown.show {
             top: 0;
             opacity: 1;
-            display: flex;
         }
         .dropdown-content {
             display: flex;
@@ -130,7 +125,7 @@
             margin-bottom: 10px;
         }
         .blur-overlay {
-            display: none;
+            display: block;
             position: fixed;
             top: 0;
             left: 0;
@@ -141,20 +136,9 @@
             transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
         }
         .blur-overlay.show {
-            display: block;
             pointer-events: auto;
             backdrop-filter: blur(10px);
             background-color: rgba(0, 0, 0, 0.5);
-        }
-        @media (hover: hover) and (pointer: fine) {
-            .menu-icon:hover + .dropdown,
-            .menu-icon:hover + .blur-overlay,
-            .dropdown:hover,
-            .dropdown:hover + .blur-overlay {
-                display: flex;
-                opacity: 1;
-                top: 0;
-            }
         }
         .app-section {
             padding: 60px 20px;
@@ -338,25 +322,24 @@
             <img src="images/logo.png" alt="Logo" class="logo">
             <span class="welcome-text">Welcome to Show Creative</span>
         </div>
-        <div class="menu-container">
-            <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-            <div class="dropdown" id="myDropdown">
-                <div class="dropdown-content">
-                    <div class="app-links">
-                        <h2>Apps</h2>
-                        <a href="#statcoach" onclick="scrollToSection('statcoach')">StatCoach</a>
-                        <a href="#mockupm" onclick="scrollToSection('mockupm')">MockupM</a>
-                        <a href="#clipm" onclick="scrollToSection('clipm')">ClipM</a>
-                    </div>
-                    <div class="quick-links">
-                        <h2>Quick Links</h2>
-                        <a href="privacy-policy.html">Privacy Policy</a>
-                        <a href="terms-of-use.html">Terms of Use</a>
-                        <a href="about.html">About Me</a>
-                    </div>
-                </div>
+        <div class="menu-icon" onclick="toggleDropdown()">☰</div>
+    </div>
+
+    <div class="blur-overlay" id="blurOverlay"></div>
+    <div class="dropdown" id="myDropdown">
+        <div class="dropdown-content">
+            <div class="app-links">
+                <h2>Apps</h2>
+                <a href="#statcoach" onclick="scrollToSection('statcoach')">StatCoach</a>
+                <a href="#mockupm" onclick="scrollToSection('mockupm')">MockupM</a>
+                <a href="#clipm" onclick="scrollToSection('clipm')">ClipM</a>
             </div>
-            <div class="blur-overlay" id="blurOverlay"></div>
+            <div class="quick-links">
+                <h2>Quick Links</h2>
+                <a href="privacy-policy.html">Privacy Policy</a>
+                <a href="terms-of-use.html">Terms of Use</a>
+                <a href="about.html">About Me</a>
+            </div>
         </div>
     </div>
 
@@ -418,7 +401,7 @@
             <div class="button-container">
                 <a href="https://apps.apple.com/gb/app/clipm/id6523435496" class="download-button">
                     <img src="images/downloadbutton.png" alt="Download on App Store">
-                    </a>
+                </a>
             </div>
         </div>
     </div>
@@ -448,7 +431,7 @@
         }
 
         function scrollToSection(sectionId) {
-            closeDropdown(); // Close the menu
+            toggleDropdown(); // Close the menu
             const section = document.getElementById(sectionId);
             const topOffset = 60; // Adjust this value based on your top bar height
             const elementPosition = section.getBoundingClientRect().top;
@@ -458,14 +441,6 @@
                 top: offsetPosition,
                 behavior: "smooth"
             });
-        }
-
-        function closeDropdown() {
-            var dropdown = document.getElementById("myDropdown");
-            var blurOverlay = document.getElementById("blurOverlay");
-            dropdown.classList.remove("show");
-            blurOverlay.classList.remove("show");
-            document.body.style.overflow = "auto";
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -487,27 +462,17 @@
                 observer.observe(banner);
             });
 
-            // Close dropdown when clicking outside on mobile
+            // Close dropdown when clicking outside
             document.addEventListener('click', function(event) {
                 var dropdown = document.getElementById("myDropdown");
                 var blurOverlay = document.getElementById("blurOverlay");
                 var menuIcon = document.querySelector('.menu-icon');
                 if (!event.target.closest('.dropdown') && !event.target.matches('.menu-icon') && dropdown.classList.contains("show")) {
-                    closeDropdown();
+                    dropdown.classList.remove("show");
+                    blurOverlay.classList.remove("show");
+                    document.body.style.overflow = "auto";
                 }
             });
-
-            // Detect if device supports hover
-            const supportsHover = window.matchMedia("(hover: hover)").matches;
-
-            if (!supportsHover) {
-                // For mobile devices, add touch event listeners
-                const menuIcon = document.querySelector('.menu-icon');
-                menuIcon.addEventListener('touchstart', function(e) {
-                    e.preventDefault(); // Prevent default touch behavior
-                    toggleDropdown();
-                });
-            }
         });
     </script>
 </body>

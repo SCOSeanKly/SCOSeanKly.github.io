@@ -114,7 +114,7 @@
             position: relative;
             margin: 30px auto;
             max-width: 1000px;
-            cursor: pointer;
+            overflow: hidden;
         }
         .app-banner {
             width: 100%;
@@ -123,7 +123,7 @@
             transition: transform 0.3s ease;
         }
         .banner-container:hover .app-banner {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         .banner-overlay {
             position: absolute;
@@ -189,36 +189,6 @@
             background-color: #0071e3;
             color: white;
         }
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .overlay-image {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-        .close-overlay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-size: 30px;
-            cursor: pointer;
-        }
 
         @media (max-width: 768px) {
             .banner-container {
@@ -233,6 +203,9 @@
             }
             .app-description {
                 font-size: 1em;
+            }
+            .banner-container:hover .app-banner {
+                transform: scale(1.05);
             }
         }
     </style>
@@ -332,11 +305,6 @@
         <p><a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
     </footer>
 
-    <div class="overlay" id="imageOverlay">
-        <span class="close-overlay" onclick="closeOverlay()">&times;</span>
-        <img src="" alt="Full size image" class="overlay-image" id="overlayImage">
-    </div>
-
     <script>
         function toggleDropdown() {
             document.getElementById("myDropdown").style.display = 
@@ -351,35 +319,6 @@
                 }
             }
         }
-
-        function showOverlay(imageSrc) {
-            const overlay = document.getElementById('imageOverlay');
-            const overlayImage = document.getElementById('overlayImage');
-            
-            overlayImage.src = imageSrc;
-            overlay.style.display = 'block';
-            setTimeout(() => {
-                overlay.style.opacity = '1';
-            }, 50);
-        }
-
-        function closeOverlay() {
-            const overlay = document.getElementById('imageOverlay');
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 300);
-        }
-
-        // Add click event listeners to all banner images
-        document.addEventListener('DOMContentLoaded', function() {
-            const bannerImages = document.querySelectorAll('.app-banner');
-            bannerImages.forEach(image => {
-                image.addEventListener('click', function() {
-                    showOverlay(this.src);
-                });
-            });
-        });
     </script>
 </body>
 </html>

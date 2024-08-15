@@ -110,7 +110,7 @@
             height: 100%;
             object-fit: cover;
         }
-       .banner-container {
+        .banner-container {
             position: relative;
             margin: 30px auto;
             max-width: 1000px;
@@ -192,7 +192,19 @@
             background-color: #0071e3;
             color: white;
         }
-
+        .social-links {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .social-links a {
+            margin: 0 10px;
+            color: #515154;
+            text-decoration: none;
+        }
+        .social-links a:hover {
+            text-decoration: underline;
+        }
         @media (max-width: 768px) {
             .banner-container {
                 margin: 20px auto;
@@ -294,6 +306,10 @@
     <footer class="footer">
         <p>&copy; 2024 Show Creative. All rights reserved.</p>
         <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
+        <div class="social-links">
+            <a href="https://twitter.com/yourusername" target="_blank">X (Twitter)</a>
+            <a href="https://t.me/yourusername" target="_blank">Telegram</a>
+        </div>
     </footer>
 
     <script>

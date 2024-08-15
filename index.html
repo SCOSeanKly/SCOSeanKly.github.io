@@ -93,13 +93,39 @@
             height: 100%;
             object-fit: cover;
         }
+        .banner-container {
+            position: relative;
+            margin: 30px auto;
+            max-width: 1000px;
+        }
+        .app-banner {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            text-align: left;
+        }
         .app-title {
-            font-size: 3em;
-            margin-bottom: 10px;
+            font-size: 2.5em;
+            margin: 0;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
         .app-description {
-            font-size: 1.5em;
-            margin-bottom: 30px;
+            font-size: 1.2em;
+            margin: 10px 0 0;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
         .button-container {
             display: flex;
@@ -113,14 +139,6 @@
         .download-button img {
             height: 44px;
             width: auto;
-        }
-        .app-banner {
-            width: 100%;
-            max-width: 1000px;
-            height: auto;
-            margin: 30px auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .footer {
             background-color: #f5f5f7;
@@ -170,9 +188,13 @@
             <div class="app-icon">
                 <img src="images/statcoach-icon.png" alt="StatCoach Icon">
             </div>
-            <h2 class="app-title">StatCoach</h2>
-            <p class="app-description">Young football team live stats coach enhanced with AI</p>
-            <img src="images/statcoachbanner.png" alt="StatCoach Banner" class="app-banner">
+            <div class="banner-container">
+                <img src="images/statcoachbanner.png" alt="StatCoach Banner" class="app-banner">
+                <div class="banner-overlay">
+                    <h2 class="app-title">StatCoach</h2>
+                    <p class="app-description">Young football team live stats coach enhanced with AI</p>
+                </div>
+            </div>
             <div class="button-container">
                 <a href="#" class="download-button">
                     <img src="images/downloadbutton.png" alt="Download on App Store">
@@ -186,9 +208,13 @@
             <div class="app-icon">
                 <img src="images/mockupm-icon.png" alt="MockupM Icon">
             </div>
-            <h2 class="app-title">MockupM</h2>
-            <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
-            <img src="images/mockupmbanner.png" alt="MockupM Banner" class="app-banner">
+            <div class="banner-container">
+                <img src="images/mockupmbanner.png" alt="MockupM Banner" class="app-banner">
+                <div class="banner-overlay">
+                    <h2 class="app-title">MockupM</h2>
+                    <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
+                </div>
+            </div>
             <div class="button-container">
                 <a href="#" class="download-button">
                     <img src="images/downloadbutton.png" alt="Download on App Store">
@@ -202,9 +228,13 @@
             <div class="app-icon">
                 <img src="images/clipm-icon.png" alt="ClipM Icon">
             </div>
-            <h2 class="app-title">ClipM</h2>
-            <p class="app-description">AI enhanced clipboard manager but more!</p>
-            <img src="images/clipmbanner.png" alt="ClipM Banner" class="app-banner">
+            <div class="banner-container">
+                <img src="images/clipmbanner.png" alt="ClipM Banner" class="app-banner">
+                <div class="banner-overlay">
+                    <h2 class="app-title">ClipM</h2>
+                    <p class="app-description">AI enhanced clipboard manager but more!</p>
+                </div>
+            </div>
             <div class="button-container">
                 <a href="#" class="download-button">
                     <img src="images/downloadbutton.png" alt="Download on App Store">

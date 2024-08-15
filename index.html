@@ -111,23 +111,23 @@
             object-fit: cover;
         }
        .banner-container {
-    position: relative;
-    margin: 30px auto;
-    max-width: 1000px;
-    overflow: hidden;
-}
-.app-banner {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    transition: transform 0.5s ease, opacity 0.5s ease;
-    transform: scale(0.9); 
-    opacity: 0.7; 
-}
-.banner-container.in-view .app-banner {
-    transform: scale(1.1);
-    opacity: 1;
-}
+            position: relative;
+            margin: 30px auto;
+            max-width: 1000px;
+            overflow: hidden;
+        }
+        .app-banner {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            transform: scale(0.9); 
+            opacity: 0.7; 
+        }
+        .banner-container.in-view .app-banner {
+            transform: scale(1.1);
+            opacity: 1;
+        }
         .banner-overlay {
             position: absolute;
             top: 0;
@@ -218,9 +218,10 @@
         </div>
         <div class="menu-icon" onclick="toggleDropdown()">☰</div>
         <div class="dropdown" id="myDropdown">
-            <a href="https://apps.apple.com/gb/app/statcoach/id6578456085">StatCoach</a>
-            <a href="https://apps.apple.com/gb/app/mockup-m/id6467768436">Mockupm</a>
-            <a href="https://apps.apple.com/gb/app/clipm/id6523435496">ClipM</a>
+            <a href="about.html">About Me</a>
+            <a href="#statcoach">StatCoach</a>
+            <a href="#mockupm">Mockupm</a>
+            <a href="#clipm">ClipM</a>
             <a href="#contact">Contact</a>
             <a href="https://new.express.adobe.com/webpage/mC9NZUDuEVfQ8">Privacy Policy</a>
             <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Terms of Use</a>
@@ -292,7 +293,7 @@
 
     <footer class="footer">
         <p>&copy; 2024 Show Creative. All rights reserved.</p>
-        <p><a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
+        <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
     </footer>
 
     <script>
@@ -310,7 +311,6 @@
             }
         }
 
-        // New JavaScript for scroll-based scaling effect
         document.addEventListener('DOMContentLoaded', function() {
             const banners = document.querySelectorAll('.banner-container');
             
@@ -323,7 +323,7 @@
                     }
                 });
             }, {
-                threshold: 0.4 // Adjust this value to change when the animation triggers
+                threshold: 0.4
             });
 
             banners.forEach(banner => {

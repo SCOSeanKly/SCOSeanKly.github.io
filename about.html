@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About SCOSeanKly - iOS Developer</title>
+    <style>
+        @font-face {
+            font-family: 'Neue Haas Display';
+            src: url('fonts/NeueHaasDisplayBold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Neue Haas Display';
+            src: url('fonts/NeueHaasDisplayMedium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Neue Haas Display';
+            src: url('fonts/NeueHaasDisplayLight.ttf') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Neue Haas Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            background-color: #000;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        .about-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .profile-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 40px;
+            margin-bottom: 30px;
+        }
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .about-text {
+            flex: 1;
+            min-width: 300px;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .skill-tag {
+            background-color: #0071e3;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            background-color: #0071e3;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .about-content {
+                flex-direction: column;
+                align-items: center;
+            }
+            .profile-image {
+                margin-right: 0;
+            }
+            .about-text {
+                text-align: center;
+            }
+            .skills {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="about-content">
+            <div class="profile-image">
+                <img src="images/profile-picture.jpg" alt="SCOSeanKly">
+            </div>
+            <div class="about-text">
+                <h1>About Me</h1>
+                <p>Hi, I'm SCOSeanKly, an iOS developer passionate about creating intuitive and innovative applications. With a background in [Your Background], I've dedicated my career to pushing the boundaries of what's possible in mobile app development.</p>
+                <p>My journey in tech has led me to develop a range of apps, from AI-powered sports analytics to creative design tools. I believe in the power of technology to enhance everyday experiences and solve real-world problems.</p>
+                <div class="skills">
+                    <span class="skill-tag">Swift</span>
+                    <span class="skill-tag">UIKit</span>
+                    <span class="skill-tag">SwiftUI</span>
+                    <span class="skill-tag">Core ML</span>
+                    <span class="skill-tag">ARKit</span>
+                    <span class="skill-tag">iOS Development</span>
+                </div>
+                <a href="index.html" class="back-button">Back to Portfolio</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -59,6 +59,9 @@
             font-size: 1.2em;
             font-weight: bold;
         }
+        .menu-container {
+            position: relative;
+        }
         .menu-icon {
             cursor: pointer;
             font-size: 24px;
@@ -139,6 +142,14 @@
             pointer-events: auto;
             backdrop-filter: blur(10px);
             background-color: rgba(0, 0, 0, 0.5);
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .menu-container:hover .dropdown,
+            .menu-container:hover .blur-overlay {
+                display: flex;
+                opacity: 1;
+                top: 0;
+            }
         }
         .app-section {
             padding: 60px 20px;
@@ -322,23 +333,24 @@
             <img src="images/logo.png" alt="Logo" class="logo">
             <span class="welcome-text">Welcome to Show Creative</span>
         </div>
-        <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-    </div>
-
-    <div class="blur-overlay" id="blurOverlay"></div>
-    <div class="dropdown" id="myDropdown">
-        <div class="dropdown-content">
-            <div class="app-links">
-                <h2>Apps</h2>
-                <a href="#statcoach" onclick="scrollToSection('statcoach')">StatCoach</a>
-                <a href="#mockupm" onclick="scrollToSection('mockupm')">MockupM</a>
-                <a href="#clipm" onclick="scrollToSection('clipm')">ClipM</a>
-            </div>
-            <div class="quick-links">
-                <h2>Quick Links</h2>
-                <a href="privacy-policy.html">Privacy Policy</a>
-                <a href="terms-of-use.html">Terms of Use</a>
-                <a href="about.html">About Me</a>
+        <div class="menu-container">
+            <div class="menu-icon" onclick="toggleDropdown()">☰</div>
+            <div class="blur-overlay" id="blurOverlay"></div>
+            <div class="dropdown" id="myDropdown">
+                <div class="dropdown-content">
+                    <div class="app-links">
+                        <h2>Apps</h2>
+                        <a href="#statcoach" onclick="scrollToSection('statcoach')">StatCoach</a>
+                        <a href="#mockupm" onclick="scrollToSection('mockupm')">MockupM</a>
+                        <a href="#clipm" onclick="scrollToSection('clipm')">ClipM</a>
+                    </div>
+                    <div class="quick-links">
+                        <h2>Quick Links</h2>
+                        <a href="privacy-policy.html">Privacy Policy</a>
+                        <a href="terms-of-use.html">Terms of Use</a>
+                        <a href="about.html">About Me</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -408,7 +420,7 @@
 
     <div id="contact" class="app-section">
         <h2>Contact Me</h2>
-        <p>Have questions or want to collaborate? Feel free to reach out!</p>
+       <p>Have questions or want to collaborate? Feel free to reach out!</p>
         <a href="mailto:showcreative@icloud.com" class="button">Send an Email</a>
     </div>
 
@@ -431,7 +443,7 @@
         }
 
         function scrollToSection(sectionId) {
-            toggleDropdown(); // Close the menu
+            closeDropdown(); // Close the menu
             const section = document.getElementById(sectionId);
             const topOffset = 60; // Adjust this value based on your top bar height
             const elementPosition = section.getBoundingClientRect().top;
@@ -441,6 +453,14 @@
                 top: offsetPosition,
                 behavior: "smooth"
             });
+        }
+
+        function closeDropdown() {
+            var dropdown = document.getElementById("myDropdown");
+            var blurOverlay = document.getElementById("blurOverlay");
+            dropdown.classList.remove("show");
+            blurOverlay.classList.remove("show");
+            document.body.style.overflow = "auto";
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -462,17 +482,27 @@
                 observer.observe(banner);
             });
 
-            // Close dropdown when clicking outside
+            // Close dropdown when clicking outside on mobile
             document.addEventListener('click', function(event) {
                 var dropdown = document.getElementById("myDropdown");
                 var blurOverlay = document.getElementById("blurOverlay");
                 var menuIcon = document.querySelector('.menu-icon');
                 if (!event.target.closest('.dropdown') && !event.target.matches('.menu-icon') && dropdown.classList.contains("show")) {
-                    dropdown.classList.remove("show");
-                    blurOverlay.classList.remove("show");
-                    document.body.style.overflow = "auto";
+                    closeDropdown();
                 }
             });
+
+            // Detect if device supports hover
+            const supportsHover = window.matchMedia("(hover: hover)").matches;
+
+            if (!supportsHover) {
+                // For mobile devices, add touch event listeners
+                const menuContainer = document.querySelector('.menu-container');
+                menuContainer.addEventListener('touchstart', function(e) {
+                    e.preventDefault(); // Prevent default touch behavior
+                    toggleDropdown();
+                });
+            }
         });
     </script>
 </body>

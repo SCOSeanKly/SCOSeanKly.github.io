@@ -120,10 +120,13 @@
             width: 100%;
             height: auto;
             border-radius: 10px;
-            transition: transform 0.3s ease;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            transform: scale(0.95);
+            opacity: 0.8;
         }
-        .banner-container:hover .app-banner {
-            transform: scale(1.1);
+        .banner-container.in-view .app-banner {
+            transform: scale(1);
+            opacity: 1;
         }
         .banner-overlay {
             position: absolute;
@@ -203,9 +206,6 @@
             }
             .app-description {
                 font-size: 1em;
-            }
-            .banner-container:hover .app-banner {
-                transform: scale(1.05);
             }
         }
     </style>
@@ -290,15 +290,6 @@
         </div>
     </div>
 
-  <div class="dropdown" id="myDropdown">
-    <a href="https://apps.apple.com/gb/app/statcoach/id6578456085">StatCoach</a>
-    <a href="https://apps.apple.com/gb/app/mockup-m/id6467768436">Mockupm</a>
-    <a href="https://apps.apple.com/gb/app/clipm/id6523435496">ClipM</a>
-    <a href="#contact">Contact</a>
-    <a href="privacy-policy.html">Privacy Policy</a>
-    <a href="terms-of-use.html">Terms of Use</a>
-</div>
-
     <footer class="footer">
         <p>&copy; 2024 Show Creative. All rights reserved.</p>
         <p><a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
@@ -318,6 +309,27 @@
                 }
             }
         }
+
+        // New JavaScript for scroll-based scaling effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const banners = document.querySelectorAll('.banner-container');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                    } else {
+                        entry.target.classList.remove('in-view');
+                    }
+                });
+            }, {
+                threshold: 0.2 // Adjust this value to change when the animation triggers
+            });
+
+            banners.forEach(banner => {
+                observer.observe(banner);
+            });
+        });
     </script>
 </body>
 </html>

@@ -71,42 +71,72 @@
             background-color: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(10px);
             z-index: 999;
-            transition: top 0.3s ease;
+            transition: top 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
             padding: 80px 20px 20px;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
+            justify-content: center;
         }
         .dropdown.show {
             top: 0;
+            opacity: 1;
+        }
+        .dropdown-content {
+            display: flex;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .app-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .quick-links {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 40px;
+        }
+        .dropdown h2 {
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 15px;
         }
         .dropdown a {
             color: white;
             text-decoration: none;
             display: block;
-            font-weight: bold;
-            font-size: 1.1em;
-            padding: 10px 20px;
-            transition: background-color 0.3s ease;
+            transition: color 0.3s ease;
         }
         .dropdown a:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            color: #0071e3;
+        }
+        .app-links a {
+            font-weight: bold;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        .quick-links a {
+            font-size: 1em;
+            margin-bottom: 10px;
         }
         .blur-overlay {
-            display: none;
+            display: block;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            backdrop-filter: blur(5px);
+            pointer-events: none;
             z-index: 998;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: backdrop-filter 0.3s ease, background-color 0.3s ease;
         }
         .blur-overlay.show {
-            display: block;
-            opacity: 1;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            background-color: rgba(0, 0, 0, 0.5);
         }
         .app-section {
             padding: 60px 20px;
@@ -261,6 +291,13 @@
             display: inline-block;
         }
         @media (max-width: 768px) {
+            .dropdown-content {
+                flex-direction: column;
+            }
+            .quick-links {
+                margin-left: 0;
+                margin-top: 20px;
+            }
             .banner-container {
                 margin: 20px auto;
             }
@@ -288,12 +325,20 @@
 
     <div class="blur-overlay" id="blurOverlay"></div>
     <div class="dropdown" id="myDropdown">
-        <a href="#statcoach">StatCoach</a>
-        <a href="#mockupm">Mockupm</a>
-        <a href="#clipm">ClipM</a>
-        <a href="privacy-policy.html">Privacy Policy</a>
-        <a href="terms-of-use.html">Terms of Use</a>
-        <a href="about.html">About Me</a>  
+        <div class="dropdown-content">
+            <div class="app-links">
+                <h2>Apps</h2>
+                <a href="#statcoach">StatCoach</a>
+                <a href="#mockupm">MockupM</a>
+                <a href="#clipm">ClipM</a>
+            </div>
+            <div class="quick-links">
+                <h2>Quick Links</h2>
+                <a href="privacy-policy.html">Privacy Policy</a>
+                <a href="terms-of-use.html">Terms of Use</a>
+                <a href="about.html">About Me</a>
+            </div>
+        </div>
     </div>
 
     <div class="app-section" id="statcoach">
@@ -367,7 +412,7 @@
 
     <footer class="footer">
         <p>&copy; 2024 Show Creative. All rights reserved.</p>
-        <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
+       <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
         <div class="social-links">
             <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
             <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
@@ -405,7 +450,7 @@
             // Close dropdown when clicking outside
             document.addEventListener('click', function(event) {
                 var dropdown = document.getElementById("myDropdown");
-               var blurOverlay = document.getElementById("blurOverlay");
+                var blurOverlay = document.getElementById("blurOverlay");
                 var menuIcon = document.querySelector('.menu-icon');
                 if (!event.target.closest('.dropdown') && !event.target.matches('.menu-icon') && dropdown.classList.contains("show")) {
                     dropdown.classList.remove("show");

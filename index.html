@@ -86,18 +86,15 @@
             display: flex;
             max-width: 1200px;
             width: 100%;
+            justify-content: space-between;
         }
-        .app-links {
+        .app-links, .quick-links, .social-links-dropdown {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
         }
-        .quick-links {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+        .quick-links, .social-links-dropdown {
             margin-left: 40px;
         }
         .dropdown h2 {
@@ -120,7 +117,7 @@
             font-weight: bold;
             margin-bottom: 15px;
         }
-        .quick-links a {
+        .quick-links a, .social-links-dropdown a {
             font-size: 1.2em;
             margin-bottom: 10px;
         }
@@ -296,7 +293,7 @@
             .dropdown-content {
                 flex-direction: column;
             }
-            .quick-links {
+            .quick-links, .social-links-dropdown {
                 margin-left: 0;
                 margin-top: 20px;
             }
@@ -326,7 +323,7 @@
     </div>
 
     <div class="blur-overlay" id="blurOverlay"></div>
-    <div class="dropdown" id="myDropdown">
+   <div class="dropdown" id="myDropdown">
         <div class="dropdown-content">
             <div class="app-links">
                 <h2>Apps</h2>
@@ -339,6 +336,11 @@
                 <a href="privacy-policy.html">Privacy Policy</a>
                 <a href="terms-of-use.html">Terms of Use</a>
                 <a href="about.html">About Me</a>
+            </div>
+            <div class="social-links-dropdown">
+                <h2>Social</h2>
+                <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
+                <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
             </div>
         </div>
     </div>

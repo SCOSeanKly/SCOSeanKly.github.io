@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCOSeanKly's iOS App Portfolio</title>
+    <title>About Sean - Innovative iOS Developer</title>
     <style>
         @font-face {
             font-family: 'Neue Haas Display';
@@ -28,353 +28,144 @@
             padding: 0;
             font-family: 'Neue Haas Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
-            color: #333;
-        }
-        .top-bar {
-            background-color: #000;
             color: #fff;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        .logo-container {
-            display: flex;
-            align-items: center;
-        }
-        .logo {
-            width: 30px;
-            height: 30px;
-            border-radius: 30px;
-            margin-right: 10px;
-        }
-        .welcome-text {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .menu-icon {
-            cursor: pointer;
-            font-size: 24px;
-        }
-        .dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 50px;
             background-color: #000;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
         }
-        .dropdown a {
-            color: white;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-        .dropdown a:hover {
-            background-color: #333;
-        }
-        .app-section {
-            padding: 60px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .app-section:nth-child(odd) {
-            background-color: #000;
-            color: #fff;
-        }
-        .app-section:nth-child(even) {
-            background-color: #fff;
-            color: #000;
-        }
-        .app-content {
-            position: relative;
-            z-index: 2;
+        .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 60px 20px;
         }
-        .app-icon {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            border-radius: 27px;
+        .about-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .profile-image {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
             overflow: hidden;
+            margin-right: 40px;
+            margin-bottom: 30px;
         }
-        .app-icon img {
+        .profile-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .banner-container {
-            position: relative;
-            margin: 30px auto;
-            max-width: 1000px;
-            overflow: hidden;
+        .about-text {
+            flex: 1;
+            min-width: 300px;
         }
-        .app-banner {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-            transform: scale(0.9); 
-            opacity: 0.7; 
-        }
-        .banner-container.in-view .app-banner {
-            transform: scale(1.1);
-            opacity: 1;
-        }
-        .banner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            text-align: center;
-        }
-        .app-title {
+        h1 {
             font-size: 2.5em;
-            margin: 0;
+            margin-bottom: 20px;
             font-weight: bold;
         }
-        .app-description {
+        p {
             font-size: 1.2em;
-            margin: 10px 0 0;
-            font-weight: 500;
-        }
-        .app-body {
-            font-size: 1em;
-            color: #86868b;
-            margin: 20px 0;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            line-height: 1.6;
+            margin-bottom: 20px;
             font-weight: 300;
+            color: #86868b;
         }
-        .button-container {
+        .skills {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-wrap: wrap;
             margin-top: 20px;
         }
-        .download-button {
-            display: inline-block;
-        }
-        .download-button img {
-            height: 44px;
-            width: auto;
-        }
-        .footer {
-            background-color: #f5f5f7;
-            color: #86868b;
-            text-align: center;
-            padding: 20px;
+        .skill-tag {
+            background-color: #0071e3;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 5px;
             font-size: 0.9em;
+            font-weight: 500;
         }
-        .footer a {
-            color: #515154;
-            text-decoration: none;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        .button {
+        .back-button {
             display: inline-block;
             padding: 10px 20px;
-            margin: 10px;
+            margin-top: 20px;
             border-radius: 20px;
             text-decoration: none;
             font-weight: bold;
             background-color: #0071e3;
             color: white;
         }
+        .contact-info {
+            margin-top: 30px;
+        }
+        .contact-info h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #fff;
+        }
         .social-links {
             display: flex;
-            justify-content: center;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 15px;
         }
         .social-links a {
-            margin: 0 10px;
-            color: #515154;
+            color: #0071e3;
             text-decoration: none;
+            font-weight: 500;
         }
         .social-links a:hover {
             text-decoration: underline;
         }
-        #contact {
-            padding: 60px 20px;
-            text-align: center;
-            background-color: #000;
-            color: #fff;
-        }
-        #contact h2 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-        #contact p {
-            font-size: 1.1em;
-            max-width: 600px;
-            margin: 0 auto 20px;
-        }
-        #contact .button {
-            background-color: #0071e3;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-block;
-        }
         @media (max-width: 768px) {
-            .banner-container {
-                margin: 20px auto;
+            .about-content {
+                flex-direction: column;
+                align-items: center;
             }
-            .banner-overlay {
-                position: static;
-                padding: 20px 0;
+            .profile-image {
+                margin-right: 0;
             }
-            .app-title {
-                font-size: 2em;
+            .about-text {
+                text-align: center;
             }
-            .app-description {
-                font-size: 1em;
+            .skills {
+                justify-content: center;
+            }
+            .social-links {
+                justify-content: center;
             }
         }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <div class="logo-container">
-            <img src="images/logo.png" alt="Logo" class="logo">
-            <span class="welcome-text">Welcome to Show Creative</span>
-        </div>
-        <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-        <div class="dropdown" id="myDropdown">
-            <a href="#statcoach">StatCoach</a>
-            <a href="#mockupm">Mockupm</a>
-            <a href="#clipm">ClipM</a>
-            <a href="privacy-policy.html">Privacy Policy</a>
-            <a href="terms-of-use.html">Terms of Use</a>
-            <a href="about.html">About Me</a>  
-        </div>
-    </div>
-
-    <div class="app-section" id="statcoach">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/statcoach-icon.png" alt="StatCoach Icon">
+    <div class="container">
+        <div class="about-content">
+            <div class="profile-image">
+                <img src="images/profile-picture.jpg" alt="Sean">
             </div>
-            <div class="banner-container">
-                <img src="images/statcoachbanner.png" alt="StatCoach Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">StatCoach</h2>
-                    <p class="app-description">AI powered football team management</p>
+            <div class="about-text">
+                <h1>About Me</h1>
+                <p>Hi, I'm Sean, an innovative iOS developer with a track record of creating intuitive and groundbreaking applications. Over the past two years, I've rapidly established myself in the world of app development, specializing in SwiftUI and pushing the boundaries of what's possible on iOS.</p>
+                <p>As a dynamic indie developer, I thrive on challenges and continuously evolve my skills to stay at the forefront of mobile technology. My portfolio spans from AI-powered sports analytics to creative design tools, showcasing my versatility and commitment to solving real-world problems through cutting-edge mobile solutions. With each project, I aim to transform ideas into polished, user-centric apps that make a tangible difference in people's lives.</p>
+                <div class="skills">
+                    <span class="skill-tag">Swift</span>
+                    <span class="skill-tag">UIKit</span>
+                    <span class="skill-tag">SwiftUI</span>
+                    <span class="skill-tag">Core ML</span>
+                    <span class="skill-tag">ARKit</span>
+                    <span class="skill-tag">iOS Development</span>
                 </div>
-            </div>
-            <p class="app-body">StatCoach is an innovative app designed to help young football teams track and analyze their performance in real-time. With AI-enhanced features, it provides valuable insights and coaching suggestions to improve team strategy and player development.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/statcoach/id6578456085" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-section" id="mockupm">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/mockupm-icon.png" alt="MockupM Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/mockupmbanner.png" alt="MockupM Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">MockupM</h2>
-                    <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
+                <div class="contact-info">
+                    <h2>Contact Me</h2>
+                    <p>Interested in collaboration or have a project in mind? Let's connect and bring your ideas to life!</p>
+                    <div class="social-links">
+                        <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
+                        <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
+                    </div>
                 </div>
-            </div>
-            <p class="app-body">MockupM is the ultimate tool for creating stunning iPhone mockups and discovering a vast collection of wallpapers. Whether you're a designer, developer, or enthusiast, MockupM provides an easy-to-use interface to showcase your apps or personalize your device.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/mockup-m/id6467768436" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
+                <a href="index.html" class="back-button">Back to Portfolio</a>
             </div>
         </div>
     </div>
-
-    <div class="app-section" id="clipm">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/clipm-icon.png" alt="ClipM Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/clipmbanner.png" alt="ClipM Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">ClipM</h2>
-                    <p class="app-description">Your smart AI clipboard companion</p>
-                </div>
-            </div>
-            <p class="app-body">ClipM revolutionizes your clipboard experience with AI-powered enhancements. This intelligent clipboard manager goes beyond simple copy and paste, offering smart organization, content suggestions, and seamless integration with your workflow.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/clipm/id6523435496" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div id="contact" class="app-section">
-        <h2>Contact Me</h2>
-        <p>Have questions or want to collaborate? Feel free to reach out!</p>
-        <a href="mailto:showcreative@icloud.com" class="button">Send an Email</a>
-    </div>
-
-    <footer class="footer">
-        <p>&copy; 2024 Show Creative. All rights reserved.</p>
-        <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a></p>
-        <div class="social-links">
-            <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
-            <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
-        </div>
-    </footer>
-
-    <script>
-        function toggleDropdown() {
-            document.getElementById("myDropdown").style.display = 
-                document.getElementById("myDropdown").style.display === "block" ? "none" : "block";
-        }
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.menu-icon')) {
-                var dropdown = document.getElementById("myDropdown");
-                if (dropdown.style.display === "block") {
-                    dropdown.style.display = "none";
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const banners = document.querySelectorAll('.banner-container');
-            
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('in-view');
-                    } else {
-                        entry.target.classList.remove('in-view');
-                    }
-                });
-            }, {
-                threshold: 0.4
-            });
-
-            banners.forEach(banner => {
-                observer.observe(banner);
-            });
-        });
-    </script>
 </body>
 </html>

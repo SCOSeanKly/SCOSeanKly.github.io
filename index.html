@@ -110,24 +110,24 @@
             height: 100%;
             object-fit: cover;
         }
-        .banner-container {
-            position: relative;
-            margin: 30px auto;
-            max-width: 1000px;
-            overflow: hidden;
-        }
-        .app-banner {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
-        .banner-container.in-view .app-banner {
-            transform: scale(1);
-            opacity: 1;
-        }
+       .banner-container {
+    position: relative;
+    margin: 30px auto;
+    max-width: 1000px;
+    overflow: hidden;
+}
+.app-banner {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    transform: scale(0.9); 
+    opacity: 0.7; 
+}
+.banner-container.in-view .app-banner {
+    transform: scale(1.1);
+    opacity: 1;
+}
         .banner-overlay {
             position: absolute;
             top: 0;

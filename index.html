@@ -272,19 +272,19 @@
             text-decoration: underline;
         }
         #contact {
-            padding: 60px 20px;
-            text-align: center;
-            background-color: #000;
-            color: #fff;
+            background-color: #f5f5f7;
+            color: #000;
         }
         #contact h2 {
             font-size: 2.5em;
             margin-bottom: 20px;
+            color: #1d1d1f;
         }
         #contact p {
             font-size: 1.1em;
             max-width: 600px;
             margin: 0 auto 20px;
+            color: #515154;
         }
         #contact .button {
             background-color: #0071e3;
@@ -294,6 +294,10 @@
             border-radius: 20px;
             font-weight: bold;
             display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+        #contact .button:hover {
+            background-color: #0077ED;
         }
         @media (max-width: 768px) {
             .dropdown-content {
@@ -329,7 +333,7 @@
     </div>
 
     <div class="blur-overlay" id="blurOverlay"></div>
-   <div class="dropdown" id="myDropdown">
+    <div class="dropdown" id="myDropdown">
         <div class="dropdown-content">
             <div class="app-links">
                 <h2>Apps</h2>
@@ -402,7 +406,7 @@
             <div class="banner-container">
                 <img src="images/clipmbanner.png" alt="ClipM Banner" class="app-banner">
                 <div class="banner-overlay">
-                    <h2 class="app-title">ClipM</h2>
+                   <h2 class="app-title">ClipM</h2>
                     <p class="app-description">Your smart AI clipboard companion</p>
                 </div>
             </div>
@@ -423,7 +427,7 @@
             <div class="banner-container">
                 <img src="images/showaebanner.png" alt="ShowAE Banner" class="app-banner">
                 <div class="banner-overlay">
-                    <h2 class="app-title">ClipM</h2>
+                    <h2 class="app-title">ShowAE</h2>
                     <p class="app-description">Icon theming made super easy</p>
                 </div>
             </div>

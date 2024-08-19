@@ -236,7 +236,7 @@ body, html {
     font-weight: 500;
 }
 
-/* Styles for the blur effect */
+/* New styles for the blur effect */
 .app-title, .app-description {
     filter: blur(5px);
     opacity: 0;
@@ -257,23 +257,6 @@ body, html {
     margin-left: auto;
     margin-right: auto;
     font-weight: 300;
-    opacity: 0;
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-
-/* For sections with black background (odd sections) */
-.app-section:nth-child(odd) .app-body {
-    transform: translateX(20px);
-}
-
-/* For sections with white background (even sections) */
-.app-section:nth-child(even) .app-body {
-    transform: translateX(-20px);
-}
-
-.app-body.in-view {
-    opacity: 1;
-    transform: translateX(0);
 }
 
 .button-container {

@@ -70,22 +70,23 @@
             font-size: 24px;
             z-index: 1001;
         }
-        .dropdown {
-            position: fixed;
-            left: 0;
-            right: 0;
-            top: -100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 999;
-            transition: top 0.3s ease, opacity 0.3s ease;
-            opacity: 0;
-            padding: 80px 20px 20px;
-            display: flex;
-            justify-content: center;
-            max-height: 100vh;
-            overflow-y: auto;
-        }
+     .dropdown {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 999;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    padding: 80px 20px 20px;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto; /* Make the entire dropdown scrollable */
+    pointer-events: none;
+}
         .dropdown.show {
             top: 0;
             opacity: 1;

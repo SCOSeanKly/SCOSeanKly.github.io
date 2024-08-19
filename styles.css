@@ -240,7 +240,7 @@ body, html {
 .app-title, .app-description {
     filter: blur(5px);
     opacity: 0;
-    transition: filter 1s ease-out, opacity 1s ease-out;
+    transition: filter 0.5s ease-out, opacity 0.5s ease-out;
 }
 
 .banner-container.in-view .app-title,

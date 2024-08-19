@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     entry.target.querySelector('.app-title').style.opacity = '1';
                     entry.target.querySelector('.app-description').style.filter = 'blur(0)';
                     entry.target.querySelector('.app-description').style.opacity = '1';
-                }, 300);
+                }, 150);
             } else {
                 entry.target.classList.remove('in-view');
                 // Reset the blur effect when out of view

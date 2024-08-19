@@ -26,35 +26,43 @@ function scrollToSection(sectionId) {
 // Wait for the DOM to be fully loaded before executing
 document.addEventListener('DOMContentLoaded', function() {
     const banners = document.querySelectorAll('.banner-container');
+    const appBodies = document.querySelectorAll('.app-body');
     
     // Create an Intersection Observer
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('in-view');
-                // Add a slight delay to the text animation
-                setTimeout(() => {
-                    entry.target.querySelector('.app-title').style.filter = 'blur(0)';
-                    entry.target.querySelector('.app-title').style.opacity = '1';
-                    entry.target.querySelector('.app-description').style.filter = 'blur(0)';
-                    entry.target.querySelector('.app-description').style.opacity = '1';
-                }, 150);
+                if (entry.target.classList.contains('banner-container')) {
+                    // Banner animation code
+                    setTimeout(() => {
+                        entry.target.querySelector('.app-title').style.filter = 'blur(0)';
+                        entry.target.querySelector('.app-title').style.opacity = '1';
+                        entry.target.querySelector('.app-description').style.filter = 'blur(0)';
+                        entry.target.querySelector('.app-description').style.opacity = '1';
+                    }, 150);
+                }
             } else {
                 entry.target.classList.remove('in-view');
-                // Reset the blur effect when out of view
-                entry.target.querySelector('.app-title').style.filter = 'blur(5px)';
-                entry.target.querySelector('.app-title').style.opacity = '0';
-                entry.target.querySelector('.app-description').style.filter = 'blur(5px)';
-                entry.target.querySelector('.app-description').style.opacity = '0';
+                if (entry.target.classList.contains('banner-container')) {
+                    // Reset the blur effect when out of view
+                    entry.target.querySelector('.app-title').style.filter = 'blur(5px)';
+                    entry.target.querySelector('.app-title').style.opacity = '0';
+                    entry.target.querySelector('.app-description').style.filter = 'blur(5px)';
+                    entry.target.querySelector('.app-description').style.opacity = '0';
+                }
             }
         });
     }, {
-        threshold: 0.4 // Trigger when 40% of the element is visible
+        threshold: 0.2 // Trigger when 20% of the element is visible
     });
 
-    // Observe all banner containers
+    // Observe all banner containers and app bodies
     banners.forEach(banner => {
         observer.observe(banner);
+    });
+    appBodies.forEach(body => {
+        observer.observe(body);
     });
 
     // Close dropdown when clicking outside

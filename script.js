@@ -32,13 +32,13 @@ document.addEventListener('DOMContentLoaded', function() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('in-view');
-                // Add a slight delay to the text animation
+                // Existing banner animation code
                 setTimeout(() => {
                     entry.target.querySelector('.app-title').style.filter = 'blur(0)';
                     entry.target.querySelector('.app-title').style.opacity = '1';
                     entry.target.querySelector('.app-description').style.filter = 'blur(0)';
                     entry.target.querySelector('.app-description').style.opacity = '1';
-                }, 300);
+                }, 150);
             } else {
                 entry.target.classList.remove('in-view');
                 // Reset the blur effect when out of view

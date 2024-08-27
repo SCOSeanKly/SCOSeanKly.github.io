@@ -55,6 +55,24 @@
             color: var(--secondary-color);
         }
 
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .menu-toggle span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background-color: var(--secondary-color);
+            transition: all 0.3s ease;
+        }
+
         .nav-links {
             display: flex;
             gap: 30px;
@@ -126,6 +144,18 @@
             margin-bottom: 30px;
         }
 
+        .hero-logo {
+    max-width: 100px; /* Adjust this value as needed */
+    height: auto;
+    margin-bottom: 20px;
+}
+
+@media screen and (max-width: 768px) {
+    .hero-logo {
+        display: none;
+    }
+}
+
         .cta-button {
             display: inline-block;
             background-color: var(--secondary-color);
@@ -160,7 +190,7 @@
             color: var(--secondary-color);
         }
 
-         .features .section-title {
+        .features .section-title {
             color: var(--secondary-color);
         }
 
@@ -235,7 +265,7 @@
             font-style: italic;
             color: var(--accent-color);
             margin-bottom: 20px;
-        } 
+        }
 
         .about-content {
             display: flex;
@@ -258,54 +288,6 @@
         .about-text {
             flex: 1;
         }
-
-        @media screen and (max-width: 768px) {
-    .about-content {
-        flex-direction: column;
-        gap: 30px;
-    }
-
-    .about-image,
-    .about-text {
-        flex: none;
-        width: 100%;
-    }
-
-    .about-image {
-        order: -1; /* This moves the image above the text */
-    }
-}
-
-/* Media query for tablets and narrow screens */
-@media screen and (max-width: 768px) {
-    nav {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .logo {
-        font-size: 20px;
-        margin-bottom: 10px;
-    }
-
-    .nav-links {
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-}
-
-/* Media query for mobile devices */
-@media screen and (max-width: 480px) {
-    .logo {
-        font-size: 18px;
-    }
-
-    .nav-links {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-}
 
         .team-grid {
             display: grid;
@@ -487,14 +469,65 @@
             color: var(--accent-color);
         }
 
-        /* Media query for tablets and narrow screens */
         @media screen and (max-width: 768px) {
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100%;
+                height: 100vh;
+                background-color: var(--primary-color);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                transition: right 0.3s ease;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .nav-links a {
+                font-size: 24px;
+                margin: 20px 0;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+
             .feature-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .about-content {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .about-image,
+            .about-text {
+                flex: none;
+                width: 100%;
+            }
+
+            .about-image {
+                order: -1;
+            }
         }
 
-        /* Media query for mobile devices */
         @media screen and (max-width: 480px) {
             .feature-grid {
                 grid-template-columns: 1fr;
@@ -513,7 +546,8 @@
                 transform: none;
             }
 
-            .feature-card-front, .feature-card-back {
+            .feature-card-front,
+            .feature-card-back {
                 position: relative;
                 height: auto;
                 transform: none;
@@ -538,6 +572,11 @@
     <header>
         <nav class="container">
             <div class="logo">Cumnock Juniors 2011</div>
+            <div class="menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
             <div class="nav-links">
                 <a href="#home">Home</a>
                 <a href="#about">About</a>
@@ -551,11 +590,16 @@
 
     <main>
         <section id="home" class="hero">
-            <img src="images/header-image.jpg" alt="Hero Image" class="hero-image">
+            <img src="cjImages/header-image.jpg" alt="Hero Image" class="hero-image">
             <div class="hero-overlay">
                 <div class="hero-content">
-                    <h2>Inspiring Young Footballers</h2>
-                    <p>Reach your full potential with us</p>
+                    <div class="hero-logo-text">
+                        <img src="cjImages/team-logo.png" alt="Cumnock Juniors 2011 Logo" class="hero-logo">
+                        <div class="hero-text">
+                            <h2>Inspiring Young Footballers</h2>
+                            <p>Reach your full potential with us</p>
+                        </div>
+                    </div>
                     <a href="#contact" class="cta-button">Join Our Team</a>
                 </div>
             </div>
@@ -566,97 +610,97 @@
                 <h2 class="section-title">About Us</h2>
                 <div class="about-content">
                     <div class="about-image">
-                        <img src="images/about-us.jpg" alt="Cumnock Juniors 2011 Team">
+                        <img src="cjImages/about-us.jpg" alt="Cumnock Juniors 2011 Team">
                     </div>
                     <div class="about-text">
-                      <p>Cumnock Juniors 2011 is a youth football team dedicated to nurturing young talent and fostering a love for the beautiful game. Our team consists of passionate players born in 2011, all striving to develop their skills and teamwork.</p>
-                      <br>
-                      <p>With a focus on both individual growth and team success, we provide a supportive environment where young footballers can thrive. Our experienced coaches are committed to helping each player reach their full potential both on and off the pitch.</p>
+                        <p>Cumnock Juniors 2011 is a youth football team dedicated to nurturing young talent and fostering a love for the beautiful game. Our team consists of passionate players born in 2011, all striving to develop their skills and teamwork.</p>
+                        <br>
+                        <p>With a focus on both individual growth and team success, we provide a supportive environment where young footballers can thrive. Our experienced coaches are committed to helping each player reach their full potential both on and off the pitch.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-      <section id="features" class="features">
-    <div class="container">
-        <h2 class="section-title">What We Offer</h2>
-        <p class="tap-instruction">Tap cards to reveal more information</p>
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <div class="feature-icon">⚽</div>
-                        <h3 class="feature-title">Skill Development</h3>
-                        <p class="feature-description">Expert coaching to enhance individual and team skills</p>
+        <section id="features" class="features">
+            <div class="container">
+                <h2 class="section-title">What We Offer</h2>
+                <p class="tap-instruction">Tap cards to reveal more information</p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">⚽</div>
+                                <h3 class="feature-title">Skill Development</h3>
+                                <p class="feature-description">Expert coaching to enhance individual and team skills</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>Our experienced coaches use modern training methods to develop essential football skills such as ball control, passing, shooting, and tactical awareness. We focus on both individual technique and team play to create well-rounded players.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="feature-card-back">
-                        <p>Our experienced coaches use modern training methods to develop essential football skills such as ball control, passing, shooting, and tactical awareness. We focus on both individual technique and team play to create well-rounded players.</p>
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">🏆</div>
+                                <h3 class="feature-title">Competitive Matches</h3>
+                                <p class="feature-description">Regular fixtures against top teams in the region</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>We participate in local leagues and tournaments, providing our players with regular opportunities to test their skills against other talented teams. These competitive matches help build character, teamwork, and resilience.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">🤝</div>
+                                <h3 class="feature-title">Team Spirit</h3>
+                                <p class="feature-description">Building strong friendships and camaraderie</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>We foster a supportive and inclusive environment where players develop lasting friendships. Through team-building activities and shared experiences, we create a strong sense of belonging and mutual support among our players.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">📈</div>
+                                <h3 class="feature-title">Player Development Pathway</h3>
+                                <p class="feature-description">Structured progression for long-term growth</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>We offer a clear development pathway for our young players, focusing on age-appropriate skills and challenges. Our structured approach ensures continuous improvement, with opportunities to progress to higher levels of play as players grow and develop their abilities.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">👪</div>
+                                <h3 class="feature-title">Parent Involvement</h3>
+                                <p class="feature-description">Encouraging family support and participation</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>We believe in the importance of family support in a young player's development. We encourage parent involvement through regular communication, volunteer opportunities, and family-oriented events, creating a strong community around our team.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">🏃</div>
+                                <h3 class="feature-title">Physical Fitness</h3>
+                                <p class="feature-description">Age-appropriate conditioning and health education</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>Our program includes age-appropriate physical fitness training to improve stamina, agility, and overall health. We also educate our young players about nutrition, injury prevention, and the importance of maintaining a healthy lifestyle both on and off the pitch.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <div class="feature-icon">🏆</div>
-                        <h3 class="feature-title">Competitive Matches</h3>
-                        <p class="feature-description">Regular fixtures against top teams in the region</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <p>We participate in local leagues and tournaments, providing our players with regular opportunities to test their skills against other talented teams. These competitive matches help build character, teamwork, and resilience.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <div class="feature-icon">🤝</div>
-                        <h3 class="feature-title">Team Spirit</h3>
-                        <p class="feature-description">Building strong friendships and camaraderie</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <p>We foster a supportive and inclusive environment where players develop lasting friendships. Through team-building activities and shared experiences, we create a strong sense of belonging and mutual support among our players.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <div class="feature-icon">📈</div>
-                        <h3 class="feature-title">Player Development Pathway</h3>
-                        <p class="feature-description">Structured progression for long-term growth</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <p>We offer a clear development pathway for our young players, focusing on age-appropriate skills and challenges. Our structured approach ensures continuous improvement, with opportunities to progress to higher levels of play as players grow and develop their abilities.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="feature-card">
-    <div class="feature-card-inner">
-        <div class="feature-card-front">
-            <div class="feature-icon">👪</div>
-            <h3 class="feature-title">Parent Involvement</h3>
-            <p class="feature-description">Encouraging family support and participation</p>
-        </div>
-        <div class="feature-card-back">
-            <p>We believe in the importance of family support in a young player's development. We encourage parent involvement through regular communication, volunteer opportunities, and family-oriented events, creating a strong community around our team.</p>
-        </div>
-    </div>
-</div>
-<div class="feature-card">
-    <div class="feature-card-inner">
-        <div class="feature-card-front">
-            <div class="feature-icon">🏃</div>
-            <h3 class="feature-title">Physical Fitness</h3>
-            <p class="feature-description">Age-appropriate conditioning and health education</p>
-        </div>
-        <div class="feature-card-back">
-            <p>Our program includes age-appropriate physical fitness training to improve stamina, agility, and overall health. We also educate our young players about nutrition, injury prevention, and the importance of maintaining a healthy lifestyle both on and off the pitch.</p>
-        </div>
-    </div>
-</div>
-        </div>
-    </div>
-</section>
+        </section>
 
         <section id="team" class="team">
             <div class="container">
@@ -666,7 +710,7 @@
                     <div class="team-member">
                         <div class="team-member-inner">
                             <div class="team-member-front">
-                                <img src="images/coach-image1.jpg" alt="Head Coach John Doe">
+                                <img src="cjImages/coach-image1.jpg" alt="Head Coach John Doe">
                                 <div class="team-member-info">
                                     <h3 class="team-member-name">John Doe</h3>
                                     <p class="team-member-position">Head Coach</p>
@@ -681,7 +725,7 @@
                     <div class="team-member">
                         <div class="team-member-inner">
                             <div class="team-member-front">
-                                <img src="images/coach-image1.jpg" alt="Assistant Coach Jane Smith">
+                                <img src="cjImages/coach-image1.jpg" alt="Assistant Coach Jane Smith">
                                 <div class="team-member-info">
                                     <h3 class="team-member-name">Jane Smith</h3>
                                     <p class="team-member-position">Assistant Coach</p>
@@ -696,7 +740,7 @@
                     <div class="team-member">
                         <div class="team-member-inner">
                             <div class="team-member-front">
-                                <img src="images/coach-image1.jpg" alt="Fitness Coach Mike Johnson">
+                                <img src="cjImages/coach-image1.jpg" alt="Fitness Coach Mike Johnson">
                                 <div class="team-member-info">
                                     <h3 class="team-member-name">Mike Johnson</h3>
                                     <p class="team-member-position">Fitness Coach</p>
@@ -711,7 +755,7 @@
                     <div class="team-member">
                         <div class="team-member-inner">
                             <div class="team-member-front">
-                                <img src="images/coach-image1.jpg" alt="Goalkeeping Coach Sarah Brown">
+                                <img src="cjImages/coach-image1.jpg" alt="Goalkeeping Coach Sarah Brown">
                                 <div class="team-member-info">
                                     <h3 class="team-member-name">Sarah Brown</h3>
                                     <p class="team-member-position">Goalkeeping Coach</p>
@@ -846,6 +890,23 @@
         document.querySelectorAll('.team-member').forEach(member => {
             member.addEventListener('click', () => {
                 member.classList.toggle('flipped');
+            });
+        });
+
+        // Hamburger menu functionality
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+      // Close menu when a link is clicked
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
             });
         });
     </script>

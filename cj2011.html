@@ -914,22 +914,26 @@
             });
         });
 
-          fetch('schedule.json')
-            .then(response => response.json())
-            .then(data => {
-                const scheduleBody = document.getElementById('schedule-body');
-                data.matches.forEach(match => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${match.date}</td>
-                        <td>${match.opponent}</td>
-                        <td>${match.venue}</td>
-                        <td>${match.time}</td>
-                    `;
-                    scheduleBody.appendChild(row);
-                });
-            })
-            .catch(error => console.error('Error fetching schedule:', error));
+       fetch('schedule.json')
+  .then(response => response.json())
+  .then(data => {
+    const scheduleBody = document.getElementById('schedule-body');
+    data.matches.forEach(match => {
+      const dateTime = new Date(match.date);
+      const formattedDate = dateTime.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+      const formattedTime = dateTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${formattedDate}</td>
+        <td>${match.opponent}</td>
+        <td>${match.venue}</td>
+        <td>${formattedTime}</td>
+      `;
+      scheduleBody.appendChild(row);
+    });
+  })
+  .catch(error => console.error('Error fetching schedule:', error));
     </script>
 </body>
 </html>

@@ -1,22 +1,22 @@
 {
-  "matches": [
+  "matches" : [
     {
-      "date": "Sept 5, 2024",
-      "opponent": "Kilmarnock Youth",
-      "venue": "Home",
-      "time": "14:00"
+      "venue" : "Home Townhead",
+      "time" : "11:00",
+      "date" : "Sept 10, 2024",
+      "opponent" : "Valspar Youth"
     },
     {
-      "date": "Sept 12, 2024",
-      "opponent": "Ayr United Academy",
-      "venue": "Away",
-      "time": "15:30"
+      "time" : "15:30",
+      "date" : "Sept 12, 2024",
+      "opponent" : "Ayr United Academy",
+      "venue" : "Away"
     },
     {
-      "date": "Sept 19, 2024",
-      "opponent": "Auchinleck Talbot U13",
-      "venue": "Home",
-      "time": "14:00"
+      "opponent" : "Auchinleck Talbot U13",
+      "time" : "14:00",
+      "date" : "Sept 19, 2024",
+      "venue" : "Home"
     }
   ]
 }

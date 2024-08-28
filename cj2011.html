@@ -461,48 +461,6 @@
             color: var(--accent-color);
         }
 
-        .admin-panel {
-            display: none;
-            background-color: var(--primary-color);
-            color: var(--secondary-color);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .admin-panel h3 {
-            margin-bottom: 10px;
-        }
-
-        .admin-panel input[type="text"],
-        .admin-panel input[type="password"],
-        .admin-panel input[type="date"],
-        .admin-panel input[type="time"] {
-            width: 100%;
-            padding: 5px;
-            margin-bottom: 10px;
-        }
-
-        .admin-panel button {
-            background-color: var(--secondary-color);
-            color: var(--primary-color);
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-
-        #scheduleForm {
-            display: none;
-        }
-
-        #scheduleEntries > div {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-        }
-
         @media screen and (max-width: 768px) {
             .menu-toggle {
                 display: flex;
@@ -559,7 +517,7 @@
 
             .about-image {
                 order: -1;
-                }
+            }
 
             .hero-logo {
                 max-width: 80px;
@@ -611,8 +569,7 @@
             .feature-card.flipped .feature-card-back {
                 display: flex;
             }
-
-            .hero-logo-text {
+.hero-logo-text {
                 flex-direction: column;
                 align-items: flex-start;
             }
@@ -835,38 +792,24 @@
             </div>
         </section>
 
-        <section id="schedule" class="schedule">
-            <div class="container">
-                <h2 class="section-title">Upcoming Matches</h2>
-                <table class="schedule-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Opponent</th>
-                            <th>Venue</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="schedule-body">
-                        <!-- Schedule data will be inserted here -->
-                    </tbody>
-                </table>
-
-                <div class="admin-panel">
-                    <h3>Admin Login</h3>
-                    <input type="text" id="username" placeholder="Username">
-                    <input type="password" id="password" placeholder="Password">
-                    <button onclick="adminLogin()">Login</button>
-
-                    <div id="scheduleForm">
-                        <h3>Edit Schedule</h3>
-                        <div id="scheduleEntries"></div>
-                        <button onclick="addScheduleEntry()">Add Entry</button>
-                        <button onclick="saveSchedule()">Save Schedule</button>
-                    </div>
-                </div>
-            </div>
-        </section>
+       <section id="schedule" class="schedule">
+        <div class="container">
+            <h2 class="section-title">Upcoming Matches</h2>
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Opponent</th>
+                        <th>Venue</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body">
+                    <!-- Schedule data will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
 
         <section id="contact" class="contact">
             <div class="container">
@@ -905,214 +848,76 @@
     </footer>
 
     <script>
-    gsap.registerPlugin(ScrollTrigger);
+        gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".hero-welcome", {opacity: 0, y: 50, duration: 1, delay: 0.3});
-    gsap.from(".hero-content h2", {opacity: 0, y: 50, duration: 1, delay: 0.5});
-    gsap.from(".hero-content p", {opacity: 0, y: 50, duration: 1, delay: 0.7});
-    gsap.from(".cta-button", {opacity: 0, y: 50, duration: 1, delay: 0.9});
+        gsap.from(".hero-welcome", {opacity: 0, y: 50, duration: 1, delay: 0.3});
+        gsap.from(".hero-content h2", {opacity: 0, y: 50, duration: 1, delay: 0.5});
+        gsap.from(".hero-content p", {opacity: 0, y: 50, duration: 1, delay: 0.7});
+        gsap.from(".cta-button", {opacity: 0, y: 50, duration: 1, delay: 0.9});
 
-    gsap.utils.toArray(".feature-card").forEach((card, i) => {
-        gsap.from(card, {
-            scrollTrigger: {
-                trigger: card,
-                start: "top bottom-=100",
-                toggleActions: "play none none reverse"
-            },
-            opacity: 0,
-            y: 50,
-            duration: 0.5,
-            delay: i * 0.1
-        });
-    });
-
-    gsap.utils.toArray(".team-member").forEach((member, i) => {
-        gsap.from(member, {
-            scrollTrigger: {
-                trigger: member,
-                start: "top bottom-=100",
-                toggleActions: "play none none reverse"
-            },
-            opacity: 0,
-            y: 50,
-            duration: 0.5,
-            delay: i * 0.1
-        });
-    });
-
-    // Add click event listeners for feature cards
-    document.querySelectorAll('.feature-card').forEach(card => {
-        card.addEventListener('click', () => {
-            card.classList.toggle('flipped');
-        });
-    });
-
-    // Add click event listeners for team members
-    document.querySelectorAll('.team-member').forEach(member => {
-        member.addEventListener('click', () => {
-            member.classList.toggle('flipped');
-        });
-    });
-
-    // Hamburger menu functionality
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-
-    menuToggle.addEventListener('click', () => {
-        menuToggle.classList.toggle('active');
-        navLinks.classList.toggle('active');
-    });
-
-    // Close menu when a link is clicked
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            menuToggle.classList.remove('active');
-            navLinks.classList.remove('active');
-        });
-    });
-
-    // Show admin panel
-    document.querySelector('.schedule .section-title').addEventListener('dblclick', function() {
-        document.querySelector('.admin-panel').style.display = 'block';
-    });
-
-    function adminLogin() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        if (username === 'admin' && password === 'secure_password') {
-            document.getElementById('scheduleForm').style.display = 'block';
-            loadScheduleForEditing();
-        } else {
-            alert('Invalid credentials');
-        }
-    }
-
-    function loadScheduleForEditing() {
-        fetch('http://localhost:5000/api/schedule')
-            .then(response => response.json())
-            .then(data => {
-                const scheduleEntries = document.getElementById('scheduleEntries');
-                scheduleEntries.innerHTML = '';
-                data.matches.forEach((match, index) => {
-                    scheduleEntries.innerHTML += `
-                        <div data-index="${index}">
-                            <input type="date" value="${formatDateForInput(match.date)}" onchange="updateDate(this, ${index})">
-                            <input type="text" value="${match.opponent}" placeholder="Opponent">
-                            <input type="text" value="${match.venue}" placeholder="Venue">
-                            <input type="time" value="${match.time}" placeholder="Time">
-                            <button onclick="editScheduleEntry(${index})">Edit</button>
-                            <button onclick="removeScheduleEntry(${index})">Remove</button>
-                        </div>
-                    `;
-                });
+        gsap.utils.toArray(".feature-card").forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top bottom-=100",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 50,
+                duration: 0.5,
+                delay: i * 0.1
             });
-    }
-
-    function formatDateForInput(dateString) {
-        const date = new Date(dateString);
-        return date.toISOString().split('T')[0];
-    }
-
-    function updateDate(input, index) {
-        const date = new Date(input.value);
-        const formattedDate = date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-        input.parentElement.querySelector('input[type="date"]').value = formattedDate;
-    }
-
-    function addScheduleEntry() {
-        const scheduleEntries = document.getElementById('scheduleEntries');
-        const newIndex = scheduleEntries.children.length;
-        const today = new Date().toISOString().split('T')[0];
-        const newEntry = document.createElement('div');
-        newEntry.dataset.index = newIndex;
-        newEntry.innerHTML = `
-            <input type="date" value="${today}" onchange="updateDate(this, ${newIndex})">
-            <input type="text" placeholder="Opponent">
-            <input type="text" placeholder="Venue">
-            <input type="time" value="14:00">
-            <button onclick="editScheduleEntry(${newIndex})">Edit</button>
-            <button onclick="removeScheduleEntry(${newIndex})">Remove</button>
-        `;
-        scheduleEntries.appendChild(newEntry);
-        
-        // Update the displayed schedule
-        updateDisplayedSchedule();
-    }
-
-    function editScheduleEntry(index) {
-        const entry = document.querySelector(`#scheduleEntries div[data-index="${index}"]`);
-        const inputs = entry.querySelectorAll('input');
-        inputs.forEach(input => input.removeAttribute('readonly'));
-    }
-
-    function removeScheduleEntry(index) {
-        const scheduleEntries = document.getElementById('scheduleEntries');
-        scheduleEntries.removeChild(scheduleEntries.querySelector(`div[data-index="${index}"]`));
-        
-        // Update the displayed schedule
-        updateDisplayedSchedule();
-    }
-
-    function saveSchedule() {
-        const scheduleEntries = document.getElementById('scheduleEntries').children;
-        const newSchedule = {
-            matches: Array.from(scheduleEntries).map(entry => {
-                const inputs = entry.querySelectorAll('input');
-                const date = new Date(inputs[0].value);
-                return {
-                    date: date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
-                    opponent: inputs[1].value,
-                    venue: inputs[2].value,
-                    time: inputs[3].value
-                };
-            })
-        };
-
-        fetch('http://localhost:5000/api/schedule', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + btoa('admin:secure_password')
-            },
-            body: JSON.stringify(newSchedule)
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert('Schedule updated successfully');
-            loadSchedule(); // Refresh the displayed schedule
-        })
-        .catch(error => {
-            console.error('Error updating schedule:', error);
-            alert('Failed to update schedule');
         });
-    }
 
-    function updateDisplayedSchedule() {
-        const scheduleEntries = document.getElementById('scheduleEntries').children;
-        const scheduleBody = document.getElementById('schedule-body');
-        scheduleBody.innerHTML = '';
-        
-        Array.from(scheduleEntries).forEach(entry => {
-            const inputs = entry.querySelectorAll('input');
-            const date = new Date(inputs[0].value);
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${date.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                <td>${inputs[1].value}</td>
-                <td>${inputs[2].value}</td>
-                <td>${inputs[3].value}</td>
-            `;
-            scheduleBody.appendChild(row);
+        gsap.utils.toArray(".team-member").forEach((member, i) => {
+            gsap.from(member, {
+                scrollTrigger: {
+                    trigger: member,
+                    start: "top bottom-=100",
+                    toggleActions: "play none none reverse"
+                },
+                opacity: 0,
+                y: 50,
+                duration: 0.5,
+                delay: i * 0.1
+            });
         });
-    }
 
-    function loadSchedule() {
-        fetch('http://localhost:5000/api/schedule')
+        // Add click event listeners for feature cards
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('flipped');
+            });
+        });
+
+        // Add click event listeners for team members
+        document.querySelectorAll('.team-member').forEach(member => {
+            member.addEventListener('click', () => {
+                member.classList.toggle('flipped');
+            });
+        });
+
+        // Hamburger menu functionality
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+      // Close menu when a link is clicked
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+          fetch('schedule.json')
             .then(response => response.json())
             .then(data => {
                 const scheduleBody = document.getElementById('schedule-body');
-                scheduleBody.innerHTML = '';
                 data.matches.forEach(match => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -1125,10 +930,6 @@
                 });
             })
             .catch(error => console.error('Error fetching schedule:', error));
-    }
-
-    // Load schedule on page load
-    document.addEventListener('DOMContentLoaded', loadSchedule);
     </script>
 </body>
 </html>

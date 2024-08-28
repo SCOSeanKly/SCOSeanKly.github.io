@@ -1,22 +1,9 @@
 {
   "matches" : [
     {
-      "venue" : "Home Townhead",
-      "time" : "11:00",
-      "date" : "Sept 10, 2024",
-      "opponent" : "Valspar Youth"
-    },
-    {
-      "time" : "15:30",
-      "date" : "Sept 12, 2024",
-      "opponent" : "Ayr United Academy",
-      "venue" : "Away"
-    },
-    {
-      "opponent" : "Auchinleck Talbot U13",
-      "time" : "14:00",
-      "date" : "Sept 19, 2024",
-      "venue" : "Home"
+      "date" : "Aug 31, 2024 09:30",
+      "venue" : "Townhead Park",
+      "opponent" : "Valspar Athletic"
     }
   ]
 }

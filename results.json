@@ -1,17 +1,16 @@
 {
-  "results": [
+  "results" : [
     {
-      "date": "2024-03-15T14:00:00",
-      "opponent": "Team A",
-      "venue": "Home Ground",
-      "result": "2-1"
+      "result" : "20-1",
+      "venue" : "Home Test",
+      "date" : "2024-08-26T14:06:00Z",
+      "opponent" : "Team Test"
     },
     {
-      "date": "2024-03-08T15:30:00",
-      "opponent": "Team B",
-      "venue": "Away Ground",
-      "result": "0-3"
+      "result" : "0-3",
+      "venue" : "Away Ground",
+      "opponent" : "Team B",
+      "date" : "2024-08-28T14:06:08Z"
     }
-   
   ]
 }

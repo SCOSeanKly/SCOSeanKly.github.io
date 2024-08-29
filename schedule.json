@@ -2,13 +2,13 @@
   "matches" : [
     {
       "opponent" : "Valspar Athletic",
-      "date" : "Aug 31, 2024 09:30",
-      "venue" : "Townhead Park"
+      "venue" : "Townhead Park",
+      "date" : "Aug 31, 2024 09:30"
     },
     {
+      "date" : "Aug 28, 2024 14:08",
       "opponent" : "TEST",
-      "venue" : "TEST",
-      "date" : "Aug 28, 2024 14:08"
+      "venue" : "TEST"
     }
   ]
 }

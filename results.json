@@ -1,15 +1,15 @@
 {
   "results" : [
     {
-      "result" : "20-1",
+      "opponent" : "Team Test",
       "venue" : "Home Test",
       "date" : "2024-08-26T14:06:00Z",
-      "opponent" : "Team Test"
+      "result" : "20-1"
     },
     {
-      "result" : "0-3",
-      "venue" : "Away Ground",
       "opponent" : "Team B",
+      "venue" : "Away Ground",
+      "result" : "0-3",
       "date" : "2024-08-28T14:06:08Z"
     }
   ]

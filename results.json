@@ -1,16 +1,10 @@
 {
   "results" : [
     {
-      "opponent" : "Team Test",
-      "venue" : "Home Test",
-      "date" : "2024-08-26T14:06:00Z",
-      "result" : "20-1"
-    },
-    {
-      "opponent" : "Team B",
-      "venue" : "Away Ground",
-      "result" : "0-3",
-      "date" : "2024-08-28T14:06:08Z"
+      "venue" : "Townhead Park",
+      "date" : "2024-08-24T10:30:00Z",
+      "opponent" : "Valspar Athletic",
+      "result" : "2–1"
     }
   ]
 }

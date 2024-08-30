@@ -1,14 +1,19 @@
 {
   "matches" : [
     {
-      "opponent" : "Valspar Athletic",
-      "venue" : "Townhead Park",
-      "date" : "Aug 31, 2024 09:30"
+      "date" : "Aug 31, 2024 09:15",
+      "opponent" : "Troon FC",
+      "venue" : "Portland Park"
     },
     {
-      "date" : "Aug 28, 2024 14:08",
-      "opponent" : "TEST",
-      "venue" : "TEST"
+      "opponent" : "Galston",
+      "venue" : "TBC",
+      "date" : "Sep 7, 2024 10:00"
+    },
+    {
+      "venue" : "TBC",
+      "date" : "Sep 14, 2024 10:00",
+      "opponent" : "Glenburn"
     }
   ]
 }

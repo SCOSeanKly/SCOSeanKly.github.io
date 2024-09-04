@@ -956,7 +956,7 @@
             });
         });
 
-        fetch('cjjson/schedule.json')
+      fetch('cjjson/schedule.json')
             .then(response => response.json())
             .then(data => {
                 const scheduleBody = document.getElementById('schedule-body');
@@ -977,7 +977,7 @@
             })
             .catch(error => console.error('Error fetching schedule:', error));
 
-        fetch('cjjson/results.json')
+       fetch('cjjson/results.json')
             .then(response => response.json())
             .then(data => {
                 const resultsBody = document.getElementById('results-body');
@@ -998,7 +998,7 @@
             .catch(error => console.error('Error fetching results:', error));
 
         // Updated player card creation and modal functionality
-      fetch('cjjson/players.json')
+     fetch('cjjson/players.json')
             .then(response => response.json())
             .then(data => {
                 const playersGrid = document.getElementById('players-grid');
@@ -1106,7 +1106,7 @@
         .catch(error => console.error('Error fetching coaches data:', error));
 
             function loadFeatures() {
-        fetch('cjjson/features.json')
+          fetch('cjjson/features.json') 
             .then(response => response.json())
             .then(data => {
                 const featureGrid = document.getElementById('feature-grid');

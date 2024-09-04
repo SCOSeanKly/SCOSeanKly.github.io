@@ -759,87 +759,16 @@
             </div>
         </section>
 
-        <section id="features" class="features">
-            <div class="container">
-                <h2 class="section-title">What We Offer</h2>
-                <p class="tap-instruction">Tap cards to reveal more information</p>
-                <div class="feature-grid">
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">⚽</div>
-                                <h3 class="feature-title">Skill Development</h3>
-                                <p class="feature-description">Expert coaching to enhance individual and team skills</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>Our experienced coaches use modern training methods to develop essential football skills such as ball control, passing, shooting, and tactical awareness. We focus on both individual technique and team play to create well-rounded players.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">🏆</div>
-                                <h3 class="feature-title">Competitive Matches</h3>
-                                <p class="feature-description">Regular fixtures against top teams in the region</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>We participate in local leagues and tournaments, providing our players with regular opportunities to test their skills against other talented teams. These competitive matches help build character, teamwork, and resilience.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">🤝</div>
-                                <h3 class="feature-title">Team Spirit</h3>
-                                <p class="feature-description">Building strong friendships and camaraderie</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>We foster a supportive and inclusive environment where players develop lasting friendships. Through team-building activities and shared experiences, we create a strong sense of belonging and mutual support among our players.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">📈</div>
-                                <h3 class="feature-title">Player Development Pathway</h3>
-                                <p class="feature-description">Structured progression for long-term growth</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>We offer a clear development pathway for our young players, focusing on age-appropriate skills and challenges. Our structured approach ensures continuous improvement, with opportunities to progress to higher levels of play as players grow and develop their abilities.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">👪</div>
-                                <h3 class="feature-title">Parent Involvement</h3>
-                                <p class="feature-description">Encouraging family support and participation</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>We believe in the importance of family support in a young player's development. We encourage parent involvement through regular communication, volunteer opportunities, and family-oriented events, creating a strong community around our team.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-card-inner">
-                            <div class="feature-card-front">
-                                <div class="feature-icon">🏃</div>
-                                <h3 class="feature-title">Physical Fitness</h3>
-                                <p class="feature-description">Age-appropriate conditioning and health education</p>
-                            </div>
-                            <div class="feature-card-back">
-                                <p>Our program includes age-appropriate physical fitness training to improve stamina, agility, and overall health. We also educate our young players about nutrition, injury prevention, and the importance of maintaining a healthy lifestyle both on and off the pitch.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
+ <!-- Updated Features Section -->
+     <section id="features" class="features">
+    <div class="container">
+        <h2 class="section-title">What We Offer</h2>
+        <p class="tap-instruction">Tap cards to reveal more information</p>
+        <div id="feature-grid" class="feature-grid">
+            <!-- Feature cards will be inserted here dynamically -->
+        </div>
+    </div>
+</section>
 
   <!-- Updated Coaches Section -->
      <section id="team" class="team">
@@ -1175,6 +1104,53 @@
             });
         })
         .catch(error => console.error('Error fetching coaches data:', error));
+
+            function loadFeatures() {
+        fetch('cjjson/features.json')
+            .then(response => response.json())
+            .then(data => {
+                const featureGrid = document.getElementById('feature-grid');
+                data.features.forEach(feature => {
+                    const featureCard = document.createElement('div');
+                    featureCard.className = 'feature-card';
+                    featureCard.innerHTML = `
+                        <div class="feature-card-inner">
+                            <div class="feature-card-front">
+                                <div class="feature-icon">${feature.icon}</div>
+                                <h3 class="feature-title">${feature.title}</h3>
+                                <p class="feature-description">${feature.description}</p>
+                            </div>
+                            <div class="feature-card-back">
+                                <p>${feature.details}</p>
+                            </div>
+                        </div>
+                    `;
+                    featureGrid.appendChild(featureCard);
+                });
+
+                // Add click event listeners for feature cards
+                document.querySelectorAll('.feature-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        card.classList.toggle('flipped');
+                    });
+                });
+
+                // Add animation for feature cards
+                gsap.utils.toArray(".feature-card").forEach((card, i) => {
+                    gsap.from(card, {
+                        scrollTrigger: {
+                            trigger: card,
+                            start: "top bottom-=100",
+                            toggleActions: "play none none reverse"
+                        },
+                        opacity: 0,
+                        y: 50,
+                        duration: 0.5,
+                        delay: i * 0.1
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching features data:', error));
     </script>
 </body>
 </html>

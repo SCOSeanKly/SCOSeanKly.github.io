@@ -1,0 +1,40 @@
+{
+  "features": [
+    {
+      "icon": "⚽",
+      "title": "Skill Development",
+      "description": "Expert coaching to enhance individual and team skills",
+      "details": "Our experienced coaches use modern training methods to develop essential football skills such as ball control, passing, shooting, and tactical awareness. We focus on both individual technique and team play to create well-rounded players."
+    },
+    {
+      "icon": "🏆",
+      "title": "Competitive Matches",
+      "description": "Regular fixtures against top teams in the region",
+      "details": "We participate in local leagues and tournaments, providing our players with regular opportunities to test their skills against other talented teams. These competitive matches help build character, teamwork, and resilience."
+    },
+    {
+      "icon": "🤝",
+      "title": "Team Spirit",
+      "description": "Building strong friendships and camaraderie",
+      "details": "We foster a supportive and inclusive environment where players develop lasting friendships. Through team-building activities and shared experiences, we create a strong sense of belonging and mutual support among our players."
+    },
+    {
+      "icon": "📈",
+      "title": "Player Development Pathway",
+      "description": "Structured progression for long-term growth",
+      "details": "We offer a clear development pathway for our young players, focusing on age-appropriate skills and challenges. Our structured approach ensures continuous improvement, with opportunities to progress to higher levels of play as players grow and develop their abilities."
+    },
+    {
+      "icon": "👪",
+      "title": "Parent Involvement",
+      "description": "Encouraging family support and participation",
+      "details": "We believe in the importance of family support in a young player's development. We encourage parent involvement through regular communication, volunteer opportunities, and family-oriented events, creating a strong community around our team."
+    },
+    {
+      "icon": "🏃",
+      "title": "Physical Fitness",
+      "description": "Age-appropriate conditioning and health education",
+      "details": "Our program includes age-appropriate physical fitness training to improve stamina, agility, and overall health. We also educate our young players about nutrition, injury prevention, and the importance of maintaining a healthy lifestyle both on and off the pitch."
+    }
+  ]
+}

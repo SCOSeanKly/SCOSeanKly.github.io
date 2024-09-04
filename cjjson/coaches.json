@@ -1,0 +1,28 @@
+{
+  "coaches": [
+    {
+      "name": "Jordan Orr",
+      "position": "Head Coach",
+      "image": "cjImages/coachimages/coach-image.jpg",
+      "description": "With over 15 years of coaching experience, Jordan brings a wealth of knowledge to our team. He holds a UEFA B License and has a passion for developing young talent."
+    },
+    {
+      "name": "Arron Lindsay",
+      "position": "Assistant Coach",
+      "image": "cjImages/coachimages/coach-image.jpg",
+      "description": "Arron is a former professional player with a keen eye for tactics. He specializes in offensive strategies and helps our players develop their attacking skills."
+    },
+    {
+      "name": "Kyle McAusland",
+      "position": "Assistant Coach",
+      "image": "cjImages/coachimages/coach-image.jpg",
+      "description": "Kyle is a certified strength and conditioning specialist. He designs age-appropriate fitness programs to improve our players' stamina, speed, and overall physical performance."
+    },
+    {
+      "name": "Stewart Kean",
+      "position": "Assistant Coach",
+      "image": "cjImages/coachimages/coach-image.jpg",
+      "description": "Stewart is a former professional goalkeeper with international experience. He focuses on developing our goalkeepers' technique, positioning, and decision-making skills."
+    }
+  ]
+}

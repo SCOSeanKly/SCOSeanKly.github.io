@@ -184,6 +184,7 @@ section {
     font-size: var(--font-size-xxl);
     font-weight: 700;
     text-align: center;
+    margin-top: var(--spacing-large);
     margin-bottom: var(--spacing-large);
     color: var(--primary-color);
 }
@@ -413,6 +414,10 @@ section {
     font-weight: bold;
 }
 
+.match-results {
+    margin-top: var(--spacing-large);
+}
+
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
@@ -456,6 +461,7 @@ section {
 .form-group label {
     display: block;
     margin-bottom: var(--spacing-small);
+     margin-top: var(--spacing-small);
     font-weight: 700;
 }
 

@@ -1,44 +1,44 @@
 {
   "players" : [
     {
-      "image" : "player_E7CC4842-2A39-4025-968F-EA1CFD706601.jpg",
-      "sponsor" : "Kerr & Smith Ltd",
-      "name" : "Sean Kelly",
       "position" : "Test",
+      "id" : "4CCEDC88-1434-4473-84A0-1282652FFB48",
+      "image" : "player_E7CC4842-2A39-4025-968F-EA1CFD706601.jpg",
       "description" : "Test description ",
-      "id" : "4CCEDC88-1434-4473-84A0-1282652FFB48"
+      "sponsor" : "Kerr & Smith Ltd",
+      "name" : "Sean Kelly"
     },
     {
       "name" : "Alex Johnson",
-      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
-      "sponsor" : "XYZ Company",
       "position" : "Forward",
       "id" : "FD58E6A5-62DE-4433-9110-3DF14CA524A4",
-      "image" : "cjImages\/playerimages\/player.jpg"
-    },
-    {
       "image" : "cjImages\/playerimages\/player.jpg",
       "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
-      "sponsor" : "XYZ Company",
+      "sponsor" : "XYZ Company"
+    },
+    {
       "name" : "Alex Johnson",
       "position" : "Forward",
+      "image" : "cjImages\/playerimages\/player.jpg",
+      "sponsor" : "XYZ Company",
+      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
       "id" : "4459BAA7-BB09-47E7-9E56-71B308E980ED"
     },
     {
-      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
-      "sponsor" : "XYZ Company",
-      "image" : "cjImages\/playerimages\/player.jpg",
-      "position" : "Forward",
       "id" : "8786DF50-72EA-4559-A539-8FDBEA6AA320",
-      "name" : "Alex Johnson"
+      "sponsor" : "XYZ Company",
+      "name" : "Alex Johnson",
+      "position" : "Forward",
+      "image" : "cjImages\/playerimages\/player.jpg",
+      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field."
     },
     {
-      "id" : "5ADA7D89-13CD-49DD-B177-A0EECDE1B628",
       "name" : "Alex Johnson",
-      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
-      "sponsor" : "XYZ Company",
+      "position" : "Forward",
       "image" : "cjImages\/playerimages\/player.jpg",
-      "position" : "Forward"
+      "description" : "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "id" : "5ADA7D89-13CD-49DD-B177-A0EECDE1B628",
+      "sponsor" : "XYZ Company"
     }
   ]
 }

@@ -1,14 +1,14 @@
 {
   "matches" : [
     {
-      "venue" : "TBC",
+      "date" : "Sep 7, 2024 10:00",
       "opponent" : "Galston",
-      "date" : "Sep 7, 2024 10:00"
+      "venue" : "TBC"
     },
     {
+      "venue" : "TBC",
       "date" : "Sep 14, 2024 10:00",
-      "opponent" : "Glenburn",
-      "venue" : "TBC"
+      "opponent" : "Glenburn"
     }
   ]
 }

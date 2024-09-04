@@ -1,0 +1,41 @@
+{
+  "players": [
+    {
+      "name": "Alex Johnson",
+      "position": "Forward",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "sponsor": "XYZ Company"
+    },
+     {
+      "name": "Alex Johnson",
+      "position": "Forward",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "sponsor": "XYZ Company"
+    },
+     {
+      "name": "Alex Johnson",
+      "position": "Forward",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "sponsor": "XYZ Company"
+    },
+     {
+      "name": "Alex Johnson",
+      "position": "Forward",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "sponsor": "XYZ Company"
+    },
+     {
+      "name": "Alex Johnson",
+      "position": "Forward",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "sponsor": "XYZ Company"
+    }
+   
+   
+  ]
+}

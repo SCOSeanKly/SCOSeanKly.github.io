@@ -354,17 +354,17 @@
         }
 
         .players {
-    background-color: var(--primary-color);
-    color: var(--secondary-color);
-}
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
 
-.players .section-title {
-    color: var(--secondary-color);
-}
+        .players .section-title {
+            color: var(--secondary-color);
+        }
 
-.players .tap-instruction {
-    color: var(--accent-color);
-}
+        .players .tap-instruction {
+            color: var(--accent-color);
+        }
 
         .schedule-table {
             width: 100%;
@@ -474,111 +474,103 @@
             color: var(--accent-color);
         }
 
-        /* New styles for player cards */
-      .players-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-       .player-card {
-    background-color: transparent;
-    perspective: 1000px;
-    width: 100%;
-    padding-top: 125%; /* This creates a 4:5 aspect ratio (400:500) */
-    position: relative;
-    cursor: pointer;
-}
-
-       .player-card-inner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    transition: transform 0.6s;
-    transform-style: preserve-3d;
-}
-
-        .player-card.flipped .player-card-inner {
-            transform: rotateY(180deg);
+        /* Updated styles for player cards */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
         }
 
-       .player-card-front, .player-card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 15px;
-    overflow: hidden;
-}
+        .player-card {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
 
-        .player-card-front {
+        .player-card:hover {
+            transform: scale(1.05);
+        }
+
+        .player-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .player-name {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* Styles for the modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+        }
+
+        .modal-content {
             background-color: var(--primary-color);
-            color: var(--secondary-color);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--accent-color);
+            width: 80%;
+            max-width: 600px;
+            border-radius: 15px;
+            position: relative;
         }
 
-   .player-card-back {
-    background-color: var(--accent-color);
-    color: var(--secondary-color);
-    transform: rotateY(180deg);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Changed from center to space-between */
-    align-items: center;
-    text-align: center;
-}
+        .close {
+            color: var(--accent-color);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-.player-card-back h3 {
-    margin-bottom: 10px;
-}
+        .close:hover,
+        .close:focus {
+            color: var(--secondary-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-.player-description {
-    font-size: 14px;
-    margin-bottom: 15px; /* Add some space between description and sponsor */
-}
+        .modal-image {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
 
-.player-sponsor {
-    font-size: 12px;
-    font-style: italic;
-    margin-top: auto; /* Push the sponsor to the bottom */
-}
+        .modal-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
 
-.player-sponsor span {
-    font-weight: bold;
-    font-style: normal;
-}
+        .modal-position {
+            font-size: 18px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
 
-       .player-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-}
+        .modal-description {
+            margin-bottom: 20px;
+        }
+        .modal-sponsor {
+            font-style: italic;
+        }
 
-      .player-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 10px;
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-    color: white;
-    text-align: center;
-}
-
-.player-name {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 5px;
-}
-
-.player-position {
-    font-size: 14px;
-    color: var(--accent-color);
-}
+        .modal-sponsor span {
+            font-weight: bold;
+            font-style: normal;
+        }
 
         @media screen and (max-width: 768px) {
             .menu-toggle {
@@ -607,7 +599,7 @@
                 margin: 20px 0;
             }
 
-         .menu-toggle.active span:nth-child(1) {
+            .menu-toggle.active span:nth-child(1) {
                 transform: translateY(9px) rotate(45deg);
             }
 
@@ -913,16 +905,28 @@
             </div>
         </section>
 
-        <!-- New Players Section -->
-<section id="players" class="players">
-    <div class="container">
-        <h2 class="section-title">Our Players</h2>
-        <p class="tap-instruction">Tap cards to learn more about our players and their sponsors</p>
-        <div id="players-grid" class="players-grid">
-            <!-- Player cards will be inserted here dynamically -->
+        <!-- Updated Players Section -->
+        <section id="players" class="players">
+            <div class="container">
+                <h2 class="section-title">Our Players</h2>
+                <p class="tap-instruction">Tap on a player to view their profile</p>
+                <div id="players-grid" class="players-grid">
+                    <!-- Player cards will be inserted here dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal for Player Profile -->
+        <div id="playerModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <img id="modalImage" class="modal-image" src="" alt="Player Image">
+                <h2 id="modalName" class="modal-name"></h2>
+                <p id="modalPosition" class="modal-position"></p>
+                <p id="modalDescription" class="modal-description"></p>
+                <p id="modalSponsor" class="modal-sponsor"></p>
+            </div>
         </div>
-    </div>
-</section>
 
         <section id="schedule" class="schedule">
             <div class="container">
@@ -1060,13 +1064,6 @@
             });
         });
 
-        // Add click event listeners for player cards
-        document.querySelectorAll('.player-card').forEach(player => {
-            player.addEventListener('click', () => {
-                player.classList.toggle('flipped');
-            });
-        });
-
         // Hamburger menu functionality
         const menuToggle = document.querySelector('.menu-toggle');
         const navLinks = document.querySelector('.nav-links');
@@ -1125,56 +1122,64 @@
             })
             .catch(error => console.error('Error fetching results:', error));
 
-            fetch('players.json')
-    .then(response => response.json())
-    .then(data => {
-        const playersGrid = document.getElementById('players-grid');
-        data.players.forEach(player => {
-            const playerCard = document.createElement('div');
-            playerCard.className = 'player-card';
-            playerCard.innerHTML = `
-                <div class="player-card-inner">
-                    <div class="player-card-front">
+        // Updated player card creation and modal functionality
+        fetch('players.json')
+            .then(response => response.json())
+            .then(data => {
+                const playersGrid = document.getElementById('players-grid');
+                const modal = document.getElementById('playerModal');
+                const modalImage = document.getElementById('modalImage');
+                const modalName = document.getElementById('modalName');
+                const modalPosition = document.getElementById('modalPosition');
+                const modalDescription = document.getElementById('modalDescription');
+                const modalSponsor = document.getElementById('modalSponsor');
+                const closeBtn = document.getElementsByClassName('close')[0];
+
+                data.players.forEach(player => {
+                    const playerCard = document.createElement('div');
+                    playerCard.className = 'player-card';
+                    playerCard.innerHTML = `
                         <img src="${player.image}" alt="Player ${player.name}">
-                        <div class="player-info">
-                            <h3 class="player-name">${player.name}</h3>
-                            <p class="player-position">${player.position}</p>
-                        </div>
-                    </div>
-                    <div class="player-card-back">
-                        <h3>${player.name}</h3>
-                        <p class="player-description">${player.description}</p>
-                        <p class="player-sponsor">Sponsored by: <span>${player.sponsor}</span></p>
-                    </div>
-                </div>
-            `;
-            playersGrid.appendChild(playerCard);
-        });
+                        <p class="player-name">${player.name}</p>
+                    `;
+                    playersGrid.appendChild(playerCard);
 
-        // Add click event listeners for player cards
-        document.querySelectorAll('.player-card').forEach(player => {
-            player.addEventListener('click', () => {
-                player.classList.toggle('flipped');
-            });
-        });
+                    playerCard.addEventListener('click', () => {
+                        modalImage.src = player.image;
+                        modalName.textContent = player.name;
+                        modalPosition.textContent = player.position;
+                        modalDescription.textContent = player.description;
+                        modalSponsor.innerHTML = `Sponsored by: <span>${player.sponsor}</span>`;
+                        modal.style.display = 'block';
+                    });
+                });
 
-        // Add animation for player cards
-        gsap.utils.toArray(".player-card").forEach((player, i) => {
-            gsap.from(player, {
-                scrollTrigger: {
-                    trigger: player,
-                    start: "top bottom-=100",
-                    toggleActions: "play none none reverse"
-                },
-                opacity: 0,
-                y: 50,
-                duration: 0.5,
-                delay: i * 0.1
-            });
-        });
-    })
-    .catch(error => console.error('Error fetching player data:', error));
-    
+                closeBtn.onclick = function() {
+                    modal.style.display = 'none';
+                }
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+
+                // Add animation for player cards
+                gsap.utils.toArray(".player-card").forEach((player, i) => {
+                    gsap.from(player, {
+                        scrollTrigger: {
+                            trigger: player,
+                            start: "top bottom-=100",
+                            toggleActions: "play none none reverse"
+                        },
+                        opacity: 0,
+                        y: 50,
+                        duration: 0.5,
+                        delay: i * 0.1
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching player data:', error));
     </script>
 </body>
 </html>

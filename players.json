@@ -1,41 +1,123 @@
 {
   "players": [
     {
-      "name": "Alex Johnson",
-      "position": "Forward",
+      "name": "Paul McCulloch",
+      "position": "Goalkeeper",
       "image": "cjImages/playerimages/player.jpg",
-      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "description": "Paul is a skilled goalkeeper known for his quick reflexes and commanding presence in the box.",
       "sponsor": "XYZ Company"
     },
-     {
-      "name": "Alex Johnson",
-      "position": "Forward",
+    {
+      "name": "Harley Leitch",
+      "position": "Unknown",
       "image": "cjImages/playerimages/player.jpg",
-      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "description": "Harley is a versatile player with strong technical skills and good field awareness.",
       "sponsor": "XYZ Company"
     },
-     {
-      "name": "Alex Johnson",
-      "position": "Forward",
+    {
+      "name": "Lyle McNair",
+      "position": "Unknown",
       "image": "cjImages/playerimages/player.jpg",
-      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "description": "Lyle is known for his physical presence on the field and ability to read the game well.",
       "sponsor": "XYZ Company"
     },
-     {
-      "name": "Alex Johnson",
-      "position": "Forward",
+    {
+      "name": "Jaxson Blackwood",
+      "position": "Unknown",
       "image": "cjImages/playerimages/player.jpg",
-      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "description": "Jaxson is a promising young talent with excellent ball control and vision.",
       "sponsor": "XYZ Company"
     },
-     {
-      "name": "Alex Johnson",
-      "position": "Forward",
+    {
+      "name": "Lauchlan McNair",
+      "position": "Unknown",
       "image": "cjImages/playerimages/player.jpg",
-      "description": "Alex is a talented striker with excellent ball control and a keen eye for goal. Known for his quick thinking and agility on the field.",
+      "description": "Lauchlan is a hardworking player known for his dedication and team spirit.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Alfie McDonnell",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Alfie is a talented player with good technical skills and a strong work ethic.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Ryan Duff",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Ryan is known for his speed and agility on the field, making him a valuable asset to the team.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Mason Kelly",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Mason is a versatile player capable of adapting to different positions on the field.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Lewis Scott",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Lewis is known for his tactical understanding and ability to create opportunities for his teammates.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Ben Parker",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Ben is a reliable player with good positioning and decision-making skills.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Isac Blackwood",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Isac is a promising young talent with excellent ball control and creativity on the field.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Stewart Kean",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Stewart is an experienced player known for his leadership qualities and tactical awareness.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Harri-Lee Lockwood",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Harri-Lee is a skillful player with good dribbling abilities and vision on the field.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Cole Cochrane",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Cole is known for his strong physical presence and ability to win aerial duels.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Ethan Scott",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Ethan is a versatile player with good technical skills and the ability to read the game well.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Jack Fazackerley",
+      "position": "Goalkeeper",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Jack is a talented goalkeeper with excellent reflexes and shot-stopping abilities.",
+      "sponsor": "XYZ Company"
+    },
+    {
+      "name": "Mason Wilson",
+      "position": "Unknown",
+      "image": "cjImages/playerimages/player.jpg",
+      "description": "Mason is a promising young player with good ball control and passing skills.",
       "sponsor": "XYZ Company"
     }
-   
-   
   ]
 }

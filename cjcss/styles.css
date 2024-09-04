@@ -461,7 +461,6 @@ section {
 .form-group label {
     display: block;
     margin-bottom: var(--spacing-small);
-     margin-top: var(--spacing-small);
     font-weight: 700;
 }
 

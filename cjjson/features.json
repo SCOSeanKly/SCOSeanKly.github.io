@@ -35,6 +35,18 @@
       "title": "Physical Fitness",
       "description": "Age-appropriate conditioning and health education",
       "details": "Our program includes age-appropriate physical fitness training to improve stamina, agility, and overall health. We also educate our young players about nutrition, injury prevention, and the importance of maintaining a healthy lifestyle both on and off the pitch."
+    },
+    {
+      "icon": "🧠",
+      "title": "Mental Resilience",
+      "description": "Developing a strong mindset for success",
+      "details": "We place emphasis on mental resilience and a positive mindset. Through targeted exercises and guidance, we help our players develop confidence, focus, and the ability to handle pressure. This mental strength is crucial for success both in football and in life."
+    },
+    {
+      "icon": "🌍",
+      "title": "Community Engagement",
+      "description": "Fostering a sense of social responsibility",
+      "details": "Our team actively participates in community service projects, teaching young players the importance of giving back. Through various initiatives, such as charity matches or volunteering at local events, we instill a sense of social responsibility and community pride in our players."
     }
   ]
 }

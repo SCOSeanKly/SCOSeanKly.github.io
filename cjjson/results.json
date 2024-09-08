@@ -1,6 +1,12 @@
 {
   "results" : [
     {
+      "date" : "2024-09-07T09:00:00Z",
+      "venue" : "Townhead Park",
+      "result" : "3-2",
+      "opponent" : "Galston"
+    },
+    {
       "result" : "2-1",
       "venue" : "Townhead Park",
       "opponent" : "Valspar Athletic",

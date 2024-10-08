@@ -28,6 +28,11 @@ body, html {
     scroll-behavior: smooth;
 }
 
+body > div.app-section#fishm {
+    padding-top: 100 !important;
+    margin-top: 60px !important;
+}
+
 .top-bar {
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;
@@ -160,9 +165,9 @@ body, html {
 }
 
 .app-section:first-of-type {
-    margin-top: 50px;
+    margin-top: 70px;
+    padding-top: 140px;
 }
-
 .app-section:nth-child(odd) {
     background-color: #000;
     color: #fff;

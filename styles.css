@@ -185,6 +185,11 @@ body > div.app-section#fishm {
     margin: 0 auto;
 }
 
+#walls .app-icon {
+    margin-top: 20px;
+}
+
+
 .app-icon {
     width: 120px;
     height: 120px;

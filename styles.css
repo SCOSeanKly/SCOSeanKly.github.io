@@ -28,11 +28,6 @@ body, html {
     scroll-behavior: smooth;
 }
 
-body > div.app-section#fishm {
-    padding-top: 100 !important;
-    margin-top: 60px !important;
-}
-
 .top-bar {
     background-color: rgba(0, 0, 0, 0.8);
     color: #fff;

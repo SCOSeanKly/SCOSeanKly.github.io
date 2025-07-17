@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK PNG Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --modern-dark: #0a0a0a;
+            --modern-darker: #050505;
+            --neon-purple: #8b5cf6;
+            --neon-blue: #06b6d4;
+            --neon-pink: #ec4899;
+            --neon-green: #10b981;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--modern-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            top: 20%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 20%;
+            animation-delay: -8s;
+        }
+
+        .shape:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 30%;
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(30px) rotate(240deg); }
+        }
+
+        /* Glassmorphism container */
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 48px;
+            max-width: 700px;
+            width: 90%;
+            margin: 60px auto;
+            position: relative;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 32px;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            position: relative;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 48px;
+            opacity: 0.8;
+        }
+
+        /* mLite link styling */
+        .mlite-link {
+            color: var(--neon-blue);
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .mlite-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            opacity: 0;
+            border-radius: 6px;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .mlite-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1px;
+        }
+
+        .mlite-link:hover::before {
+            opacity: 0.1;
+        }
+
+        .mlite-link:hover::after {
+            width: 100%;
+        }
+
+        .mlite-link:hover {
+            transform: translateY(-2px) scale(1.05);
+            filter: brightness(1.3);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+            color: var(--text-primary);
+        }
+
+        /* Upload area with advanced styling */
+        .upload-area {
+            border: 2px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 24px;
+            padding: 60px 40px;
+            margin-bottom: 40px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            background: rgba(139, 92, 246, 0.03);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .upload-area:hover::before {
+            left: 100%;
+        }
+
+        .upload-area:hover {
+            border-color: var(--neon-purple);
+            background: rgba(139, 92, 246, 0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--neon-blue);
+            background: rgba(6, 182, 212, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(6, 182, 212, 0.3);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 24px;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .upload-subtext {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Modern button design */
+        .btn {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: var(--text-primary);
+            border: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* File info card */
+        .file-info {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 16px;
+            margin: 24px 0;
+            backdrop-filter: blur(10px);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .file-info.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .file-info h3 {
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .file-info p {
+            color: var(--text-secondary);
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Status messages */
+        .status {
+            padding: 20px;
+            border-radius: 16px;
+            margin: 24px 0;
+            font-weight: 500;
+            border: 1px solid;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--neon-green);
+            border-color: rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+        }
+
+        .status.error {
+            background: rgba(236, 72, 153, 0.1);
+            color: var(--neon-pink);
+            border-color: rgba(236, 72, 153, 0.3);
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.2);
+        }
+
+        .status.info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--neon-blue);
+            border-color: rgba(6, 182, 212, 0.3);
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Image preview */
+        .extracted-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            margin: 24px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .extracted-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Download link */
+        .download-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--neon-green), #059669);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin: 16px 0;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .download-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Progress bar */
+        .progress-container {
+            margin: 24px 0;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-container.show {
+            opacity: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+                margin: 20px auto;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .upload-area {
+                padding: 40px 24px;
+            }
+
+            .btn {
+                padding: 14px 24px;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--text-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Particle system */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--neon-purple);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: particleFloat 15s infinite ease-in-out;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { 
+                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { 
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <!-- Particle system -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <h1>✨ mLite APK Extractor</h1>
+        <p class="subtitle">Extract PNG images from APK files for use in <a href="https://apple.co/3Gx9sJI" target="_blank" class="mlite-link">mLite iOS App</a></p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📱</div>
+            <div class="upload-text">Drag & Drop your APK file here</div>
+            <div class="upload-subtext">or click to browse files</div>
+            <input type="file" class="file-input" id="fileInput" accept=".apk" />
+        </div>
+
+        <div id="fileInfo" class="file-info">
+            <h3>📄 Selected File:</h3>
+            <p id="fileName"></p>
+            <p id="fileSize"></p>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" id="extractBtn" disabled>
+                <span id="btnText">🔍 Extract PNG</span>
+            </button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Processing...</div>
+        </div>
+
+        <div id="status"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Initialize particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 20000);
+            }, 300);
+        }
+
+        // Initialize GSAP animations
+        function initAnimations() {
+            // Container entrance animation
+            gsap.fromTo('.container', {
+                opacity: 0,
+                scale: 0.8,
+                y: 50
+            }, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+
+            // Stagger animation for elements
+            gsap.fromTo('.upload-area, .btn', {
+                opacity: 0,
+                y: 30
+            }, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.2,
+                delay: 0.3,
+                ease: "power2.out"
+            });
+        }
+
+        let selectedFile = null;
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const extractBtn = document.getElementById('extractBtn');
+        const btnText = document.getElementById('btnText');
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initAnimations();
+        });
+
+        // File upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        extractBtn.addEventListener('click', extractGlarePNG);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.apk')) {
+                showStatus('❌ Please select an APK file.', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = `Size: ${formatFileSize(file.size)}`;
+            
+            // Animate file info appearance
+            fileInfo.classList.add('show');
+            extractBtn.disabled = false;
+            
+            // Animate button
+            gsap.to(extractBtn, {
+                scale: 1.05,
+                duration: 0.2,
+                yoyo: true,
+                repeat: 1
+            });
+            
+            // Clear previous results
+            result.innerHTML = '';
+            status.innerHTML = '';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showStatus(message, type) {
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showProgress(percent, text = 'Processing...') {
+            progressContainer.classList.add('show');
+            progressFill.style.width = percent + '%';
+            progressText.textContent = text;
+        }
+
+        function hideProgress() {
+            progressContainer.classList.remove('show');
+            progressFill.style.width = '0%';
+        }
+
+        async function extractGlarePNG() {
+            if (!selectedFile) return;
+
+            // Update button state
+            extractBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span> Processing...';
+
+            showStatus('🔄 Loading APK file...', 'info');
+            showProgress(10, 'Reading APK file...');
+
+            try {
+                // Load the APK file as a ZIP
+                const zip = new JSZip();
+                const zipData = await zip.loadAsync(selectedFile);
+                showProgress(30, 'Analyzing APK structure...');
+
+                // Look for glare.png in various possible locations
+                const possiblePaths = [
+                    'res/drawable/glare.png',
+                    'res/drawable-hdpi/glare.png',
+                    'res/drawable-mdpi/glare.png',
+                    'res/drawable-xhdpi/glare.png',
+                    'res/drawable-xxhdpi/glare.png',
+                    'res/drawable-xxxhdpi/glare.png',
+                    'assets/glare.png'
+                ];
+
+                let foundFile = null;
+                let foundPath = '';
+
+                showProgress(50, 'Searching for glare.png...');
+
+                // Search for glare.png in the possible locations
+                for (const path of possiblePaths) {
+                    if (zipData.files[path]) {
+                        foundFile = zipData.files[path];
+                        foundPath = path;
+                        break;
+                    }
+                }
+
+                // If not found in standard locations, search all files
+                if (!foundFile) {
+                    showProgress(70, 'Deep scanning APK contents...');
+                    
+                    for (const [path, file] of Object.entries(zipData.files)) {
+                        if (path.toLowerCase().includes('glare.png')) {
+                            foundFile = file;
+                            foundPath = path;
+                            break;
+                        }
+                    }
+                }
+
+                if (!foundFile) {
+                    showStatus('❌ glare.png not found in the APK file.', 'error');
+                    hideProgress();
+                    resetButton();
+                    return;
+                }
+
+                showProgress(80, 'Extracting image...');
+
+                // Extract the PNG file
+                const pngData = await foundFile.async('blob');
+                showProgress(90, 'Preparing download...');
+
+                // Create download link and preview
+                const url = URL.createObjectURL(pngData);
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'extracted-image';
+                img.alt = 'glare.png';
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = url;
+                downloadLink.download = 'glare.png';
+                downloadLink.className = 'download-link';
+                downloadLink.innerHTML = '⬇️ Download Image';
+
+                result.innerHTML = `
+                    <div class="status success">
+                        ✅ Successfully extracted from: ${foundPath}
+                    </div>
+                `;
+                
+                // Center the image
+                const imageContainer = document.createElement('div');
+                imageContainer.style.textAlign = 'center';
+                imageContainer.appendChild(img);
+                result.appendChild(imageContainer);
+                
+                // Center the download link
+                const downloadContainer = document.createElement('div');
+                downloadContainer.style.textAlign = 'center';
+                downloadContainer.appendChild(downloadLink);
+                result.appendChild(downloadContainer);
+
+                // Animate result appearance
+                gsap.fromTo(result.children, {
+                    opacity: 0,
+                    y: 20
+                }, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    stagger: 0.2,
+                    ease: "power2.out"
+                });
+
+                showProgress(100, 'Complete!');
+                setTimeout(hideProgress, 1500);
+
+            } catch (error) {
+                console.error('Error extracting file:', error);
+                showStatus(`❌ Error processing APK: ${error.message}`, 'error');
+                hideProgress();
+            }
+
+            resetButton();
+        }
+
+        function resetButton() {
+            extractBtn.disabled = false;
+            btnText.innerHTML = '🔍 Extract PNG';
+        }
+    </script>
+</body>
+</html>

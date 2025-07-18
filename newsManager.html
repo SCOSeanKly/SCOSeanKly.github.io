@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9ff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #e1e5f2;
+        }
+
+        .form-section h2 {
+            color: #4c51bf;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5f2;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control.textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .creator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .creator-card {
+            padding: 15px;
+            border: 2px solid #e1e5f2;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .creator-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .creator-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .creator-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e1e5f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #667eea;
+            overflow: hidden;
+        }
+
+        .creator-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .creator-info .time-remaining {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .creator-info .time-remaining.ready {
+            color: #10b981;
+        }
+
+        .creator-info .time-remaining.waiting {
+            color: #f59e0b;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .progress-section {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #fbbf24;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+
+        .news-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .news-card {
+            background: white;
+            border: 1px solid #e1e5f2;
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .news-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            gap: 15px;
+        }
+
+        .news-meta {
+            flex: 1;
+        }
+
+        .news-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        .news-date {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        .news-creator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .news-creator-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e1e5f2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #667eea;
+            overflow: hidden;
+        }
+
+        .news-description {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .news-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #374151;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .validation-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .info-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .pack-link {
+            color: #667eea;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .url-link {
+            color: #10b981;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 16px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .creator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .news-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .news-actions {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>News Manager</h1>
+            <p>Manage your app's news and announcements</p>
+        </div>
+
+        <div class="content">
+            <!-- Alert Messages -->
+            <div id="alertContainer"></div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="progress-section" style="display: none;">
+                <div id="progressText">Loading...</div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Add News Form -->
+            <div class="form-section">
+                <h2>Add News Item</h2>
+                <form id="newsForm">
+                    <div class="form-group">
+                        <label for="githubToken">GitHub Token</label>
+                        <input type="password" id="githubToken" class="form-control" placeholder="Enter your GitHub personal access token">
+                        <div id="tokenError" class="validation-error" style="display: none;"></div>
+                        <small style="color: #6b7280; font-size: 12px; margin-top: 4px; display: block;">
+                            Required for uploading news. <a href="https://t.me/SeanKly" target="_blank" style="color: #667eea;">Contact SeanKly</a>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Select Creator</label>
+                        <div id="creatorGrid" class="creator-grid">
+                            <!-- Creators will be populated here -->
+                        </div>
+                        <div id="creatorError" class="validation-error" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newsTitle">Title</label>
+                        <input type="text" id="newsTitle" class="form-control" placeholder="Enter news title">
+                        <div id="titleError" class="validation-error" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newsDescription">Description</label>
+                        <textarea id="newsDescription" class="form-control textarea" placeholder="Enter news description&#10;&#10;For pack links, use: walls://pack/PACK_ID&#10;For web links, use: https://example.com"></textarea>
+                        <div id="descriptionError" class="validation-error" style="display: none;"></div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <span id="submitText">Add News</span>
+                        <div id="submitSpinner" class="loading" style="display: none;"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- News List -->
+            <div class="form-section">
+                <h2>News Items</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <span id="newsCount" class="info-badge">0 items</span>
+                    <button id="refreshBtn" class="btn btn-secondary">
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                <div id="newsList" class="news-list">
+                    <!-- News items will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Confirm Action</div>
+            <div id="confirmMessage"></div>
+            <div class="modal-actions">
+                <button id="confirmCancel" class="btn btn-secondary">Cancel</button>
+                <button id="confirmOk" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Edit News Item</div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editTitle">Title</label>
+                    <input type="text" id="editTitle" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <textarea id="editDescription" class="form-control textarea"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="editCancel" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="editSave" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        class NewsManager {
+            constructor() {
+                this.baseRepo = "SCOSeanKly/WallsNews";
+                this.jsonPath = "newsVer13.json";
+                this.creatorsPath = "creators.json";
+                this.newsItems = [];
+                this.creators = [];
+                this.selectedCreator = null;
+                this.currentEditItem = null;
+                this.confirmAction = null;
+                
+                this.postingTimes = this.loadPostingTimes();
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadCreators();
+                this.renderCreators();
+                this.loadNews();
+                this.updatePostingTimes();
+                
+                // Update posting times every minute
+                setInterval(() => this.updatePostingTimes(), 60000);
+            }
+
+            setupEventListeners() {
+                document.getElementById('newsForm').addEventListener('submit', (e) => this.handleSubmit(e));
+                document.getElementById('refreshBtn').addEventListener('click', () => this.loadNews());
+                document.getElementById('confirmOk').addEventListener('click', () => this.executeConfirmedAction());
+                document.getElementById('confirmCancel').addEventListener('click', () => this.hideModal('confirmModal'));
+                document.getElementById('editCancel').addEventListener('click', () => this.hideModal('editModal'));
+                document.getElementById('editForm').addEventListener('submit', (e) => this.handleEditSubmit(e));
+                
+                // Real-time validation
+                document.getElementById('newsTitle').addEventListener('input', (e) => this.validateTitle(e.target.value));
+                document.getElementById('newsDescription').addEventListener('input', (e) => this.validateDescription(e.target.value));
+            }
+
+            async loadCreators() {
+                try {
+                    this.showProgress('Loading creators...', 30);
+                    const url = `https://raw.githubusercontent.com/${this.baseRepo}/main/${this.creatorsPath}`;
+                    console.log('Fetching creators from:', url);
+                    
+                    const response = await fetch(url);
+                    console.log('Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const textData = await response.text();
+                    console.log('Raw response length:', textData.length);
+                    
+                    // Clean up trailing commas that make JSON invalid
+                    let cleanedData = textData;
+                    cleanedData = cleanedData.replace(/,(\s*[}\]])/g, '$1');
+                    
+                    let data;
+                    try {
+                        data = JSON.parse(cleanedData);
+                    } catch (parseError) {
+                        console.error('JSON Parse Error:', parseError);
+                        throw new Error(`JSON parsing failed: ${parseError.message}`);
+                    }
+                    
+                    console.log('Loaded creators data:', data);
+                    
+                    if (!data.creators || !Array.isArray(data.creators)) {
+                        throw new Error('Invalid creators data structure - missing creators array');
+                    }
+                    
+                    // Filter out retired creators and map to simplified format
+                    this.creators = data.creators
+                        .filter(creator => !creator.isRetired)
+                        .map(creator => ({
+                            name: creator.name,
+                            avatarURL: creator.avatarURL,
+                            xUsername: creator.xUsername,
+                            location: creator.location
+                        }));
+                    
+                    console.log('Active creators loaded:', this.creators.length);
+                    this.hideProgress();
+                    this.showAlert(`Successfully loaded ${this.creators.length} creators`, 'success');
+                    
+                } catch (error) {
+                    console.error('Error loading creators:', error);
+                    this.hideProgress();
+                    this.showAlert(`Failed to load creators: ${error.message}. Using fallback creators.`, 'warning');
+                    
+                    // Better fallback with more creators
+                    this.creators = [
+                        { name: "SeanKly", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/seankly.jpg", location: "Coder Space" },
+                        { name: "ElijahCreative", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/ElijahCreative.jpg", location: "Digital Studio" },
+                        { name: "TeboulDavid1", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/TeboulDavid1.jpg", location: "Digital Art" },
+                        { name: "TimeTraveler", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/timetraveler.jpg", location: "Time Stream" },
+                        { name: "AIFinity76", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/AIFinity76.jpg", location: "Infinity Realm" },
+                        { name: "4KWallpapers", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/4KWallpapers.jpg", location: "Design Lab" },
+                        { name: "Deep_Screens", avatarURL: "https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/Deep_Screens.jpg", location: "Digital Cosmos" }
+                    ];
+                }
+            }
+
+            renderCreators() {
+                const grid = document.getElementById('creatorGrid');
+                if (this.creators.length === 0) {
+                    grid.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 20px;">Loading creators...</p>';
+                    return;
+                }
+                
+                grid.innerHTML = this.creators.map(creator => `
+                    <div class="creator-card" data-creator="${creator.name}" onclick="newsManager.selectCreator('${creator.name}')">
+                        <div class="creator-avatar">
+                            ${creator.avatarURL ? 
+                                `<img src="${creator.avatarURL}" alt="${creator.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                 <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; font-weight: bold; color: #667eea;">${creator.name.split(/[\s_]/).map(n => n[0]).join('').toUpperCase()}</div>` :
+                                `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #667eea;">${creator.name.split(/[\s_]/).map(n => n[0]).join('').toUpperCase()}</div>`
+                            }
+                        </div>
+                        <div class="creator-info">
+                            <h4>${creator.name}</h4>
+                            ${creator.location ? `<div style="font-size: 11px; color: #9ca3af; margin-top: 1px;">${creator.location}</div>` : ''}
+                            <div class="time-remaining" id="time-${creator.name.replace(/[\s_]/g, '-')}">Ready to post</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            selectCreator(creatorName) {
+                // Remove previous selection
+                document.querySelectorAll('.creator-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Add selection to clicked card
+                document.querySelector(`[data-creator="${creatorName}"]`).classList.add('selected');
+                this.selectedCreator = this.creators.find(c => c.name === creatorName);
+                this.hideError('creatorError');
+            }
+
+            loadPostingTimes() {
+                const stored = localStorage.getItem('creatorPostingTimes');
+                return stored ? JSON.parse(stored) : {};
+            }
+
+            savePostingTimes() {
+                localStorage.setItem('creatorPostingTimes', JSON.stringify(this.postingTimes));
+            }
+
+            canCreatorPost(creator) {
+                const lastPost = this.postingTimes[creator.name];
+                if (!lastPost) return true;
+                
+                const hoursSincePost = (Date.now() - new Date(lastPost).getTime()) / (1000 * 60 * 60);
+                return hoursSincePost >= 24;
+            }
+
+            getTimeUntilNextPost(creator) {
+                const lastPost = this.postingTimes[creator.name];
+                if (!lastPost) return null;
+                
+                const nextAllowedTime = new Date(lastPost).getTime() + (24 * 60 * 60 * 1000);
+                const timeRemaining = nextAllowedTime - Date.now();
+                
+                return timeRemaining > 0 ? timeRemaining : null;
+            }
+
+            formatTimeRemaining(timeMs) {
+                const hours = Math.floor(timeMs / (1000 * 60 * 60));
+                const minutes = Math.floor((timeMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                if (hours > 0) {
+                    return `${hours}h ${minutes}m`;
+                } else {
+                    return `${minutes}m`;
+                }
+            }
+
+            updatePostingTimes() {
+                this.creators.forEach(creator => {
+                    const elementId = `time-${creator.name.replace(/[\s_]/g, '-')}`;
+                    const element = document.getElementById(elementId);
+                    
+                    if (element) {
+                        if (this.canCreatorPost(creator)) {
+                            element.textContent = 'Ready to post';
+                            element.className = 'time-remaining ready';
+                        } else {
+                            const timeRemaining = this.getTimeUntilNextPost(creator);
+                            element.textContent = `Next post in: ${this.formatTimeRemaining(timeRemaining)}`;
+                            element.className = 'time-remaining waiting';
+                        }
+                    }
+                });
+            }
+
+            validateTitle(title) {
+                const trimmed = title.trim();
+                const words = trimmed.split(/\s+/).filter(w => w.length > 0);
+                
+                if (words.length > 2) {
+                    this.showError('titleError', 'News titles should be two words or less for better user appeal.');
+                } else {
+                    this.hideError('titleError');
+                }
+                
+                return trimmed.length > 0;
+            }
+
+            validateDescription(description) {
+                const trimmed = description.trim();
+                const hasPackWord = /pack/i.test(trimmed);
+                const hasPackURL = /walls:\/\/pack\//i.test(trimmed);
+                
+                if (hasPackWord && !hasPackURL) {
+                    this.showError('descriptionError', 'Pack references require a pack URL (walls://pack/PACK_ID)');
+                    return false;
+                } else {
+                    this.hideError('descriptionError');
+                }
+                
+                return trimmed.length > 0;
+            }
+
+            showError(elementId, message) {
+                const element = document.getElementById(elementId);
+                element.textContent = message;
+                element.style.display = 'block';
+            }
+
+            hideError(elementId) {
+                document.getElementById(elementId).style.display = 'none';
+            }
+
+            showAlert(message, type = 'success') {
+                const container = document.getElementById('alertContainer');
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type}`;
+                alert.textContent = message;
+                
+                container.appendChild(alert);
+                
+                setTimeout(() => {
+                    alert.remove();
+                }, 5000);
+            }
+
+            showProgress(text, progress = 0) {
+                const section = document.getElementById('progressSection');
+                const textEl = document.getElementById('progressText');
+                const fillEl = document.getElementById('progressFill');
+                
+                textEl.textContent = text;
+                fillEl.style.width = `${progress}%`;
+                section.style.display = 'block';
+            }
+
+            hideProgress() {
+                document.getElementById('progressSection').style.display = 'none';
+            }
+
+            setLoading(loading) {
+                const btn = document.getElementById('submitBtn');
+                const text = document.getElementById('submitText');
+                const spinner = document.getElementById('submitSpinner');
+                
+                btn.disabled = loading;
+                text.style.display = loading ? 'none' : 'inline';
+                spinner.style.display = loading ? 'inline-block' : 'none';
+            }
+
+            showModal(modalId) {
+                document.getElementById(modalId).classList.add('show');
+            }
+
+            hideModal(modalId) {
+                document.getElementById(modalId).classList.remove('show');
+            }
+
+            showConfirmation(message, action) {
+                document.getElementById('confirmMessage').textContent = message;
+                this.confirmAction = action;
+                this.showModal('confirmModal');
+            }
+
+            executeConfirmedAction() {
+                if (this.confirmAction) {
+                    this.confirmAction();
+                    this.confirmAction = null;
+                }
+                this.hideModal('confirmModal');
+            }
+
+            getGithubToken() {
+                const token = document.getElementById('githubToken').value.trim();
+                if (!token) {
+                    this.showError('tokenError', 'GitHub token is required for uploading news');
+                    return null;
+                }
+                this.hideError('tokenError');
+                return token;
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const token = this.getGithubToken();
+                if (!token) return;
+                
+               const description = document.getElementById('newsDescription').value.trim();
+                
+                // Validation
+                if (!this.selectedCreator) {
+                    this.showError('creatorError', 'Please select a creator');
+                    return;
+                }
+                
+                if (!this.canCreatorPost(this.selectedCreator)) {
+                    const timeRemaining = this.getTimeUntilNextPost(this.selectedCreator);
+                    this.showAlert(`This creator has already posted in the last 24 hours. Please wait ${this.formatTimeRemaining(timeRemaining)} before posting again.`, 'warning');
+                    return;
+                }
+                
+                if (!this.validateTitle(title)) {
+                    this.showError('titleError', 'Please enter a title');
+                    return;
+                }
+                
+                if (!this.validateDescription(description)) {
+                    if (!description) {
+                        this.showError('descriptionError', 'Please enter a description');
+                    }
+                    return;
+                }
+                
+                // Show confirmation
+                this.showConfirmation(`Add news item with title: "${title}"?`, () => {
+                    this.addNewsItem(title, description, token);
+                });
+            }
+
+            async handleEditSubmit(e) {
+                e.preventDefault();
+                
+                const token = this.getGithubToken();
+                if (!token) return;
+                
+                const title = document.getElementById('editTitle').value.trim();
+                const description = document.getElementById('editDescription').value.trim();
+                
+                if (!title || !description) {
+                    this.showAlert('Title and description are required', 'error');
+                    return;
+                }
+                
+                this.hideModal('editModal');
+                await this.editNewsItem(this.currentEditItem, title, description, token);
+            }
+
+            async addNewsItem(title, description, token) {
+                try {
+                    this.setLoading(true);
+                    this.showProgress('Adding news item...', 20);
+                    
+                    const newItem = {
+                        id: this.generateUUID(),
+                        title,
+                        description,
+                        date: new Date().toISOString(),
+                        icon: 'info.circle',
+                        creatorName: this.selectedCreator.name,
+                        creatorAvatar: this.selectedCreator.avatarURL
+                    };
+                    
+                    this.showProgress('Fetching latest news...', 40);
+                    const newsArray = await this.fetchNews();
+                    newsArray.unshift(newItem);
+                    
+                    this.showProgress('Uploading to GitHub...', 60);
+                    await this.updateGitHub(newsArray, token);
+                    
+                    this.showProgress('Complete!', 100);
+                    
+                    // Record posting time
+                    this.postingTimes[this.selectedCreator.name] = new Date().toISOString();
+                    this.savePostingTimes();
+                    this.updatePostingTimes();
+                    
+                    // Reset form
+                    document.getElementById('newsForm').reset();
+                    document.querySelectorAll('.creator-card').forEach(card => card.classList.remove('selected'));
+                    this.selectedCreator = null;
+                    
+                    this.showAlert(`Successfully added: ${title}`);
+                    await this.loadNews();
+                    
+                } catch (error) {
+                    this.showAlert(`Failed to add news: ${error.message}`, 'error');
+                } finally {
+                    this.setLoading(false);
+                    this.hideProgress();
+                }
+            }
+
+            async deleteNewsItem(item) {
+                const token = this.getGithubToken();
+                if (!token) return;
+                
+                try {
+                    this.showProgress('Deleting news item...', 20);
+                    
+                    const newsArray = this.newsItems.filter(news => news.id !== item.id);
+                    
+                    this.showProgress('Uploading changes...', 60);
+                    await this.updateGitHub(newsArray, token);
+                    
+                    this.showProgress('Complete!', 100);
+                    this.showAlert(`Deleted: ${item.title}`);
+                    await this.loadNews();
+                    
+                } catch (error) {
+                    this.showAlert(`Failed to delete: ${error.message}`, 'error');
+                } finally {
+                    this.hideProgress();
+                }
+            }
+
+            async editNewsItem(item, newTitle, newDescription, token) {
+                try {
+                    this.showProgress('Updating news item...', 20);
+                    
+                    const newsArray = this.newsItems.map(news => 
+                        news.id === item.id 
+                            ? { ...news, title: newTitle, description: newDescription }
+                            : news
+                    );
+                    
+                    this.showProgress('Uploading changes...', 60);
+                    await this.updateGitHub(newsArray, token);
+                    
+                    this.showProgress('Complete!', 100);
+                    this.showAlert(`Updated: ${newTitle}`);
+                    await this.loadNews();
+                    
+                } catch (error) {
+                    this.showAlert(`Failed to update: ${error.message}`, 'error');
+                } finally {
+                    this.hideProgress();
+                }
+            }
+
+            formatDescription(description) {
+                // Convert pack links
+                description = description.replace(/walls:\/\/pack\/[\w-_]+/g, (match) => {
+                    return `<span class="pack-link">${match}</span>`;
+                });
+                
+                // Convert web URLs
+                description = description.replace(/(https?:\/\/[^\s]+)/g, (match) => {
+                    return `<a href="${match}" target="_blank" class="url-link">${match}</a>`;
+                });
+                
+                return description;
+            }
+
+            openEditModal(item) {
+                this.currentEditItem = item;
+                document.getElementById('editTitle').value = item.title;
+                document.getElementById('editDescription').value = item.description;
+                this.showModal('editModal');
+            }
+
+            async fetchNews() {
+                const url = `https://raw.githubusercontent.com/${this.baseRepo}/main/${this.jsonPath}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch news');
+                return await response.json();
+            }
+
+            async getFileSHA(token) {
+                const url = `https://api.github.com/repos/${this.baseRepo}/contents/${this.jsonPath}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to get file SHA');
+                const data = await response.json();
+                return data.sha;
+            }
+
+            async updateGitHub(newsArray, token) {
+                const sha = await this.getFileSHA(token);
+                
+                const jsonString = JSON.stringify(newsArray, null, 2);
+                
+                const url = `https://api.github.com/repos/${this.baseRepo}/contents/${this.jsonPath}`;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Update news',
+                        content: btoa(unescape(encodeURIComponent(jsonString))),
+                        sha: sha
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`GitHub update failed: ${error.message}`);
+                }
+                
+                this.newsItems = newsArray;
+            }
+
+            async loadNews() {
+                try {
+                    this.showProgress('Loading news...', 50);
+                    const items = await this.fetchNews();
+                    this.newsItems = items;
+                    this.renderNews();
+                    
+                } catch (error) {
+                    this.showAlert(`Failed to load news: ${error.message}`, 'error');
+                } finally {
+                    this.hideProgress();
+                }
+            }
+
+            renderNews() {
+                const container = document.getElementById('newsList');
+                const countEl = document.getElementById('newsCount');
+                
+                countEl.textContent = `${this.newsItems.length} items`;
+                
+                if (this.newsItems.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No news items found</p>';
+                    return;
+                }
+                
+                container.innerHTML = this.newsItems.map(item => `
+                    <div class="news-card">
+                        <div class="news-header">
+                            <div class="news-meta">
+                                <div class="news-title">${this.escapeHtml(item.title)}</div>
+                                <div class="news-date">${new Date(item.date).toLocaleDateString()}</div>
+                                ${item.creatorName ? `
+                                    <div class="news-creator">
+                                        ${item.creatorAvatar ? 
+                                            `<img src="${item.creatorAvatar}" alt="${item.creatorName}" class="news-creator-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                             <div class="news-creator-avatar" style="display: none;">${item.creatorName.split(/[\s_]/).map(n => n[0]).join('').toUpperCase()}</div>` :
+                                            `<div class="news-creator-avatar">${item.creatorName.split(/[\s_]/).map(n => n[0]).join('').toUpperCase()}</div>`
+                                        }
+                                        <span>${this.escapeHtml(item.creatorName)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="news-actions">
+                                <button class="btn btn-primary btn-small" onclick="newsManager.openEditModal(newsManager.newsItems.find(n => n.id === '${item.id}'))">
+                                    Edit
+                                </button>
+                                <button class="btn btn-danger btn-small" onclick="newsManager.showConfirmation('Are you sure you want to delete this news item?', () => newsManager.deleteNewsItem(newsManager.newsItems.find(n => n.id === '${item.id}')))">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="news-description">${this.formatDescription(this.escapeHtml(item.description))}</div>
+                    </div>
+                `).join('');
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+        }
+
+        // Initialize the app
+        let newsManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            newsManager = new NewsManager();
+        });
+    </script>
+</body>
+</html>

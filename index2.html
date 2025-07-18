@@ -141,27 +141,41 @@
     }
 
     .avatar {
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      margin: 0 auto 2rem;
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      opacity: 0;
-      transform: scale(0.8);
-      position: relative;
-      overflow: hidden;
-    }
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  margin: 0 auto 2rem;
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: scale(0.8);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-    .avatar::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      background: var(--gradient-1);
-      border-radius: 50%;
-      z-index: -1;
-      opacity: 0.6;
-    }
+.avatar::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--gradient-1);
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.avatar:active {
+  transform: scale(0.95);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.6);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.7);
+  }
+}
 
     .scroll-indicator {
       position: absolute;
@@ -912,14 +926,61 @@
       });
     });
 
-  new hoverEffect({
-    parent: document.querySelector('#avatar-morph'),
-    intensity: 0.4,
-    image1: 'https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/seankly.jpg',
-    image2: 'https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/seankly-alt.jpg',
-    displacementImage: 'https://raw.githubusercontent.com/robin-dela/hover-effect/master/images/displacement/4.jpg',
-    hover: true
-  });
+ const hoverEffectInstance = new hoverEffect({
+  parent: document.querySelector('#avatar-morph'),
+  intensity: 0.4,
+  image1: 'https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/seankly.jpg',
+  image2: 'https://raw.githubusercontent.com/SCOSeanKly/M_Resources/main/CreatorAvatars/seankly-alt.jpg',
+  displacementImage: 'https://raw.githubusercontent.com/robin-dela/hover-effect/master/images/displacement/4.jpg',
+  hover: true
+});
+
+// Add mobile touch support for avatar
+const avatarElement = document.querySelector('#avatar-morph');
+let isTransitioned = false;
+let holdTimeout;
+
+// Touch events for mobile
+avatarElement.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  
+  // Start hold timer for long press
+  holdTimeout = setTimeout(() => {
+    if (!isTransitioned) {
+      hoverEffectInstance.next();
+      isTransitioned = true;
+    } else {
+      hoverEffectInstance.previous();
+      isTransitioned = false;
+    }
+  }, 300); // 300ms hold time
+});
+
+avatarElement.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  clearTimeout(holdTimeout);
+});
+
+avatarElement.addEventListener('touchcancel', (e) => {
+  e.preventDefault();
+  clearTimeout(holdTimeout);
+});
+
+// Quick tap for instant transition (alternative to hold)
+avatarElement.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+});
+
+avatarElement.addEventListener('click', (e) => {
+  // Handle click/tap for both desktop and mobile
+  if (!isTransitioned) {
+    hoverEffectInstance.next();
+    isTransitioned = true;
+  } else {
+    hoverEffectInstance.previous();
+    isTransitioned = false;
+  }
+});
 
 
   </script>

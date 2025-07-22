@@ -885,43 +885,44 @@
                 return token;
             }
 
-            async handleSubmit(e) {
-                e.preventDefault();
-                
-                const token = this.getGithubToken();
-                if (!token) return;
-                
-               const description = document.getElementById('newsDescription').value.trim();
-                
-                // Validation
-                if (!this.selectedCreator) {
-                    this.showError('creatorError', 'Please select a creator');
-                    return;
-                }
-                
-                if (!this.canCreatorPost(this.selectedCreator)) {
-                    const timeRemaining = this.getTimeUntilNextPost(this.selectedCreator);
-                    this.showAlert(`This creator has already posted in the last 24 hours. Please wait ${this.formatTimeRemaining(timeRemaining)} before posting again.`, 'warning');
-                    return;
-                }
-                
-                if (!this.validateTitle(title)) {
-                    this.showError('titleError', 'Please enter a title');
-                    return;
-                }
-                
-                if (!this.validateDescription(description)) {
-                    if (!description) {
-                        this.showError('descriptionError', 'Please enter a description');
-                    }
-                    return;
-                }
-                
-                // Show confirmation
-                this.showConfirmation(`Add news item with title: "${title}"?`, () => {
-                    this.addNewsItem(title, description, token);
-                });
-            }
+          async handleSubmit(e) {
+    e.preventDefault();
+
+    const token = this.getGithubToken();
+    if (!token) return;
+
+    const title = document.getElementById('newsTitle').value.trim();
+    const description = document.getElementById('newsDescription').value.trim();
+
+    if (!this.selectedCreator) {
+        this.showError('creatorError', 'Please select a creator');
+        return;
+    }
+
+    if (!this.canCreatorPost(this.selectedCreator)) {
+        const timeRemaining = this.getTimeUntilNextPost(this.selectedCreator);
+        this.showAlert(`This creator has already posted in the last 24 hours. Please wait ${this.formatTimeRemaining(timeRemaining)} before posting again.`, 'warning');
+        return;
+    }
+
+    if (!this.validateTitle(title)) {
+        this.showError('titleError', 'Please enter a title');
+        return;
+    }
+
+    if (!this.validateDescription(description)) {
+        if (!description) {
+            this.showError('descriptionError', 'Please enter a description');
+        }
+        return;
+    }
+
+    // Show confirmation
+    this.showConfirmation(`Add news item with title: "${title}"?`, () => {
+        this.addNewsItem(title, description, token);
+    });
+}
+
 
             async handleEditSubmit(e) {
                 e.preventDefault();

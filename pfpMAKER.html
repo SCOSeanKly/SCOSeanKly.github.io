@@ -51,6 +51,8 @@
             max-width: 100%;
             height: auto;
             cursor: pointer;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .delete-marker {
@@ -254,7 +256,7 @@
         <h1>pfp.MAKER</h1>
 
         <div class="canvas-wrapper">
-            <canvas id="canvas" width="400" height="520"></canvas>
+            <canvas id="canvas" width="1200" height="1560"></canvas>
         </div>
 
         <div class="control-group">
@@ -356,6 +358,9 @@
                 noiseCanvas = document.createElement('canvas');
                 noiseCanvas.width = canvas.width;
                 noiseCanvas.height = canvas.height;
+            } else if (noiseCanvas.width !== canvas.width || noiseCanvas.height !== canvas.height) {
+                noiseCanvas.width = canvas.width;
+                noiseCanvas.height = canvas.height;
             }
             const noiseCtx = noiseCanvas.getContext('2d');
             const imageData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
@@ -387,13 +392,13 @@
                             images[index] = img;
                             loadedCount++;
                             if (loadedCount === files.length) {
-                                // Adjust canvas width based on number of images
+                                // Adjust canvas width based on number of images (3x resolution)
                                 if (images.length === 1) {
-                                    canvas.width = 400;
+                                    canvas.width = 1200;
                                 } else {
-                                    canvas.width = 400 * images.length;
+                                    canvas.width = 1200 * images.length;
                                 }
-                                canvas.height = 520;
+                                canvas.height = 1560;
                                 drawImage();
                                 updateDeleteMarkers();
                             }
@@ -457,10 +462,10 @@
                 marker.textContent = '×';
                 marker.style.display = 'flex';
                 
-                const imageSize = 400;
+                const imageSize = 1200; // High res
                 const scale = canvasRect.width / canvas.width;
-                const markerX = (index * imageSize + imageSize - 70) * scale;
-                const markerY = 35 * scale;
+                const markerX = (index * imageSize + imageSize - 210) * scale; // Adjusted for 3x res
+                const markerY = 105 * scale; // Adjusted for 3x res
                 
                 marker.style.position = 'absolute';
                 marker.style.left = `${20 + markerX}px`;
@@ -477,17 +482,17 @@
             images.splice(index, 1);
             
             if (images.length === 0) {
-                canvas.width = 400;
-                canvas.height = 520;
+                canvas.width = 1200;
+                canvas.height = 1560;
                 ctx.fillStyle = bgColor.value;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             } else {
                 if (images.length === 1) {
-                    canvas.width = 400;
+                    canvas.width = 1200;
                 } else {
-                    canvas.width = 400 * images.length;
+                    canvas.width = 1200 * images.length;
                 }
-                canvas.height = 520;
+                canvas.height = 1560;
                 drawImage();
             }
             
@@ -510,8 +515,8 @@
             textInput.value = 'Made with pfp.MAKER';
             textColor.value = '#242424';
             
-            canvas.width = 400;
-            canvas.height = 520;
+            canvas.width = 1200;
+            canvas.height = 1560;
             ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -534,11 +539,11 @@
                 ctx.drawImage(noise, 0, 0);
             }
 
-            const radius = parseInt(cornerRadius.value);
-            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) : 0;
-            const padding = strokeW + 40; // Increased padding for more background
-            const imageSize = 400;
-            const textAreaHeight = 120; // Space for text at bottom with more padding
+            const radius = parseInt(cornerRadius.value) * 3; // Scale up for high res
+            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
+            const padding = strokeW + 120; // Increased padding (3x)
+            const imageSize = 1200; // 3x resolution
+            const textAreaHeight = 360; // Space for text at bottom with more padding (3x)
             const imageAreaHeight = canvas.height - textAreaHeight;
             const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
 
@@ -552,9 +557,9 @@
                 if (shadowToggle.checked) {
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                    ctx.shadowBlur = 20;
+                    ctx.shadowBlur = 60; // 3x for high res
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 4;
+                    ctx.shadowOffsetY = 12; // 3x for high res
                     
                     // Draw a filled shape to cast the shadow
                     ctx.fillStyle = '#ffffff';
@@ -600,7 +605,7 @@
                 // Draw stroke on top (without shadow)
                 if (strokeToggle.checked) {
                     ctx.save();
-                    const width = parseInt(strokeWidth.value);
+                    const width = parseInt(strokeWidth.value) * 3; // Scale for high res
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = width;
                     
@@ -625,7 +630,7 @@
             if (text) {
                 ctx.save();
                 ctx.fillStyle = textColor.value;
-                ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'; // 3x font size
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 

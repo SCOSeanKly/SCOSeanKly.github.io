@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>pfp.MAKER</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,40 +12,177 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --modern-dark: #0a0a0a;
+            --neon-purple: #8b5cf6;
+            --neon-blue: #06b6d4;
+            --neon-pink: #ec4899;
+            --neon-green: #10b981;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--modern-dark);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow-x: hidden;
+            position: relative;
             padding: 20px;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            top: 20%;
+            left: 10%;
+            animation-delay: -2s;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 20%;
+            animation-delay: -8s;
+        }
+
+        .shape:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 30%;
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(30px) rotate(240deg); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--neon-purple);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: particleFloat 15s infinite ease-in-out;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { 
+                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { 
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 48px;
+            max-width: 900px;
+            width: 90%;
+            margin: 60px auto;
+            position: relative;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 1px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            border-radius: 32px;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            opacity: 0.3;
+            z-index: -1;
         }
 
         h1 {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             text-align: center;
-            color: #667eea;
-            margin-bottom: 30px;
-            font-size: 2em;
+            margin-bottom: 40px;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .canvas-wrapper {
-            display: flex;
+            display: none;
             justify-content: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: #f5f5f5;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
             position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .canvas-wrapper.visible {
+            display: flex;
         }
 
         canvas {
@@ -53,6 +191,7 @@
             cursor: pointer;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
+            border-radius: 12px;
         }
 
         .delete-marker {
@@ -72,37 +211,90 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             user-select: none;
             padding-bottom: 2px;
+            transition: all 0.3s ease;
         }
 
         .delete-marker:hover {
             background: #cc0000;
+            transform: scale(1.1);
         }
 
         .control-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--text-primary);
             font-weight: 600;
+            font-size: 0.95rem;
         }
 
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            border: 2px dashed #667eea;
-            border-radius: 8px;
+        .drop-zone {
+            border: 3px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 24px;
+            padding: 60px 40px;
+            text-align: center;
+            background: rgba(139, 92, 246, 0.03);
+            position: relative;
+            overflow: hidden;
             cursor: pointer;
-            background: #f8f9ff;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .drop-zone:hover::before {
+            left: 100%;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--neon-purple);
+            background: rgba(139, 92, 246, 0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--neon-blue);
+            background: rgba(6, 182, 212, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 25px 50px rgba(6, 182, 212, 0.3);
+        }
+
+        .drop-zone p {
+            margin: 0;
+            color: var(--neon-purple);
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
         }
 
         input[type="range"] {
             width: 100%;
             height: 6px;
             border-radius: 3px;
-            background: #ddd;
+            background: rgba(255, 255, 255, 0.1);
             outline: none;
             -webkit-appearance: none;
         }
@@ -113,23 +305,25 @@
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #667eea;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
         }
 
         input[type="range"]::-moz-range-thumb {
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #667eea;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
             cursor: pointer;
             border: none;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
         }
 
         .range-value {
             display: inline-block;
             margin-left: 10px;
-            color: #667eea;
+            color: var(--neon-blue);
             font-weight: 600;
         }
 
@@ -158,7 +352,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background-color: rgba(255, 255, 255, 0.1);
             transition: 0.4s;
             border-radius: 26px;
         }
@@ -176,7 +370,7 @@
         }
 
         input:checked + .slider {
-            background-color: #667eea;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
         }
 
         input:checked + .slider:before {
@@ -187,19 +381,20 @@
         input[type="color"],
         input[type="text"] {
             padding: 8px;
-            border: 2px solid #ddd;
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             font-size: 14px;
-            width: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
         }
 
         input[type="text"] {
             width: 100%;
         }
 
-        input[type="radio"] {
-            cursor: pointer;
-            margin-right: 5px;
+        input[type="number"] {
+            width: 100px;
         }
 
         input[type="color"] {
@@ -208,22 +403,53 @@
             cursor: pointer;
         }
 
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            border-color: var(--neon-purple);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        input[type="radio"] {
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
         button {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: var(--text-primary);
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 16px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
         }
 
         button:hover {
             transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
         }
 
         button:active {
@@ -231,7 +457,12 @@
         }
 
         button.reset-btn {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+        }
+
+        button.reset-btn:hover {
+            box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
         }
 
         .stroke-controls {
@@ -246,12 +477,39 @@
         .watermark {
             text-align: center;
             margin-top: 20px;
-            color: #999;
+            color: var(--text-secondary);
             font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+                margin: 20px auto;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .drop-zone {
+                padding: 40px 24px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <!-- Particle system -->
+    <div class="particles" id="particles"></div>
+
     <div class="container">
         <h1>pfp.MAKER</h1>
 
@@ -261,27 +519,20 @@
 
         <div class="control-group">
             <label>Import Image(s)</label>
-            <input type="file" id="imageInput" accept="image/*" multiple>
+            <div class="drop-zone" id="dropZone">
+                <p>📁 Drag & drop images here or click to browse</p>
+                <input type="file" id="imageInput" accept="image/*" multiple>
+            </div>
         </div>
 
         <div class="control-group">
             <label>Corner Radius <span class="range-value" id="radiusValue">65</span></label>
-            <input type="range" id="cornerRadius" min="0" max="200" value="65">
+            <input type="range" id="cornerRadius" min="0" max="150" value="65">
         </div>
 
         <div class="control-group">
             <label>Background Color</label>
             <input type="color" id="bgColor" value="#ffffff">
-        </div>
-
-        <div class="control-group">
-            <label>Text</label>
-            <input type="text" id="textInput" placeholder="Add text below images..." maxlength="50" value="Made with pfp.MAKER">
-        </div>
-
-        <div class="control-group">
-            <label>Text Color</label>
-            <input type="color" id="textColor" value="#242424">
         </div>
 
         <div class="control-group">
@@ -324,6 +575,21 @@
             </div>
         </div>
 
+        <div class="control-group">
+            <label>Text</label>
+            <input type="text" id="textInput" placeholder="Add text below images..." maxlength="50" value="Made with pfp.MAKER">
+        </div>
+
+        <div class="control-group">
+            <label>Font Size <span class="range-value" id="fontSizeValue">32</span></label>
+            <input type="range" id="fontSize" min="16" max="72" value="32">
+        </div>
+
+        <div class="control-group">
+            <label>Text Color</label>
+            <input type="color" id="textColor" value="#242424">
+        </div>
+
         <button id="saveBtn">Save Image</button>
         <button id="resetBtn" class="reset-btn">Reset to Defaults</button>
 
@@ -331,9 +597,58 @@
     </div>
 
     <script>
+        // Initialize particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 20000);
+            }, 300);
+        }
+
+        // Initialize GSAP animations
+        function initAnimations() {
+            gsap.fromTo('.container', {
+                opacity: 0,
+                scale: 0.8,
+                y: 50
+            }, {
+                opacity: 1,
+                scale: 1,
+                y: 0,
+                duration: 1,
+                ease: "power3.out"
+            });
+
+            gsap.fromTo('.control-group, button', {
+                opacity: 0,
+                y: 30
+            }, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.1,
+                delay: 0.3,
+                ease: "power2.out"
+            });
+        }
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.querySelector('.canvas-wrapper');
         const imageInput = document.getElementById('imageInput');
+        const dropZone = document.getElementById('dropZone');
         const cornerRadius = document.getElementById('cornerRadius');
         const radiusValue = document.getElementById('radiusValue');
         const strokeToggle = document.getElementById('strokeToggle');
@@ -345,6 +660,8 @@
         const noiseControls = document.getElementById('noiseControls');
         const noiseRadios = document.querySelectorAll('input[name="noiseType"]');
         const textInput = document.getElementById('textInput');
+        const fontSize = document.getElementById('fontSize');
+        const fontSizeValue = document.getElementById('fontSizeValue');
         const textColor = document.getElementById('textColor');
         const saveBtn = document.getElementById('saveBtn');
         const resetBtn = document.getElementById('resetBtn');
@@ -358,6 +675,12 @@
         let currentDragX = 0;
         let targetPositions = [];
         let animationFrame = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            initAnimations();
+        });
 
         function generateNoise(isDark) {
             if (!noiseCanvas) {
@@ -384,21 +707,20 @@
             return noiseCanvas;
         }
 
-        imageInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
+        function loadImagesFromFiles(files) {
             if (files.length > 0) {
-                images = [];
                 let loadedCount = 0;
                 
-                files.forEach((file, index) => {
+                Array.from(files).forEach((file) => {
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const img = new Image();
                         img.onload = () => {
-                            images[index] = img;
+                            images.push(img);
                             loadedCount++;
                             if (loadedCount === files.length) {
-                                // Adjust canvas width based on number of images (3x resolution)
+                                canvasWrapper.classList.add('visible');
+                                
                                 if (images.length === 1) {
                                     canvas.width = 1200;
                                 } else {
@@ -407,12 +729,49 @@
                                 canvas.height = 1560;
                                 drawImage();
                                 updateDeleteMarkers();
+
+                                // Animate canvas appearance
+                                gsap.fromTo('.canvas-wrapper', {
+                                    opacity: 0,
+                                    scale: 0.9,
+                                    y: 20
+                                }, {
+                                    opacity: 1,
+                                    scale: 1,
+                                    y: 0,
+                                    duration: 0.6,
+                                    ease: "power2.out"
+                                });
                             }
                         };
                         img.src = event.target.result;
                     };
                     reader.readAsDataURL(file);
                 });
+            }
+        }
+
+        imageInput.addEventListener('change', (e) => {
+            loadImagesFromFiles(e.target.files);
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                loadImagesFromFiles(files);
             }
         });
 
@@ -449,15 +808,17 @@
         });
 
         textInput.addEventListener('input', drawImage);
+        fontSize.addEventListener('input', (e) => {
+            fontSizeValue.textContent = e.target.value;
+            drawImage();
+        });
         textColor.addEventListener('input', drawImage);
 
-        // Drag and drop functionality for canvas
+        // Canvas drag and drop for reordering
         canvas.addEventListener('mousedown', handleMouseDown);
         canvas.addEventListener('mousemove', handleMouseMove);
         canvas.addEventListener('mouseup', handleMouseUp);
         canvas.addEventListener('mouseleave', handleMouseUp);
-
-        // Touch support
         canvas.addEventListener('touchstart', handleTouchStart);
         canvas.addEventListener('touchmove', handleTouchMove);
         canvas.addEventListener('touchend', handleTouchEnd);
@@ -472,10 +833,11 @@
             const canvasY = y * scaleY;
             
             const imageSize = 1200;
-            const textAreaHeight = 360;
+            const textFontSize = parseInt(fontSize.value) * 3;
+            const textPadding = 60;
+            const textAreaHeight = textFontSize + (textPadding * 2);
             const imageAreaHeight = canvas.height - textAreaHeight;
             
-            // Check if click is in the image area (not text area)
             if (canvasY > imageAreaHeight) return -1;
             
             const index = Math.floor(canvasX / imageSize);
@@ -499,10 +861,7 @@
                 isDragging = true;
                 dragStartX = e.clientX;
                 currentDragX = 0;
-                
-                // Initialize target positions for all images
                 targetPositions = images.map((_, i) => i * 1200);
-                
                 canvas.style.cursor = 'grabbing';
                 e.preventDefault();
             }
@@ -526,20 +885,18 @@
             const scaleX = canvas.width / rect.width;
             currentDragX = (e.clientX - dragStartX) * scaleX;
             
-            // Calculate which position the dragged image should swap with
             const draggedPosition = draggedIndex * 1200 + currentDragX;
             const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
             
-            // Update target positions for smooth animation
             targetPositions = images.map((_, i) => {
                 if (i === draggedIndex) {
-                    return draggedIndex * 1200; // Keep original position for calculation
+                    return draggedIndex * 1200;
                 } else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) {
-                    return (i - 1) * 1200; // Shift left
+                    return (i - 1) * 1200;
                 } else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) {
-                    return (i + 1) * 1200; // Shift right
+                    return (i + 1) * 1200;
                 } else {
-                    return i * 1200; // Stay in place
+                    return i * 1200;
                 }
             });
             
@@ -550,23 +907,15 @@
             if (isDragging) {
                 e.preventDefault();
                 
-                // Determine final position
                 const draggedPosition = draggedIndex * 1200 + currentDragX;
                 const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
                 
-                // Store the old index before reordering
-                const oldDraggedIndex = draggedIndex;
-                
                 if (newIndex !== draggedIndex) {
-                    // Reorder the array
                     const [removed] = images.splice(draggedIndex, 1);
                     images.splice(newIndex, 0, removed);
-                    
-                    // Update draggedIndex to the new position
                     draggedIndex = newIndex;
                 }
                 
-                // Animate snap to final positions
                 animateSnapToGrid();
             } else {
                 isDragging = false;
@@ -582,200 +931,6 @@
                     canvas.style.cursor = 'pointer';
                 }
             }
-        }
-
-        function drawImageWithDrag() {
-            if (images.length === 0) return;
-
-            ctx.fillStyle = bgColor.value;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Apply noise background if enabled
-            if (noiseToggle.checked) {
-                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
-                const isDark = selectedNoise === 'dark';
-                const noise = generateNoise(isDark);
-                ctx.drawImage(noise, 0, 0);
-            }
-
-            const radius = parseInt(cornerRadius.value) * 3;
-            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
-            const padding = strokeW + 120;
-            const imageSize = 1200;
-            const textAreaHeight = 360;
-            const imageAreaHeight = canvas.height - textAreaHeight;
-            const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
-
-            // Draw each image
-            images.forEach((img, index) => {
-                let offsetX;
-                
-                if (isDragging && index === draggedIndex) {
-                    // Dragged image follows cursor
-                    offsetX = draggedIndex * imageSize + currentDragX;
-                } else {
-                    // Other images animate to target positions
-                    offsetX = targetPositions[index];
-                }
-                
-                const x = offsetX + (imageSize - size) / 2;
-                const y = (imageAreaHeight - size) / 2;
-
-                // Add slight scale and opacity for dragged item
-                const isBeingDragged = isDragging && index === draggedIndex;
-                
-                ctx.save();
-                
-                if (isBeingDragged) {
-                    ctx.globalAlpha = 0.8;
-                }
-
-                // Draw shadow
-                if (shadowToggle.checked) {
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                    ctx.shadowBlur = isBeingDragged ? 90 : 60;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = isBeingDragged ? 18 : 12;
-                    
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                // Draw image
-                ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + size - radius, y);
-                ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                ctx.lineTo(x + size, y + size - radius);
-                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                ctx.lineTo(x + radius, y + size);
-                ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                ctx.lineTo(x, y + radius);
-                ctx.arcTo(x, y, x + radius, y, radius);
-                ctx.closePath();
-                ctx.clip();
-
-                const scale = Math.max(size / img.width, size / img.height);
-                const imgWidth = img.width * scale;
-                const imgHeight = img.height * scale;
-                const imgX = x + (size - imgWidth) / 2;
-                const imgY = y + (size - imgHeight) / 2;
-
-                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
-                ctx.restore();
-
-                // Draw stroke
-                if (strokeToggle.checked) {
-                    ctx.save();
-                    const width = parseInt(strokeWidth.value) * 3;
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = width;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
-                    ctx.stroke();
-                    ctx.restore();
-                }
-                
-                ctx.restore();
-            });
-
-            // Draw text
-            const text = textInput.value.trim();
-            if (text) {
-                ctx.save();
-                ctx.fillStyle = textColor.value;
-                ctx.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                const textY = imageAreaHeight + (textAreaHeight / 2);
-                const textX = canvas.width / 2;
-                
-                ctx.fillText(text, textX, textY);
-                ctx.restore();
-            }
-        }
-
-        function animateSnapToGrid() {
-            const finalPositions = images.map((_, i) => i * 1200);
-            const startPositions = images.map((_, i) => {
-                if (i === draggedIndex) {
-                    // For the dragged item, start from its current visual position
-                    return draggedIndex * 1200 + currentDragX;
-                }
-                return targetPositions[i] || (i * 1200);
-            });
-            
-            // Figure out where the dragged item ended up after reordering
-            const draggedPosition = draggedIndex * 1200 + currentDragX;
-            const finalIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-            
-            const duration = 300;
-            const startTime = Date.now();
-            
-            function animate() {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Ease out cubic
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-                
-                // Animate all positions to their final spots
-                images.forEach((_, i) => {
-                    const start = startPositions[i];
-                    const end = finalPositions[i];
-                    
-                    if (i === finalIndex) {
-                        // The dragged item animates from its dragged position
-                        targetPositions[i] = start + (end - start) * easeProgress;
-                    } else {
-                        // Other items animate normally
-                        targetPositions[i] = start + (end - start) * easeProgress;
-                    }
-                });
-                
-                // Gradually reduce currentDragX to 0 for the drawing function
-                currentDragX = currentDragX * (1 - easeProgress);
-                
-                drawImageWithDrag();
-                
-                if (progress < 1) {
-                    animationFrame = requestAnimationFrame(animate);
-                } else {
-                    currentDragX = 0;
-                    targetPositions = finalPositions;
-                    isDragging = false;
-                    draggedIndex = null;
-                    drawImage();
-                    updateDeleteMarkers();
-                }
-            }
-            
-            animate();
         }
 
         function handleTouchStart(e) {
@@ -841,11 +996,9 @@
         }
 
         function updateDeleteMarkers() {
-            // Remove existing markers
             deleteMarkers.forEach(marker => marker.remove());
             deleteMarkers = [];
 
-            // Only show delete markers if there are multiple images
             if (images.length <= 1) return;
 
             const canvasRect = canvas.getBoundingClientRect();
@@ -857,10 +1010,10 @@
                 marker.textContent = '×';
                 marker.style.display = 'flex';
                 
-                const imageSize = 1200; // High res
+                const imageSize = 1200;
                 const scale = canvasRect.width / canvas.width;
-                const markerX = (index * imageSize + imageSize - 210) * scale; // Adjusted for 3x res
-                const markerY = 105 * scale; // Adjusted for 3x res
+                const markerX = (index * imageSize + imageSize - 210) * scale;
+                const markerY = 105 * scale;
                 
                 marker.style.position = 'absolute';
                 marker.style.left = `${20 + markerX}px`;
@@ -881,6 +1034,7 @@
                 canvas.height = 1560;
                 ctx.fillStyle = bgColor.value;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                canvasWrapper.classList.remove('visible');
             } else {
                 if (images.length === 1) {
                     canvas.width = 1200;
@@ -894,39 +1048,12 @@
             updateDeleteMarkers();
         }
 
-        function resetToDefaults() {
-            images = [];
-            imageInput.value = '';
-            cornerRadius.value = 65;
-            radiusValue.textContent = '65';
-            strokeToggle.checked = true;
-            strokeControls.classList.add('active');
-            strokeWidth.value = 10;
-            shadowToggle.checked = true;
-            noiseToggle.checked = true;
-            noiseControls.classList.add('active');
-            document.querySelector('input[name="noiseType"][value="light"]').checked = true;
-            bgColor.value = '#ffffff';
-            textInput.value = 'Made with pfp.MAKER';
-            textColor.value = '#242424';
-            
-            canvas.width = 1200;
-            canvas.height = 1560;
-            ctx.fillStyle = bgColor.value;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            updateDeleteMarkers();
-        }
-
-        resetBtn.addEventListener('click', resetToDefaults);
-
         function drawImage() {
             if (images.length === 0) return;
 
             ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Apply noise background if enabled
             if (noiseToggle.checked) {
                 const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
                 const isDark = selectedNoise === 'dark';
@@ -934,29 +1061,30 @@
                 ctx.drawImage(noise, 0, 0);
             }
 
-            const radius = parseInt(cornerRadius.value) * 3; // Scale up for high res
+            const radius = parseInt(cornerRadius.value) * 3;
             const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
-            const padding = strokeW + 120; // Increased padding (3x)
-            const imageSize = 1200; // 3x resolution
-            const textAreaHeight = 360; // Space for text at bottom with more padding (3x)
+            const padding = strokeW + 120;
+            const imageSize = 1200;
+            
+            const textFontSize = parseInt(fontSize.value) * 3;
+            const textPadding = 60;
+            const textAreaHeight = textFontSize + (textPadding * 2);
+            
             const imageAreaHeight = canvas.height - textAreaHeight;
             const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
 
-            // Draw each image in a horizontal row
             images.forEach((img, index) => {
                 const offsetX = index * imageSize;
                 const x = offsetX + (imageSize - size) / 2;
                 const y = (imageAreaHeight - size) / 2;
 
-                // First, draw shadow if enabled (before image and stroke)
                 if (shadowToggle.checked) {
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-                    ctx.shadowBlur = 60; // 3x for high res
+                    ctx.shadowBlur = 60;
                     ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 12; // 3x for high res
+                    ctx.shadowOffsetY = 12;
                     
-                    // Draw a filled shape to cast the shadow
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
                     ctx.moveTo(x + radius, y);
@@ -973,7 +1101,6 @@
                     ctx.restore();
                 }
 
-                // Draw the image (without shadow)
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(x + radius, y);
@@ -997,10 +1124,9 @@
                 ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
                 ctx.restore();
 
-                // Draw stroke on top (without shadow)
                 if (strokeToggle.checked) {
                     ctx.save();
-                    const width = parseInt(strokeWidth.value) * 3; // Scale for high res
+                    const width = parseInt(strokeWidth.value) * 3;
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = width;
                     
@@ -1020,12 +1146,11 @@
                 }
             });
 
-            // Draw text at the bottom if provided
             const text = textInput.value.trim();
             if (text) {
                 ctx.save();
                 ctx.fillStyle = textColor.value;
-                ctx.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'; // 3x font size
+                ctx.font = `bold ${textFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
@@ -1035,6 +1160,217 @@
                 ctx.fillText(text, textX, textY);
                 ctx.restore();
             }
+        }
+
+        function drawImageWithDrag() {
+            if (images.length === 0) return;
+
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (noiseToggle.checked) {
+                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
+                const isDark = selectedNoise === 'dark';
+                const noise = generateNoise(isDark);
+                ctx.drawImage(noise, 0, 0);
+            }
+
+            const radius = parseInt(cornerRadius.value) * 3;
+            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
+            const padding = strokeW + 120;
+            const imageSize = 1200;
+            
+            const textFontSize = parseInt(fontSize.value) * 3;
+            const textPadding = 60;
+            const textAreaHeight = textFontSize + (textPadding * 2);
+            
+            const imageAreaHeight = canvas.height - textAreaHeight;
+            const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
+
+            images.forEach((img, index) => {
+                let offsetX;
+                
+                if (isDragging && index === draggedIndex) {
+                    offsetX = draggedIndex * imageSize + currentDragX;
+                } else if (isDragging) {
+                    offsetX = targetPositions[index];
+                } else {
+                    offsetX = index * imageSize;
+                }
+                
+                const x = offsetX + (imageSize - size) / 2;
+                const y = (imageAreaHeight - size) / 2;
+
+                const isBeingDragged = isDragging && index === draggedIndex;
+                
+                ctx.save();
+                
+                if (isBeingDragged) {
+                    ctx.globalAlpha = 0.8;
+                }
+
+                if (shadowToggle.checked) {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    ctx.shadowBlur = isBeingDragged ? 90 : 60;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = isBeingDragged ? 18 : 12;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + size - radius, y);
+                ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                ctx.lineTo(x + size, y + size - radius);
+                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                ctx.lineTo(x + radius, y + size);
+                ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                ctx.lineTo(x, y + radius);
+                ctx.arcTo(x, y, x + radius, y, radius);
+                ctx.closePath();
+                ctx.clip();
+
+                const scale = Math.max(size / img.width, size / img.height);
+                const imgWidth = img.width * scale;
+                const imgHeight = img.height * scale;
+                const imgX = x + (size - imgWidth) / 2;
+                const imgY = y + (size - imgHeight) / 2;
+
+                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+                ctx.restore();
+
+                if (strokeToggle.checked) {
+                    ctx.save();
+                    const width = parseInt(strokeWidth.value) * 3;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = width;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                
+                ctx.restore();
+            });
+
+            const text = textInput.value.trim();
+            if (text) {
+                ctx.save();
+                ctx.fillStyle = textColor.value;
+                ctx.font = `bold ${textFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const textY = imageAreaHeight + (textAreaHeight / 2);
+                const textX = canvas.width / 2;
+                
+                ctx.fillText(text, textX, textY);
+                ctx.restore();
+            }
+        }
+
+        function animateSnapToGrid() {
+            const finalPositions = images.map((_, i) => i * 1200);
+            const startPositions = images.map((_, i) => {
+                if (i === draggedIndex) {
+                    return draggedIndex * 1200 + currentDragX;
+                }
+                return targetPositions[i] || (i * 1200);
+            });
+            
+            const draggedPosition = draggedIndex * 1200 + currentDragX;
+            const finalIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+            
+            const duration = 300;
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                images.forEach((_, i) => {
+                    const start = startPositions[i];
+                    const end = finalPositions[i];
+                    
+                    if (i === finalIndex) {
+                        targetPositions[i] = start + (end - start) * easeProgress;
+                    } else {
+                        targetPositions[i] = start + (end - start) * easeProgress;
+                    }
+                });
+                
+                currentDragX = currentDragX * (1 - easeProgress);
+                
+                drawImageWithDrag();
+                
+                if (progress < 1) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    currentDragX = 0;
+                    targetPositions = finalPositions;
+                    isDragging = false;
+                    draggedIndex = null;
+                    drawImage();
+                    updateDeleteMarkers();
+                }
+            }
+            
+            animate();
+        }
+
+        function resetToDefaults() {
+            images = [];
+            imageInput.value = '';
+            cornerRadius.value = 65;
+            radiusValue.textContent = '65';
+            strokeToggle.checked = true;
+            strokeControls.classList.add('active');
+            strokeWidth.value = 10;
+            shadowToggle.checked = true;
+            noiseToggle.checked = true;
+            noiseControls.classList.add('active');
+            document.querySelector('input[name="noiseType"][value="light"]').checked = true;
+            bgColor.value = '#ffffff';
+            textInput.value = 'Made with pfp.MAKER';
+            fontSize.value = 32;
+            fontSizeValue.textContent = '32';
+            textColor.value = '#242424';
+            
+            canvas.width = 1200;
+            canvas.height = 1560;
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            canvasWrapper.classList.remove('visible');
+            updateDeleteMarkers();
         }
 
         saveBtn.addEventListener('click', () => {
@@ -1054,6 +1390,8 @@
                 URL.revokeObjectURL(url);
             });
         });
+
+        resetBtn.addEventListener('click', resetToDefaults);
     </script>
 </body>
 </html>

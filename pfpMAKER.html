@@ -352,6 +352,12 @@
         let images = [];
         let noiseCanvas = null;
         let deleteMarkers = [];
+        let draggedIndex = null;
+        let isDragging = false;
+        let dragStartX = 0;
+        let currentDragX = 0;
+        let targetPositions = [];
+        let animationFrame = null;
 
         function generateNoise(isDark) {
             if (!noiseCanvas) {
@@ -444,6 +450,395 @@
 
         textInput.addEventListener('input', drawImage);
         textColor.addEventListener('input', drawImage);
+
+        // Drag and drop functionality for canvas
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mouseleave', handleMouseUp);
+
+        // Touch support
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', handleTouchEnd);
+
+        function getImageIndexAtPosition(x, y) {
+            if (images.length <= 1) return -1;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = x * scaleX;
+            const canvasY = y * scaleY;
+            
+            const imageSize = 1200;
+            const textAreaHeight = 360;
+            const imageAreaHeight = canvas.height - textAreaHeight;
+            
+            // Check if click is in the image area (not text area)
+            if (canvasY > imageAreaHeight) return -1;
+            
+            const index = Math.floor(canvasX / imageSize);
+            
+            if (index >= 0 && index < images.length) {
+                return index;
+            }
+            return -1;
+        }
+
+        function handleMouseDown(e) {
+            if (images.length <= 1) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const index = getImageIndexAtPosition(x, y);
+            if (index !== -1) {
+                draggedIndex = index;
+                isDragging = true;
+                dragStartX = e.clientX;
+                currentDragX = 0;
+                
+                // Initialize target positions for all images
+                targetPositions = images.map((_, i) => i * 1200);
+                
+                canvas.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (!isDragging || draggedIndex === null) {
+                if (images.length > 1) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const index = getImageIndexAtPosition(x, y);
+                    canvas.style.cursor = index !== -1 ? 'grab' : 'default';
+                }
+                return;
+            }
+            
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            currentDragX = (e.clientX - dragStartX) * scaleX;
+            
+            // Calculate which position the dragged image should swap with
+            const draggedPosition = draggedIndex * 1200 + currentDragX;
+            const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+            
+            // Update target positions for smooth animation
+            targetPositions = images.map((_, i) => {
+                if (i === draggedIndex) {
+                    return draggedIndex * 1200; // Keep original position for calculation
+                } else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) {
+                    return (i - 1) * 1200; // Shift left
+                } else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) {
+                    return (i + 1) * 1200; // Shift right
+                } else {
+                    return i * 1200; // Stay in place
+                }
+            });
+            
+            drawImageWithDrag();
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging) {
+                e.preventDefault();
+                
+                // Determine final position
+                const draggedPosition = draggedIndex * 1200 + currentDragX;
+                const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+                
+                // Store the old index before reordering
+                const oldDraggedIndex = draggedIndex;
+                
+                if (newIndex !== draggedIndex) {
+                    // Reorder the array
+                    const [removed] = images.splice(draggedIndex, 1);
+                    images.splice(newIndex, 0, removed);
+                    
+                    // Update draggedIndex to the new position
+                    draggedIndex = newIndex;
+                }
+                
+                // Animate snap to final positions
+                animateSnapToGrid();
+            } else {
+                isDragging = false;
+                draggedIndex = null;
+                
+                if (images.length > 1) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const index = getImageIndexAtPosition(x, y);
+                    canvas.style.cursor = index !== -1 ? 'grab' : 'default';
+                } else {
+                    canvas.style.cursor = 'pointer';
+                }
+            }
+        }
+
+        function drawImageWithDrag() {
+            if (images.length === 0) return;
+
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Apply noise background if enabled
+            if (noiseToggle.checked) {
+                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
+                const isDark = selectedNoise === 'dark';
+                const noise = generateNoise(isDark);
+                ctx.drawImage(noise, 0, 0);
+            }
+
+            const radius = parseInt(cornerRadius.value) * 3;
+            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
+            const padding = strokeW + 120;
+            const imageSize = 1200;
+            const textAreaHeight = 360;
+            const imageAreaHeight = canvas.height - textAreaHeight;
+            const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
+
+            // Draw each image
+            images.forEach((img, index) => {
+                let offsetX;
+                
+                if (isDragging && index === draggedIndex) {
+                    // Dragged image follows cursor
+                    offsetX = draggedIndex * imageSize + currentDragX;
+                } else {
+                    // Other images animate to target positions
+                    offsetX = targetPositions[index];
+                }
+                
+                const x = offsetX + (imageSize - size) / 2;
+                const y = (imageAreaHeight - size) / 2;
+
+                // Add slight scale and opacity for dragged item
+                const isBeingDragged = isDragging && index === draggedIndex;
+                
+                ctx.save();
+                
+                if (isBeingDragged) {
+                    ctx.globalAlpha = 0.8;
+                }
+
+                // Draw shadow
+                if (shadowToggle.checked) {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    ctx.shadowBlur = isBeingDragged ? 90 : 60;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = isBeingDragged ? 18 : 12;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Draw image
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + size - radius, y);
+                ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                ctx.lineTo(x + size, y + size - radius);
+                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                ctx.lineTo(x + radius, y + size);
+                ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                ctx.lineTo(x, y + radius);
+                ctx.arcTo(x, y, x + radius, y, radius);
+                ctx.closePath();
+                ctx.clip();
+
+                const scale = Math.max(size / img.width, size / img.height);
+                const imgWidth = img.width * scale;
+                const imgHeight = img.height * scale;
+                const imgX = x + (size - imgWidth) / 2;
+                const imgY = y + (size - imgHeight) / 2;
+
+                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+                ctx.restore();
+
+                // Draw stroke
+                if (strokeToggle.checked) {
+                    ctx.save();
+                    const width = parseInt(strokeWidth.value) * 3;
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = width;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                
+                ctx.restore();
+            });
+
+            // Draw text
+            const text = textInput.value.trim();
+            if (text) {
+                ctx.save();
+                ctx.fillStyle = textColor.value;
+                ctx.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const textY = imageAreaHeight + (textAreaHeight / 2);
+                const textX = canvas.width / 2;
+                
+                ctx.fillText(text, textX, textY);
+                ctx.restore();
+            }
+        }
+
+        function animateSnapToGrid() {
+            const finalPositions = images.map((_, i) => i * 1200);
+            const startPositions = images.map((_, i) => {
+                if (i === draggedIndex) {
+                    // For the dragged item, start from its current visual position
+                    return draggedIndex * 1200 + currentDragX;
+                }
+                return targetPositions[i] || (i * 1200);
+            });
+            
+            // Figure out where the dragged item ended up after reordering
+            const draggedPosition = draggedIndex * 1200 + currentDragX;
+            const finalIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+            
+            const duration = 300;
+            const startTime = Date.now();
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                // Animate all positions to their final spots
+                images.forEach((_, i) => {
+                    const start = startPositions[i];
+                    const end = finalPositions[i];
+                    
+                    if (i === finalIndex) {
+                        // The dragged item animates from its dragged position
+                        targetPositions[i] = start + (end - start) * easeProgress;
+                    } else {
+                        // Other items animate normally
+                        targetPositions[i] = start + (end - start) * easeProgress;
+                    }
+                });
+                
+                // Gradually reduce currentDragX to 0 for the drawing function
+                currentDragX = currentDragX * (1 - easeProgress);
+                
+                drawImageWithDrag();
+                
+                if (progress < 1) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    currentDragX = 0;
+                    targetPositions = finalPositions;
+                    isDragging = false;
+                    draggedIndex = null;
+                    drawImage();
+                    updateDeleteMarkers();
+                }
+            }
+            
+            animate();
+        }
+
+        function handleTouchStart(e) {
+            if (images.length <= 1) return;
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            const index = getImageIndexAtPosition(x, y);
+            if (index !== -1) {
+                draggedIndex = index;
+                isDragging = true;
+                dragStartX = touch.clientX;
+                currentDragX = 0;
+                targetPositions = images.map((_, i) => i * 1200);
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!isDragging || draggedIndex === null) return;
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const scaleX = canvas.width / rect.width;
+            currentDragX = (touch.clientX - dragStartX) * scaleX;
+            
+            const draggedPosition = draggedIndex * 1200 + currentDragX;
+            const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+            
+            targetPositions = images.map((_, i) => {
+                if (i === draggedIndex) {
+                    return draggedIndex * 1200;
+                } else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) {
+                    return (i - 1) * 1200;
+                } else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) {
+                    return (i + 1) * 1200;
+                } else {
+                    return i * 1200;
+                }
+            });
+            
+            drawImageWithDrag();
+        }
+
+        function handleTouchEnd() {
+            if (isDragging) {
+                const draggedPosition = draggedIndex * 1200 + currentDragX;
+                const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
+                
+                if (newIndex !== draggedIndex) {
+                    const [removed] = images.splice(draggedIndex, 1);
+                    images.splice(newIndex, 0, removed);
+                }
+                
+                animateSnapToGrid();
+            }
+            isDragging = false;
+            draggedIndex = null;
+        }
 
         function updateDeleteMarkers() {
             // Remove existing markers

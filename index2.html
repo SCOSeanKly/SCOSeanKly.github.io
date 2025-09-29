@@ -383,6 +383,20 @@
       background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
     }
 
+    /* Card background gradients on hover/highlight */
+.card:nth-child(6)::before {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.15));
+}
+
+.card:nth-child(6)::after {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+/* Card icon gradient */
+.card:nth-child(6) .card-icon {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+}
+
     .card-icon::before {
       content: '';
       position: absolute;
@@ -620,6 +634,8 @@
       <div class="container">
         <h2 class="section-title">Our Digital Ecosystem</h2>
         <div class="cards-grid">
+
+
           <div class="card" onclick="window.open('https://www.showcreative.co.uk', '_blank')">
             <div class="card-icon"><i class="fas fa-home"></i></div>
             <h3 class="card-title">Show Creative</h3>
@@ -664,6 +680,17 @@
               Extract APKs <i class="fas fa-arrow-right"></i>
             </a>
           </div>
+
+         <div class="card" onclick="window.open('https://www.showcreative.co.uk/pfpMAKER.html', '_blank')">
+            <div class="card-icon"><i class="fas fa-user-secret"></i></div>
+            <h3 class="card-title">pfp.MAKER</h3>
+            <p class="card-description">Import your created pfp avatars and create a pfp.MAKER image for sharing on social media and other platforms.</p>
+            <a href="https://www.showcreative.co.uk/pfpMAKER.html" class="card-link" target="_blank">
+              pfp.MAKER<i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+
+
         </div>
       </div>
     </section>

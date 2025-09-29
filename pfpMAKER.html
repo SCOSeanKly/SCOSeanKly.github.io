@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pfp.MAKER</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .delete-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff4444;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            user-select: none;
+            padding-bottom: 2px;
+        }
+
+        .delete-marker:hover {
+            background: #cc0000;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8f9ff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 26px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        input[type="number"],
+        input[type="color"],
+        input[type="text"] {
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+        }
+
+        input[type="radio"] {
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.reset-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        }
+
+        .stroke-controls {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .stroke-controls.active {
+            display: block;
+        }
+
+        .watermark {
+            text-align: center;
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>pfp.MAKER</h1>
+
+        <div class="canvas-wrapper">
+            <canvas id="canvas" width="400" height="520"></canvas>
+        </div>
+
+        <div class="control-group">
+            <label>Import Image(s)</label>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+        </div>
+
+        <div class="control-group">
+            <label>Corner Radius <span class="range-value" id="radiusValue">65</span></label>
+            <input type="range" id="cornerRadius" min="0" max="200" value="65">
+        </div>
+
+        <div class="control-group">
+            <label>Background Color</label>
+            <input type="color" id="bgColor" value="#ffffff">
+        </div>
+
+        <div class="control-group">
+            <label>Text</label>
+            <input type="text" id="textInput" placeholder="Add text below images..." maxlength="50" value="Made with pfp.MAKER">
+        </div>
+
+        <div class="control-group">
+            <label>Text Color</label>
+            <input type="color" id="textColor" value="#242424">
+        </div>
+
+        <div class="control-group">
+            <div class="toggle-group">
+                <label>Noise Background</label>
+                <label class="toggle">
+                    <input type="checkbox" id="noiseToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="stroke-controls active" id="noiseControls">
+                <label>
+                    <input type="radio" name="noiseType" value="light" checked> Light
+                    <input type="radio" name="noiseType" value="dark" style="margin-left: 15px;"> Dark
+                </label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="toggle-group">
+                <label>Stroke</label>
+                <label class="toggle">
+                    <input type="checkbox" id="strokeToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="stroke-controls active" id="strokeControls">
+                <label>Stroke Width</label>
+                <input type="number" id="strokeWidth" min="1" max="50" value="10">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="toggle-group">
+                <label>Shadow</label>
+                <label class="toggle">
+                    <input type="checkbox" id="shadowToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <button id="saveBtn">Save Image</button>
+        <button id="resetBtn" class="reset-btn">Reset to Defaults</button>
+
+        <div class="watermark">pfp.MAKER</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const imageInput = document.getElementById('imageInput');
+        const cornerRadius = document.getElementById('cornerRadius');
+        const radiusValue = document.getElementById('radiusValue');
+        const strokeToggle = document.getElementById('strokeToggle');
+        const strokeControls = document.getElementById('strokeControls');
+        const strokeWidth = document.getElementById('strokeWidth');
+        const bgColor = document.getElementById('bgColor');
+        const shadowToggle = document.getElementById('shadowToggle');
+        const noiseToggle = document.getElementById('noiseToggle');
+        const noiseControls = document.getElementById('noiseControls');
+        const noiseRadios = document.querySelectorAll('input[name="noiseType"]');
+        const textInput = document.getElementById('textInput');
+        const textColor = document.getElementById('textColor');
+        const saveBtn = document.getElementById('saveBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let images = [];
+        let noiseCanvas = null;
+        let deleteMarkers = [];
+
+        function generateNoise(isDark) {
+            if (!noiseCanvas) {
+                noiseCanvas = document.createElement('canvas');
+                noiseCanvas.width = canvas.width;
+                noiseCanvas.height = canvas.height;
+            }
+            const noiseCtx = noiseCanvas.getContext('2d');
+            const imageData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const noise = Math.random() * 255;
+                data[i] = noise;
+                data[i + 1] = noise;
+                data[i + 2] = noise;
+                data[i + 3] = isDark ? 40 : 15;
+            }
+
+            noiseCtx.putImageData(imageData, 0, 0);
+            return noiseCanvas;
+        }
+
+        imageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                images = [];
+                let loadedCount = 0;
+                
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            images[index] = img;
+                            loadedCount++;
+                            if (loadedCount === files.length) {
+                                // Adjust canvas width based on number of images
+                                if (images.length === 1) {
+                                    canvas.width = 400;
+                                } else {
+                                    canvas.width = 400 * images.length;
+                                }
+                                canvas.height = 520;
+                                drawImage();
+                                updateDeleteMarkers();
+                            }
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        });
+
+        cornerRadius.addEventListener('input', (e) => {
+            radiusValue.textContent = e.target.value;
+            drawImage();
+            updateDeleteMarkers();
+        });
+
+        strokeToggle.addEventListener('change', () => {
+            if (strokeToggle.checked) {
+                strokeControls.classList.add('active');
+            } else {
+                strokeControls.classList.remove('active');
+            }
+            drawImage();
+        });
+
+        strokeWidth.addEventListener('input', drawImage);
+        bgColor.addEventListener('input', drawImage);
+        shadowToggle.addEventListener('change', drawImage);
+
+        noiseToggle.addEventListener('change', () => {
+            if (noiseToggle.checked) {
+                noiseControls.classList.add('active');
+            } else {
+                noiseControls.classList.remove('active');
+            }
+            drawImage();
+        });
+
+        noiseRadios.forEach(radio => {
+            radio.addEventListener('change', drawImage);
+        });
+
+        textInput.addEventListener('input', drawImage);
+        textColor.addEventListener('input', drawImage);
+
+        function updateDeleteMarkers() {
+            // Remove existing markers
+            deleteMarkers.forEach(marker => marker.remove());
+            deleteMarkers = [];
+
+            // Only show delete markers if there are multiple images
+            if (images.length <= 1) return;
+
+            const canvasRect = canvas.getBoundingClientRect();
+            const canvasWrapper = canvas.parentElement;
+
+            images.forEach((img, index) => {
+                const marker = document.createElement('div');
+                marker.className = 'delete-marker';
+                marker.textContent = '×';
+                marker.style.display = 'flex';
+                
+                const imageSize = 400;
+                const scale = canvasRect.width / canvas.width;
+                const markerX = (index * imageSize + imageSize - 70) * scale;
+                const markerY = 35 * scale;
+                
+                marker.style.position = 'absolute';
+                marker.style.left = `${20 + markerX}px`;
+                marker.style.top = `${20 + markerY}px`;
+                
+                marker.addEventListener('click', () => deleteImage(index));
+                
+                canvasWrapper.appendChild(marker);
+                deleteMarkers.push(marker);
+            });
+        }
+
+        function deleteImage(index) {
+            images.splice(index, 1);
+            
+            if (images.length === 0) {
+                canvas.width = 400;
+                canvas.height = 520;
+                ctx.fillStyle = bgColor.value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                if (images.length === 1) {
+                    canvas.width = 400;
+                } else {
+                    canvas.width = 400 * images.length;
+                }
+                canvas.height = 520;
+                drawImage();
+            }
+            
+            updateDeleteMarkers();
+        }
+
+        function resetToDefaults() {
+            images = [];
+            imageInput.value = '';
+            cornerRadius.value = 65;
+            radiusValue.textContent = '65';
+            strokeToggle.checked = true;
+            strokeControls.classList.add('active');
+            strokeWidth.value = 10;
+            shadowToggle.checked = true;
+            noiseToggle.checked = true;
+            noiseControls.classList.add('active');
+            document.querySelector('input[name="noiseType"][value="light"]').checked = true;
+            bgColor.value = '#ffffff';
+            textInput.value = 'Made with pfp.MAKER';
+            textColor.value = '#242424';
+            
+            canvas.width = 400;
+            canvas.height = 520;
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            updateDeleteMarkers();
+        }
+
+        resetBtn.addEventListener('click', resetToDefaults);
+
+        function drawImage() {
+            if (images.length === 0) return;
+
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Apply noise background if enabled
+            if (noiseToggle.checked) {
+                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
+                const isDark = selectedNoise === 'dark';
+                const noise = generateNoise(isDark);
+                ctx.drawImage(noise, 0, 0);
+            }
+
+            const radius = parseInt(cornerRadius.value);
+            const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) : 0;
+            const padding = strokeW + 40; // Increased padding for more background
+            const imageSize = 400;
+            const textAreaHeight = 120; // Space for text at bottom with more padding
+            const imageAreaHeight = canvas.height - textAreaHeight;
+            const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
+
+            // Draw each image in a horizontal row
+            images.forEach((img, index) => {
+                const offsetX = index * imageSize;
+                const x = offsetX + (imageSize - size) / 2;
+                const y = (imageAreaHeight - size) / 2;
+
+                // First, draw shadow if enabled (before image and stroke)
+                if (shadowToggle.checked) {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                    ctx.shadowBlur = 20;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 4;
+                    
+                    // Draw a filled shape to cast the shadow
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Draw the image (without shadow)
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + size - radius, y);
+                ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                ctx.lineTo(x + size, y + size - radius);
+                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                ctx.lineTo(x + radius, y + size);
+                ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                ctx.lineTo(x, y + radius);
+                ctx.arcTo(x, y, x + radius, y, radius);
+                ctx.closePath();
+                ctx.clip();
+
+                const scale = Math.max(size / img.width, size / img.height);
+                const imgWidth = img.width * scale;
+                const imgHeight = img.height * scale;
+                const imgX = x + (size - imgWidth) / 2;
+                const imgY = y + (size - imgHeight) / 2;
+
+                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+                ctx.restore();
+
+                // Draw stroke on top (without shadow)
+                if (strokeToggle.checked) {
+                    ctx.save();
+                    const width = parseInt(strokeWidth.value);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = width;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + size - radius, y);
+                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
+                    ctx.lineTo(x + size, y + size - radius);
+                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
+                    ctx.lineTo(x + radius, y + size);
+                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.arcTo(x, y, x + radius, y, radius);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            });
+
+            // Draw text at the bottom if provided
+            const text = textInput.value.trim();
+            if (text) {
+                ctx.save();
+                ctx.fillStyle = textColor.value;
+                ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const textY = imageAreaHeight + (textAreaHeight / 2);
+                const textX = canvas.width / 2;
+                
+                ctx.fillText(text, textX, textY);
+                ctx.restore();
+            }
+        }
+
+        saveBtn.addEventListener('click', () => {
+            if (images.length === 0) {
+                alert('Please import an image first!');
+                return;
+            }
+
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'pfp-maker-image.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        });
+    </script>
+</body>
+</html>

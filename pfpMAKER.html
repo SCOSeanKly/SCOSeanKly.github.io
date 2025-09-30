@@ -6,11 +6,7 @@
     <title>pfp.MAKER</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --modern-dark: #0a0a0a;
@@ -33,92 +29,25 @@
             padding: 20px;
         }
 
-        .bg-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .floating-shapes { position: absolute; width: 100%; height: 100%; overflow: hidden; }
+        .shape { position: absolute; background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue)); border-radius: 50%; opacity: 0.1; animation: float 20s infinite ease-in-out; }
+        .shape:nth-child(1){ width:200px; height:200px; top:20%; left:10%; animation-delay:-2s; }
+        .shape:nth-child(2){ width:150px; height:150px; top:60%; right:20%; animation-delay:-8s; }
+        .shape:nth-child(3){ width:100px; height:100px; bottom:20%; left:30%; animation-delay:-15s; }
 
-        .floating-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
+        @keyframes float { 0%,100%{transform:translateY(0) rotate(0)} 33%{transform:translateY(-30px) rotate(120deg)} 66%{transform:translateY(30px) rotate(240deg)} }
 
-        .shape {
-            position: absolute;
-            background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
-            border-radius: 50%;
-            opacity: 0.1;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .shape:nth-child(1) {
-            width: 200px;
-            height: 200px;
-            top: 20%;
-            left: 10%;
-            animation-delay: -2s;
-        }
-
-        .shape:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            top: 60%;
-            right: 20%;
-            animation-delay: -8s;
-        }
-
-        .shape:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 30%;
-            animation-delay: -15s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-30px) rotate(120deg); }
-            66% { transform: translateY(30px) rotate(240deg); }
-        }
-
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            background: var(--neon-purple);
-            border-radius: 50%;
-            opacity: 0.6;
-            animation: particleFloat 15s infinite ease-in-out;
-        }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .particle { position: absolute; background: var(--neon-purple); border-radius: 50%; opacity: .6; animation: particleFloat 15s infinite ease-in-out; }
 
         @keyframes particleFloat {
-            0%, 100% { 
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
-                opacity: 0;
-            }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { 
-                transform: translateY(-100px) translateX(100px) rotate(360deg);
-                opacity: 0;
-            }
+            0%,100%{transform:translateY(100vh) translateX(0) rotate(0); opacity:0}
+            10%,90%{opacity:.6}
+            100%{transform:translateY(-100px) translateX(100px) rotate(360deg); opacity:0}
         }
 
-        .container {
+        .container{
             background: var(--glass-bg);
             backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
@@ -128,372 +57,98 @@
             width: 90%;
             margin: 60px auto;
             position: relative;
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.8),
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.05), inset 0 1px 0 rgba(255,255,255,.1);
             overflow: hidden;
         }
+        .container::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent)}
+        .container::after{content:'';position:absolute;inset:0;padding:1px;background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue));border-radius:32px;mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);mask-composite: subtract;opacity:.3;z-index:-1}
 
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        }
-
-        .container::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            padding: 1px;
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-            border-radius: 32px;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: subtract;
-            opacity: 0.3;
-            z-index: -1;
-        }
-
-        h1 {
+        h1{
             background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue), var(--neon-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: clamp(2rem, 4vw, 3.5rem);
-            font-weight: 800;
-            letter-spacing: -0.02em;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            text-align: center; margin-bottom: 40px; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 800; letter-spacing: -0.02em;
         }
 
-        .canvas-wrapper {
-            display: none;
-            justify-content: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .canvas-wrapper{ display:none; justify-content:center; margin-bottom:30px; padding:20px; background:rgba(255,255,255,.05); border-radius:16px; position:relative; border:1px solid rgba(255,255,255,.1); }
+        .canvas-wrapper.visible{ display:flex; }
+        canvas{ max-width:100%; height:auto; cursor:pointer; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges; border-radius:12px; }
+
+        .delete-marker{ position:absolute; width:20px; height:20px; background:#ff4444; border-radius:50%; display:none; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:14px; line-height:1; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.3); user-select:none; padding-bottom:2px; transition:all .3s ease; }
+        .delete-marker:hover{ background:#cc0000; transform:scale(1.1); }
+
+        .control-group{ margin-bottom:20px; position:relative; }
+        label{ display:block; margin-bottom:8px; color:var(--text-primary); font-weight:600; font-size:.95rem; }
+
+        .drop-zone{
+            border:3px dashed rgba(139,92,246,.3); border-radius:24px; padding:60px 40px; text-align:center; background:rgba(139,92,246,.03);
+            position:relative; overflow:hidden; cursor:pointer; transition:all .6s cubic-bezier(.4,0,.2,1);
         }
+        .drop-zone::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transition:left .6s ease}
+        .drop-zone:hover::before{left:100%}
+        .drop-zone:hover{ border-color:var(--neon-purple); background:rgba(139,92,246,.08); transform:translateY(-4px); box-shadow:0 20px 40px rgba(139,92,246,.2); }
+        .drop-zone.drag-over{ border-color:var(--neon-blue); background:rgba(6,182,212,.1); transform:scale(1.02); box-shadow:0 25px 50px rgba(6,182,212,.3); }
+        .drop-zone p{ margin:0; color:var(--neon-purple); font-weight:600; font-size:1.3rem; }
+        .drop-zone input[type="file"]{ position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 
-        .canvas-wrapper.visible {
-            display: flex;
+        input[type="range"]{ width:100%; height:6px; border-radius:3px; background:rgba(255,255,255,.1); outline:none; -webkit-appearance:none; }
+        input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); cursor:pointer; box-shadow:0 2px 8px rgba(139,92,246,.4); }
+        input[type="range"]::-moz-range-thumb{ width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); cursor:pointer; border:none; box-shadow:0 2px 8px rgba(139,92,246,.4); }
+        .range-value{ display:inline-block; margin-left:10px; color:var(--neon-blue); font-weight:600; }
+
+        .toggle-group{ display:flex; align-items:center; gap:10px; }
+        .toggle{ position:relative; width:50px; height:26px; }
+        .toggle input{ opacity:0; width:0; height:0; }
+        .slider{ position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background-color:rgba(255,255,255,.1); transition:.4s; border-radius:26px; }
+        .slider:before{ position:absolute; content:""; height:18px; width:18px; left:4px; bottom:4px; background-color:#fff; transition:.4s; border-radius:50%; }
+        input:checked + .slider{ background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); }
+        input:checked + .slider:before{ transform:translateX(24px); }
+
+        input[type="number"], input[type="color"], input[type="text"]{
+            padding:8px; border:2px solid rgba(255,255,255,.1); border-radius:8px; font-size:14px; background:rgba(255,255,255,.05); color:var(--text-primary); transition:all .3s ease;
         }
+        input[type="text"]{ width:100%; }
+        input[type="number"]{ width:100px; }
+        input[type="color"]{ width:60px; height:40px; cursor:pointer; }
+        input[type="number"]:focus, input[type="text"]:focus{ border-color:var(--neon-purple); outline:none; box-shadow:0 0 0 3px rgba(139,92,246,.2); }
+        input[type="radio"]{ cursor:pointer; margin-right:5px; }
 
-        canvas {
-            max-width: 100%;
-            height: auto;
-            cursor: pointer;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
-            border-radius: 12px;
+        button{
+            width:100%; padding:16px 32px; background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue)); color:var(--text-primary);
+            border:none; border-radius:16px; font-size:1.1rem; font-weight:600; cursor:pointer; transition:all .3s cubic-bezier(.4,0,.2,1); margin-bottom:10px; position:relative; overflow:hidden; box-shadow:0 8px 24px rgba(139,92,246,.3);
         }
+        button::before{ content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent); transition:left .5s ease; }
+        button:hover::before{ left:100%; }
+        button:hover{ transform:translateY(-2px); box-shadow:0 12px 32px rgba(139,92,246,.4); }
+        button:active{ transform:translateY(0); }
+        button.reset-btn{ background:linear-gradient(135deg,#ff6b6b,#ee5a6f); box-shadow:0 8px 24px rgba(255,107,107,.3); }
+        button.reset-btn:hover{ box-shadow:0 12px 32px rgba(255,107,107,.4); }
 
-        .delete-marker {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: #ff4444;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
-            line-height: 1;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            user-select: none;
-            padding-bottom: 2px;
-            transition: all 0.3s ease;
+        .stroke-controls{ display:none; margin-top:10px; }
+        .stroke-controls.active{ display:block; }
+
+        .watermark{ text-align:center; margin-top:20px; color:var(--text-secondary); font-size:12px; }
+
+        /* Per-image controls list */
+        .image-controls-list{ display:flex; flex-direction:column; gap:12px; }
+        .image-row{
+            display:grid;
+            grid-template-columns: 56px 1fr auto;
+            gap:12px;
+            align-items:center;
+            padding:10px;
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:12px;
+            background: rgba(255,255,255,.04);
         }
+        .image-thumb{ width:56px; height:56px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,.1); }
+        .image-row small{ color:var(--text-secondary); display:block; margin-top:6px; }
 
-        .delete-marker:hover {
-            background: #cc0000;
-            transform: scale(1.1);
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .drop-zone {
-            border: 3px dashed rgba(139, 92, 246, 0.3);
-            border-radius: 24px;
-            padding: 60px 40px;
-            text-align: center;
-            background: rgba(139, 92, 246, 0.03);
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .drop-zone::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .drop-zone:hover::before {
-            left: 100%;
-        }
-
-        .drop-zone:hover {
-            border-color: var(--neon-purple);
-            background: rgba(139, 92, 246, 0.08);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.2);
-        }
-
-        .drop-zone.drag-over {
-            border-color: var(--neon-blue);
-            background: rgba(6, 182, 212, 0.1);
-            transform: scale(1.02);
-            box-shadow: 0 25px 50px rgba(6, 182, 212, 0.3);
-        }
-
-        .drop-zone p {
-            margin: 0;
-            color: var(--neon-purple);
-            font-weight: 600;
-            font-size: 1.3rem;
-        }
-
-        .drop-zone input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
-        }
-
-        .range-value {
-            display: inline-block;
-            margin-left: 10px;
-            color: var(--neon-blue);
-            font-weight: 600;
-        }
-
-        .toggle-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toggle {
-            position: relative;
-            width: 50px;
-            height: 26px;
-        }
-
-        .toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.1);
-            transition: 0.4s;
-            border-radius: 26px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-
-        input[type="number"],
-        input[type="color"],
-        input[type="text"] {
-            padding: 8px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            font-size: 14px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            transition: all 0.3s ease;
-        }
-
-        input[type="text"] {
-            width: 100%;
-        }
-
-        input[type="number"] {
-            width: 100px;
-        }
-
-        input[type="color"] {
-            width: 60px;
-            height: 40px;
-            cursor: pointer;
-        }
-
-        input[type="number"]:focus,
-        input[type="text"]:focus {
-            border-color: var(--neon-purple);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
-        }
-
-        input[type="radio"] {
-            cursor: pointer;
-            margin-right: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 16px 32px;
-            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-            color: var(--text-primary);
-            border: none;
-            border-radius: 16px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 10px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
-        }
-
-        button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        button:hover::before {
-            left: 100%;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.reset-btn {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
-            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
-        }
-
-        button.reset-btn:hover {
-            box-shadow: 0 12px 32px rgba(255, 107, 107, 0.4);
-        }
-
-        .stroke-controls {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .stroke-controls.active {
-            display: block;
-        }
-
-        .watermark {
-            text-align: center;
-            margin-top: 20px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 32px 24px;
-                margin: 20px auto;
-            }
-
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .drop-zone {
-                padding: 40px 24px;
-            }
+        @media (max-width:768px){
+            .container{ padding:32px 24px; margin:20px auto; }
+            h1{ font-size:2.5rem; }
+            .drop-zone{ padding:40px 24px; }
+            .image-row{ grid-template-columns: 48px 1fr auto; }
+            .image-thumb{ width:48px; height:48px; }
         }
     </style>
 </head>
@@ -501,9 +156,7 @@
     <!-- Animated background -->
     <div class="bg-animation">
         <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
+            <div class="shape"></div><div class="shape"></div><div class="shape"></div>
         </div>
     </div>
 
@@ -575,19 +228,31 @@
             </div>
         </div>
 
+        <!-- Main (global) footer text below all images -->
         <div class="control-group">
-            <label>Text</label>
+            <label>Main Footer Text</label>
             <input type="text" id="textInput" placeholder="Add text below images..." maxlength="50" value="Made with pfp.MAKER">
         </div>
 
         <div class="control-group">
-            <label>Font Size <span class="range-value" id="fontSizeValue">32</span></label>
+            <label>Main Footer Font Size <span class="range-value" id="fontSizeValue">32</span></label>
             <input type="range" id="fontSize" min="16" max="72" value="32">
         </div>
 
         <div class="control-group">
-            <label>Text Color</label>
+            <label>Main Footer Text Color</label>
             <input type="color" id="textColor" value="#242424">
+        </div>
+
+        <!-- Per-image captions controls -->
+        <div class="control-group" id="perImageControls" style="display:none;">
+            <label>Per-Image Captions</label>
+            <div class="image-controls-list" id="imageList"></div>
+        </div>
+
+        <div class="control-group" id="perImageFontGroup" style="display:none;">
+            <label>Caption Font Size <span class="range-value" id="capFontSizeValue">24</span></label>
+            <input type="range" id="capFontSize" min="12" max="72" value="24">
         </div>
 
         <button id="saveBtn">Save Image</button>
@@ -597,53 +262,28 @@
     </div>
 
     <script>
-        // Initialize particles
+        // Particles
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
-            
             setInterval(() => {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
-                particle.style.animationDelay = Math.random() * 2 + 's';
-                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                
-                particlesContainer.appendChild(particle);
-                
-                setTimeout(() => {
-                    particle.remove();
-                }, 20000);
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.width = p.style.height = Math.random() * 4 + 2 + 'px';
+                p.style.animationDelay = Math.random() * 2 + 's';
+                p.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particlesContainer.appendChild(p);
+                setTimeout(() => p.remove(), 20000);
             }, 300);
         }
 
-        // Initialize GSAP animations
+        // GSAP entrance
         function initAnimations() {
-            gsap.fromTo('.container', {
-                opacity: 0,
-                scale: 0.8,
-                y: 50
-            }, {
-                opacity: 1,
-                scale: 1,
-                y: 0,
-                duration: 1,
-                ease: "power3.out"
-            });
-
-            gsap.fromTo('.control-group, button', {
-                opacity: 0,
-                y: 30
-            }, {
-                opacity: 1,
-                y: 0,
-                duration: 0.8,
-                stagger: 0.1,
-                delay: 0.3,
-                ease: "power2.out"
-            });
+            gsap.fromTo('.container', {opacity:0, scale:0.8, y:50}, {opacity:1, scale:1, y:0, duration:1, ease:"power3.out"});
+            gsap.fromTo('.control-group, button', {opacity:0, y:30}, {opacity:1, y:0, duration:.8, stagger:.1, delay:.3, ease:"power2.out"});
         }
 
+        // Elements
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const canvasWrapper = document.querySelector('.canvas-wrapper');
@@ -659,14 +299,28 @@
         const noiseToggle = document.getElementById('noiseToggle');
         const noiseControls = document.getElementById('noiseControls');
         const noiseRadios = document.querySelectorAll('input[name="noiseType"]');
+
+        // Main footer (existing)
         const textInput = document.getElementById('textInput');
         const fontSize = document.getElementById('fontSize');
         const fontSizeValue = document.getElementById('fontSizeValue');
         const textColor = document.getElementById('textColor');
+
+        // Per-image captions UI
+        const perImageControls = document.getElementById('perImageControls');
+        const imageList = document.getElementById('imageList');
+        const capFontSize = document.getElementById('capFontSize');
+        const capFontSizeValue = document.getElementById('capFontSizeValue');
+        const perImageFontGroup = document.getElementById('perImageFontGroup');
+
         const saveBtn = document.getElementById('saveBtn');
         const resetBtn = document.getElementById('resetBtn');
 
-        let images = [];
+        // Data
+        /**
+         * items: [{ img: HTMLImageElement, caption: string, color: string, thumbUrl: string }]
+         */
+        let items = [];
         let noiseCanvas = null;
         let deleteMarkers = [];
         let draggedIndex = null;
@@ -676,200 +330,177 @@
         let targetPositions = [];
         let animationFrame = null;
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            createParticles();
-            initAnimations();
-        });
+        // Init
+        document.addEventListener('DOMContentLoaded', () => { createParticles(); initAnimations(); });
 
         function generateNoise(isDark) {
-            if (!noiseCanvas) {
-                noiseCanvas = document.createElement('canvas');
-                noiseCanvas.width = canvas.width;
-                noiseCanvas.height = canvas.height;
-            } else if (noiseCanvas.width !== canvas.width || noiseCanvas.height !== canvas.height) {
-                noiseCanvas.width = canvas.width;
-                noiseCanvas.height = canvas.height;
-            }
-            const noiseCtx = noiseCanvas.getContext('2d');
-            const imageData = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+            if (!noiseCanvas) { noiseCanvas = document.createElement('canvas'); noiseCanvas.width = canvas.width; noiseCanvas.height = canvas.height; }
+            else if (noiseCanvas.width !== canvas.width || noiseCanvas.height !== canvas.height) { noiseCanvas.width = canvas.width; noiseCanvas.height = canvas.height; }
+
+            const nctx = noiseCanvas.getContext('2d');
+            const imageData = nctx.createImageData(noiseCanvas.width, noiseCanvas.height);
             const data = imageData.data;
-
-            for (let i = 0; i < data.length; i += 4) {
-                const noise = Math.random() * 255;
-                data[i] = noise;
-                data[i + 1] = noise;
-                data[i + 2] = noise;
-                data[i + 3] = isDark ? 40 : 15;
+            for (let i=0;i<data.length;i+=4){
+                const v = Math.random()*255;
+                data[i]=v; data[i+1]=v; data[i+2]=v; data[i+3]= isDark ? 40 : 15;
             }
-
-            noiseCtx.putImageData(imageData, 0, 0);
+            nctx.putImageData(imageData,0,0);
             return noiseCanvas;
         }
 
         function loadImagesFromFiles(files) {
-            if (files.length > 0) {
-                let loadedCount = 0;
-                
-                Array.from(files).forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            images.push(img);
-                            loadedCount++;
-                            if (loadedCount === files.length) {
-                                canvasWrapper.classList.add('visible');
-                                
-                                if (images.length === 1) {
-                                    canvas.width = 1200;
-                                } else {
-                                    canvas.width = 1200 * images.length;
-                                }
-                                canvas.height = 1560;
-                                drawImage();
-                                updateDeleteMarkers();
+            if (!files.length) return;
+            let loadedCount = 0;
 
-                                // Animate canvas appearance
-                                gsap.fromTo('.canvas-wrapper', {
-                                    opacity: 0,
-                                    scale: 0.9,
-                                    y: 20
-                                }, {
-                                    opacity: 1,
-                                    scale: 1,
-                                    y: 0,
-                                    duration: 0.6,
-                                    ease: "power2.out"
-                                });
-                            }
+            Array.from(files).forEach((file) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const obj = {
+                            img,
+                            caption: '',                // default empty per-image caption
+                            color: '#242424',           // default caption colour
+                            thumbUrl: ev.target.result  // reuse for small preview
                         };
-                        img.src = event.target.result;
+                        items.push(obj);
+                        loadedCount++;
+
+                        if (loadedCount === files.length) {
+                            canvasWrapper.classList.add('visible');
+                            canvas.width = Math.max(1200, 1200 * items.length);
+                            canvas.height = 1560;
+                            buildImageControls();   // build per-image UI
+                            drawImage();
+                            updateDeleteMarkers();
+
+                            gsap.fromTo('.canvas-wrapper', {opacity:0, scale:.9, y:20}, {opacity:1, scale:1, y:0, duration:.6, ease:"power2.out"});
+                        }
                     };
-                    reader.readAsDataURL(file);
-                });
-            }
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
-        imageInput.addEventListener('change', (e) => {
-            loadImagesFromFiles(e.target.files);
-        });
+        // Build per-image caption control rows
+        function buildImageControls() {
+            imageList.innerHTML = '';
+            if (items.length) {
+                perImageControls.style.display = '';
+                perImageFontGroup.style.display = '';
+            } else {
+                perImageControls.style.display = 'none';
+                perImageFontGroup.style.display = 'none';
+            }
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
+            items.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'image-row';
 
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-        });
+                const thumb = document.createElement('img');
+                thumb.className = 'image-thumb';
+                thumb.src = item.thumbUrl;
 
+                const textWrap = document.createElement('div');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = 'Caption for this image (footer)';
+                input.value = item.caption || '';
+                input.addEventListener('input', (e) => { item.caption = e.target.value; drawImage(); });
+
+                const hint = document.createElement('small');
+                hint.textContent = `Image ${index+1} footer (centered at bottom)`;
+
+                textWrap.appendChild(input);
+                textWrap.appendChild(hint);
+
+                const color = document.createElement('input');
+                color.type = 'color';
+                color.value = item.color || '#242424';
+                color.addEventListener('input', (e) => { item.color = e.target.value; drawImage(); });
+
+                row.appendChild(thumb);
+                row.appendChild(textWrap);
+                row.appendChild(color);
+                imageList.appendChild(row);
+            });
+        }
+
+        // Events — input & drag/drop
+        imageInput.addEventListener('change', (e) => loadImagesFromFiles(e.target.files));
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
-            
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                loadImagesFromFiles(files);
-            }
+            if (files.length) loadImagesFromFiles(files);
         });
 
-        cornerRadius.addEventListener('input', (e) => {
-            radiusValue.textContent = e.target.value;
-            drawImage();
-            updateDeleteMarkers();
-        });
+        cornerRadius.addEventListener('input', (e) => { radiusValue.textContent = e.target.value; drawImage(); updateDeleteMarkers(); });
 
-        strokeToggle.addEventListener('change', () => {
-            if (strokeToggle.checked) {
-                strokeControls.classList.add('active');
-            } else {
-                strokeControls.classList.remove('active');
-            }
-            drawImage();
-        });
-
+        strokeToggle.addEventListener('change', () => { strokeToggle.checked ? strokeControls.classList.add('active') : strokeControls.classList.remove('active'); drawImage(); });
         strokeWidth.addEventListener('input', drawImage);
         bgColor.addEventListener('input', drawImage);
         shadowToggle.addEventListener('change', drawImage);
 
-        noiseToggle.addEventListener('change', () => {
-            if (noiseToggle.checked) {
-                noiseControls.classList.add('active');
-            } else {
-                noiseControls.classList.remove('active');
-            }
-            drawImage();
-        });
+        noiseToggle.addEventListener('change', () => { noiseToggle.checked ? noiseControls.classList.add('active') : noiseControls.classList.remove('active'); drawImage(); });
+        noiseRadios.forEach(r => r.addEventListener('change', drawImage));
 
-        noiseRadios.forEach(radio => {
-            radio.addEventListener('change', drawImage);
-        });
-
+        // Main footer controls
         textInput.addEventListener('input', drawImage);
-        fontSize.addEventListener('input', (e) => {
-            fontSizeValue.textContent = e.target.value;
-            drawImage();
-        });
+        fontSize.addEventListener('input', (e) => { fontSizeValue.textContent = e.target.value; drawImage(); });
         textColor.addEventListener('input', drawImage);
 
-        // Canvas drag and drop for reordering
+        // Per-image font size
+        capFontSize.addEventListener('input', (e) => { capFontSizeValue.textContent = e.target.value; drawImage(); });
+
+        // Canvas drag for reordering
         canvas.addEventListener('mousedown', handleMouseDown);
         canvas.addEventListener('mousemove', handleMouseMove);
         canvas.addEventListener('mouseup', handleMouseUp);
         canvas.addEventListener('mouseleave', handleMouseUp);
-        canvas.addEventListener('touchstart', handleTouchStart);
-        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchstart', handleTouchStart, {passive:false});
+        canvas.addEventListener('touchmove', handleTouchMove, {passive:false});
         canvas.addEventListener('touchend', handleTouchEnd);
 
         function getImageIndexAtPosition(x, y) {
-            if (images.length <= 1) return -1;
-            
+            if (items.length <= 1) return -1;
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             const canvasX = x * scaleX;
             const canvasY = y * scaleY;
-            
+
             const imageSize = 1200;
-            const textFontSize = parseInt(fontSize.value) * 3;
+            const mainTextFontSize = parseInt(fontSize.value) * 3;
             const textPadding = 60;
-            const textAreaHeight = textFontSize + (textPadding * 2);
+            const textAreaHeight = mainTextFontSize + (textPadding * 2);
             const imageAreaHeight = canvas.height - textAreaHeight;
-            
             if (canvasY > imageAreaHeight) return -1;
-            
+
             const index = Math.floor(canvasX / imageSize);
-            
-            if (index >= 0 && index < images.length) {
-                return index;
-            }
-            return -1;
+            return (index >= 0 && index < items.length) ? index : -1;
         }
 
         function handleMouseDown(e) {
-            if (images.length <= 1) return;
-            
+            if (items.length <= 1) return;
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
             const index = getImageIndexAtPosition(x, y);
             if (index !== -1) {
-                draggedIndex = index;
-                isDragging = true;
-                dragStartX = e.clientX;
-                currentDragX = 0;
-                targetPositions = images.map((_, i) => i * 1200);
+                draggedIndex = index; isDragging = true; dragStartX = e.clientX; currentDragX = 0;
+                targetPositions = items.map((_, i) => i * 1200);
                 canvas.style.cursor = 'grabbing';
                 e.preventDefault();
             }
         }
-
         function handleMouseMove(e) {
             if (!isDragging || draggedIndex === null) {
-                if (images.length > 1) {
+                if (items.length > 1) {
                     const rect = canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
@@ -878,50 +509,36 @@
                 }
                 return;
             }
-            
             e.preventDefault();
-            
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
             currentDragX = (e.clientX - dragStartX) * scaleX;
-            
+
             const draggedPosition = draggedIndex * 1200 + currentDragX;
-            const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-            
-            targetPositions = images.map((_, i) => {
-                if (i === draggedIndex) {
-                    return draggedIndex * 1200;
-                } else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) {
-                    return (i - 1) * 1200;
-                } else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) {
-                    return (i + 1) * 1200;
-                } else {
-                    return i * 1200;
-                }
+            const newIndex = Math.max(0, Math.min(items.length - 1, Math.round(draggedPosition / 1200)));
+
+            targetPositions = items.map((_, i) => {
+                if (i === draggedIndex) return draggedIndex * 1200;
+                else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) return (i - 1) * 1200;
+                else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) return (i + 1) * 1200;
+                else return i * 1200;
             });
-            
             drawImageWithDrag();
         }
-
         function handleMouseUp(e) {
             if (isDragging) {
                 e.preventDefault();
-                
                 const draggedPosition = draggedIndex * 1200 + currentDragX;
-                const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-                
+                const newIndex = Math.max(0, Math.min(items.length - 1, Math.round(draggedPosition / 1200)));
                 if (newIndex !== draggedIndex) {
-                    const [removed] = images.splice(draggedIndex, 1);
-                    images.splice(newIndex, 0, removed);
+                    const [removed] = items.splice(draggedIndex, 1);
+                    items.splice(newIndex, 0, removed);
                     draggedIndex = newIndex;
                 }
-                
                 animateSnapToGrid();
             } else {
-                isDragging = false;
-                draggedIndex = null;
-                
-                if (images.length > 1) {
+                isDragging = false; draggedIndex = null;
+                if (items.length > 1) {
                     const rect = canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
@@ -932,282 +549,260 @@
                 }
             }
         }
-
         function handleTouchStart(e) {
-            if (images.length <= 1) return;
+            if (items.length <= 1) return;
             e.preventDefault();
-            
             const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
+            const t = e.touches[0];
+            const x = t.clientX - rect.left;
+            const y = t.clientY - rect.top;
             const index = getImageIndexAtPosition(x, y);
             if (index !== -1) {
-                draggedIndex = index;
-                isDragging = true;
-                dragStartX = touch.clientX;
-                currentDragX = 0;
-                targetPositions = images.map((_, i) => i * 1200);
+                draggedIndex = index; isDragging = true; dragStartX = t.clientX; currentDragX = 0;
+                targetPositions = items.map((_, i) => i * 1200);
             }
         }
-
         function handleTouchMove(e) {
             if (!isDragging || draggedIndex === null) return;
             e.preventDefault();
-            
             const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
+            const t = e.touches[0];
             const scaleX = canvas.width / rect.width;
-            currentDragX = (touch.clientX - dragStartX) * scaleX;
-            
+            currentDragX = (t.clientX - dragStartX) * scaleX;
+
             const draggedPosition = draggedIndex * 1200 + currentDragX;
-            const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-            
-            targetPositions = images.map((_, i) => {
-                if (i === draggedIndex) {
-                    return draggedIndex * 1200;
-                } else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) {
-                    return (i - 1) * 1200;
-                } else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) {
-                    return (i + 1) * 1200;
-                } else {
-                    return i * 1200;
-                }
+            const newIndex = Math.max(0, Math.min(items.length - 1, Math.round(draggedPosition / 1200)));
+            targetPositions = items.map((_, i) => {
+                if (i === draggedIndex) return draggedIndex * 1200;
+                else if (draggedIndex < newIndex && i > draggedIndex && i <= newIndex) return (i - 1) * 1200;
+                else if (draggedIndex > newIndex && i < draggedIndex && i >= newIndex) return (i + 1) * 1200;
+                else return i * 1200;
             });
-            
             drawImageWithDrag();
         }
-
         function handleTouchEnd() {
             if (isDragging) {
                 const draggedPosition = draggedIndex * 1200 + currentDragX;
-                const newIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-                
+                const newIndex = Math.max(0, Math.min(items.length - 1, Math.round(draggedPosition / 1200)));
                 if (newIndex !== draggedIndex) {
-                    const [removed] = images.splice(draggedIndex, 1);
-                    images.splice(newIndex, 0, removed);
+                    const [removed] = items.splice(draggedIndex, 1);
+                    items.splice(newIndex, 0, removed);
                 }
-                
                 animateSnapToGrid();
             }
-            isDragging = false;
-            draggedIndex = null;
+            isDragging = false; draggedIndex = null;
         }
 
         function updateDeleteMarkers() {
-            deleteMarkers.forEach(marker => marker.remove());
+            deleteMarkers.forEach(m => m.remove());
             deleteMarkers = [];
-
-            if (images.length <= 1) return;
+            if (items.length <= 1) return;
 
             const canvasRect = canvas.getBoundingClientRect();
-            const canvasWrapper = canvas.parentElement;
+            const wrapper = canvas.parentElement;
 
-            images.forEach((img, index) => {
+            items.forEach((_, index) => {
                 const marker = document.createElement('div');
                 marker.className = 'delete-marker';
                 marker.textContent = '×';
                 marker.style.display = 'flex';
-                
                 const imageSize = 1200;
                 const scale = canvasRect.width / canvas.width;
                 const markerX = (index * imageSize + imageSize - 210) * scale;
                 const markerY = 105 * scale;
-                
                 marker.style.position = 'absolute';
                 marker.style.left = `${20 + markerX}px`;
                 marker.style.top = `${20 + markerY}px`;
-                
                 marker.addEventListener('click', () => deleteImage(index));
-                
-                canvasWrapper.appendChild(marker);
+                wrapper.appendChild(marker);
                 deleteMarkers.push(marker);
             });
         }
 
         function deleteImage(index) {
-            images.splice(index, 1);
-            
-            if (images.length === 0) {
-                canvas.width = 1200;
-                canvas.height = 1560;
-                ctx.fillStyle = bgColor.value;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            items.splice(index, 1);
+            if (items.length === 0) {
+                canvas.width = 1200; canvas.height = 1560;
+                ctx.fillStyle = bgColor.value; ctx.fillRect(0,0,canvas.width,canvas.height);
                 canvasWrapper.classList.remove('visible');
             } else {
-                if (images.length === 1) {
-                    canvas.width = 1200;
-                } else {
-                    canvas.width = 1200 * images.length;
-                }
+                canvas.width = (items.length === 1) ? 1200 : 1200 * items.length;
                 canvas.height = 1560;
                 drawImage();
             }
-            
+            buildImageControls();
             updateDeleteMarkers();
         }
 
+        function drawRoundedRectPath(x, y, w, h, r) {
+            const rr = Math.min(r, w/2, h/2);
+            ctx.beginPath();
+            ctx.moveTo(x + rr, y);
+            ctx.lineTo(x + w - rr, y);
+            ctx.arcTo(x + w, y, x + w, y + rr, rr);
+            ctx.lineTo(x + w, y + h - rr);
+            ctx.arcTo(x + w, y + h, x + w - rr, y + h, rr);
+            ctx.lineTo(x + rr, y + h);
+            ctx.arcTo(x, y + h, x, y + h - rr, rr);
+            ctx.lineTo(x, y + rr);
+            ctx.arcTo(x, y, x + rr, y, rr);
+            ctx.closePath();
+        }
+
         function drawImage() {
-            if (images.length === 0) return;
+            if (!items.length) return;
 
             ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (noiseToggle.checked) {
-                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
-                const isDark = selectedNoise === 'dark';
-                const noise = generateNoise(isDark);
-                ctx.drawImage(noise, 0, 0);
+                const isDark = document.querySelector('input[name="noiseType"]:checked').value === 'dark';
+                ctx.drawImage(generateNoise(isDark), 0, 0);
             }
 
             const radius = parseInt(cornerRadius.value) * 3;
             const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
             const padding = strokeW + 120;
             const imageSize = 1200;
-            
-            const textFontSize = parseInt(fontSize.value) * 3;
+
+            // Main footer (existing)
+            const mainTextFontSize = parseInt(fontSize.value) * 3;
             const textPadding = 60;
-            const textAreaHeight = textFontSize + (textPadding * 2);
-            
-            const imageAreaHeight = canvas.height - textAreaHeight;
+            const mainTextAreaHeight = mainTextFontSize + (textPadding * 2);
+
+            const imageAreaHeight = canvas.height - mainTextAreaHeight;
             const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
 
-            images.forEach((img, index) => {
+            // Per-image caption font
+            const capFS = parseInt(capFontSize.value) * 3;
+            const capPadY = 36; // internal padding for caption area
+            const capStrip = Math.max(capFS + capPadY, 0);
+
+            items.forEach((it, index) => {
+                const img = it.img;
                 const offsetX = index * imageSize;
                 const x = offsetX + (imageSize - size) / 2;
                 const y = (imageAreaHeight - size) / 2;
 
+                // Shadow plate
                 if (shadowToggle.checked) {
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
                     ctx.shadowBlur = 60;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 12;
-                    
                     ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
+                    drawRoundedRectPath(x, y, size, size, radius);
                     ctx.fill();
                     ctx.restore();
                 }
 
+                // Image clip
                 ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + size - radius, y);
-                ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                ctx.lineTo(x + size, y + size - radius);
-                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                ctx.lineTo(x + radius, y + size);
-                ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                ctx.lineTo(x, y + radius);
-                ctx.arcTo(x, y, x + radius, y, radius);
-                ctx.closePath();
+                drawRoundedRectPath(x, y, size, size, radius);
                 ctx.clip();
 
+                // Fit image
                 const scale = Math.max(size / img.width, size / img.height);
-                const imgWidth = img.width * scale;
-                const imgHeight = img.height * scale;
-                const imgX = x + (size - imgWidth) / 2;
-                const imgY = y + (size - imgHeight) / 2;
+                const imgW = img.width * scale;
+                const imgH = img.height * scale;
+                const imgX = x + (size - imgW) / 2;
+                const imgY = y + (size - imgH) / 2;
+                ctx.drawImage(img, imgX, imgY, imgW, imgH);
 
-                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+                // Per-image caption strip (bottom inside the image)
+                if ((it.caption || '').trim().length > 0) {
+                    const stripHeight = capStrip;
+                    const stripY = y + size - stripHeight;
+                    // subtle gradient glass for readability
+                    const grad = ctx.createLinearGradient(0, stripY, 0, stripY + stripHeight);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.25)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x, stripY, size, stripHeight);
+
+                    ctx.fillStyle = it.color || '#242424';
+                    ctx.font = `700 ${capFS}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const capY = stripY + stripHeight / 2;
+
+                    // Optional shadow to lift light colours
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(it.caption, x + size / 2, capY);
+                    ctx.restore();
+                }
+
                 ctx.restore();
 
+                // Stroke
                 if (strokeToggle.checked) {
                     ctx.save();
-                    const width = parseInt(strokeWidth.value) * 3;
                     ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = width;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
+                    ctx.lineWidth = parseInt(strokeWidth.value) * 3;
+                    drawRoundedRectPath(x, y, size, size, radius);
                     ctx.stroke();
                     ctx.restore();
                 }
             });
 
-            const text = textInput.value.trim();
-            if (text) {
+            // Draw main footer text centered under all images (existing behaviour)
+            const mainText = textInput.value.trim();
+            if (mainText) {
                 ctx.save();
                 ctx.fillStyle = textColor.value;
-                ctx.font = `bold ${textFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                ctx.font = `bold ${mainTextFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                const textY = imageAreaHeight + (textAreaHeight / 2);
+                const textY = imageAreaHeight + (mainTextAreaHeight / 2);
                 const textX = canvas.width / 2;
-                
-                ctx.fillText(text, textX, textY);
+                ctx.fillText(mainText, textX, textY);
                 ctx.restore();
             }
         }
 
         function drawImageWithDrag() {
-            if (images.length === 0) return;
+            if (!items.length) return;
 
             ctx.fillStyle = bgColor.value;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (noiseToggle.checked) {
-                const selectedNoise = document.querySelector('input[name="noiseType"]:checked').value;
-                const isDark = selectedNoise === 'dark';
-                const noise = generateNoise(isDark);
-                ctx.drawImage(noise, 0, 0);
+                const isDark = document.querySelector('input[name="noiseType"]:checked').value === 'dark';
+                ctx.drawImage(generateNoise(isDark), 0, 0);
             }
 
             const radius = parseInt(cornerRadius.value) * 3;
             const strokeW = strokeToggle.checked ? parseInt(strokeWidth.value) * 3 : 0;
             const padding = strokeW + 120;
             const imageSize = 1200;
-            
-            const textFontSize = parseInt(fontSize.value) * 3;
+
+            const mainTextFontSize = parseInt(fontSize.value) * 3;
             const textPadding = 60;
-            const textAreaHeight = textFontSize + (textPadding * 2);
-            
-            const imageAreaHeight = canvas.height - textAreaHeight;
+            const mainTextAreaHeight = mainTextFontSize + (textPadding * 2);
+
+            const imageAreaHeight = canvas.height - mainTextAreaHeight;
             const size = Math.min(imageSize, imageAreaHeight) - (padding * 2);
 
-            images.forEach((img, index) => {
+            const capFS = parseInt(capFontSize.value) * 3;
+            const capPadY = 36;
+            const capStrip = Math.max(capFS + capPadY, 0);
+
+            items.forEach((it, index) => {
+                const img = it.img;
                 let offsetX;
-                
-                if (isDragging && index === draggedIndex) {
-                    offsetX = draggedIndex * imageSize + currentDragX;
-                } else if (isDragging) {
-                    offsetX = targetPositions[index];
-                } else {
-                    offsetX = index * imageSize;
-                }
-                
+                if (isDragging && index === draggedIndex) offsetX = draggedIndex * imageSize + currentDragX;
+                else if (isDragging) offsetX = targetPositions[index];
+                else offsetX = index * imageSize;
+
                 const x = offsetX + (imageSize - size) / 2;
                 const y = (imageAreaHeight - size) / 2;
 
                 const isBeingDragged = isDragging && index === draggedIndex;
-                
                 ctx.save();
-                
-                if (isBeingDragged) {
-                    ctx.globalAlpha = 0.8;
-                }
+                if (isBeingDragged) ctx.globalAlpha = 0.9;
 
                 if (shadowToggle.checked) {
                     ctx.save();
@@ -1215,122 +810,100 @@
                     ctx.shadowBlur = isBeingDragged ? 90 : 60;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = isBeingDragged ? 18 : 12;
-                    
                     ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
+                    drawRoundedRectPath(x, y, size, size, radius);
                     ctx.fill();
                     ctx.restore();
                 }
 
                 ctx.save();
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + size - radius, y);
-                ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                ctx.lineTo(x + size, y + size - radius);
-                ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                ctx.lineTo(x + radius, y + size);
-                ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                ctx.lineTo(x, y + radius);
-                ctx.arcTo(x, y, x + radius, y, radius);
-                ctx.closePath();
+                drawRoundedRectPath(x, y, size, size, radius);
                 ctx.clip();
 
                 const scale = Math.max(size / img.width, size / img.height);
-                const imgWidth = img.width * scale;
-                const imgHeight = img.height * scale;
-                const imgX = x + (size - imgWidth) / 2;
-                const imgY = y + (size - imgHeight) / 2;
+                const imgW = img.width * scale;
+                const imgH = img.height * scale;
+                const imgX = x + (size - imgW) / 2;
+                const imgY = y + (size - imgH) / 2;
+                ctx.drawImage(img, imgX, imgY, imgW, imgH);
 
-                ctx.drawImage(img, imgX, imgY, imgWidth, imgHeight);
+                if ((it.caption || '').trim().length > 0) {
+                    const stripHeight = capStrip;
+                    const stripY = y + size - stripHeight;
+                    const grad = ctx.createLinearGradient(0, stripY, 0, stripY + stripHeight);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.25)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.15)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x, stripY, size, stripHeight);
+
+                    ctx.fillStyle = it.color || '#242424';
+                    ctx.font = `700 ${capFS}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const capY = stripY + stripHeight / 2;
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(it.caption, x + size / 2, capY);
+                    ctx.restore();
+                }
+
                 ctx.restore();
 
                 if (strokeToggle.checked) {
                     ctx.save();
-                    const width = parseInt(strokeWidth.value) * 3;
                     ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = width;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(x + radius, y);
-                    ctx.lineTo(x + size - radius, y);
-                    ctx.arcTo(x + size, y, x + size, y + radius, radius);
-                    ctx.lineTo(x + size, y + size - radius);
-                    ctx.arcTo(x + size, y + size, x + size - radius, y + size, radius);
-                    ctx.lineTo(x + radius, y + size);
-                    ctx.arcTo(x, y + size, x, y + size - radius, radius);
-                    ctx.lineTo(x, y + radius);
-                    ctx.arcTo(x, y, x + radius, y, radius);
-                    ctx.closePath();
+                    ctx.lineWidth = parseInt(strokeWidth.value) * 3;
+                    drawRoundedRectPath(x, y, size, size, radius);
                     ctx.stroke();
                     ctx.restore();
                 }
-                
+
                 ctx.restore();
             });
 
-            const text = textInput.value.trim();
-            if (text) {
+            // Main footer (existing)
+            const mainText = textInput.value.trim();
+            if (mainText) {
+                const mainTextFontSize = parseInt(fontSize.value) * 3;
+                const textPadding = 60;
+                const mainTextAreaHeight = mainTextFontSize + (textPadding * 2);
+                const imageAreaHeight = canvas.height - mainTextAreaHeight;
+
                 ctx.save();
                 ctx.fillStyle = textColor.value;
-                ctx.font = `bold ${textFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+                ctx.font = `bold ${mainTextFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                const textY = imageAreaHeight + (textAreaHeight / 2);
-                const textX = canvas.width / 2;
-                
-                ctx.fillText(text, textX, textY);
+                ctx.fillText(mainText, canvas.width / 2, imageAreaHeight + (mainTextAreaHeight / 2));
                 ctx.restore();
             }
         }
 
         function animateSnapToGrid() {
-            const finalPositions = images.map((_, i) => i * 1200);
-            const startPositions = images.map((_, i) => {
-                if (i === draggedIndex) {
-                    return draggedIndex * 1200 + currentDragX;
-                }
-                return targetPositions[i] || (i * 1200);
-            });
-            
+            const finalPositions = items.map((_, i) => i * 1200);
+            const startPositions = items.map((_, i) => (i === draggedIndex) ? draggedIndex * 1200 + currentDragX : (targetPositions[i] || (i * 1200)));
+
             const draggedPosition = draggedIndex * 1200 + currentDragX;
-            const finalIndex = Math.max(0, Math.min(images.length - 1, Math.round(draggedPosition / 1200)));
-            
+            const finalIndex = Math.max(0, Math.min(items.length - 1, Math.round(draggedPosition / 1200)));
+
             const duration = 300;
             const startTime = Date.now();
-            
+
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
                 const easeProgress = 1 - Math.pow(1 - progress, 3);
-                
-                images.forEach((_, i) => {
+
+                items.forEach((_, i) => {
                     const start = startPositions[i];
                     const end = finalPositions[i];
-                    
-                    if (i === finalIndex) {
-                        targetPositions[i] = start + (end - start) * easeProgress;
-                    } else {
-                        targetPositions[i] = start + (end - start) * easeProgress;
-                    }
+                    targetPositions[i] = start + (end - start) * easeProgress;
                 });
-                
+
                 currentDragX = currentDragX * (1 - easeProgress);
-                
                 drawImageWithDrag();
-                
+
                 if (progress < 1) {
                     animationFrame = requestAnimationFrame(animate);
                 } else {
@@ -1340,45 +913,41 @@
                     draggedIndex = null;
                     drawImage();
                     updateDeleteMarkers();
+                    buildImageControls(); // keep rows in new order
                 }
             }
-            
             animate();
         }
 
         function resetToDefaults() {
-            images = [];
+            items = [];
             imageInput.value = '';
-            cornerRadius.value = 65;
-            radiusValue.textContent = '65';
-            strokeToggle.checked = true;
-            strokeControls.classList.add('active');
+            cornerRadius.value = 65; radiusValue.textContent = '65';
+            strokeToggle.checked = true; strokeControls.classList.add('active');
             strokeWidth.value = 10;
             shadowToggle.checked = true;
-            noiseToggle.checked = true;
-            noiseControls.classList.add('active');
+            noiseToggle.checked = true; noiseControls.classList.add('active');
             document.querySelector('input[name="noiseType"][value="light"]').checked = true;
             bgColor.value = '#ffffff';
+
+            // Main footer (existing)
             textInput.value = 'Made with pfp.MAKER';
-            fontSize.value = 32;
-            fontSizeValue.textContent = '32';
+            fontSize.value = 32; fontSizeValue.textContent = '32';
             textColor.value = '#242424';
-            
-            canvas.width = 1200;
-            canvas.height = 1560;
-            ctx.fillStyle = bgColor.value;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
+            // Per-image font size
+            capFontSize.value = 24; capFontSizeValue.textContent = '24';
+
+            canvas.width = 1200; canvas.height = 1560;
+            ctx.fillStyle = bgColor.value; ctx.fillRect(0,0,canvas.width,canvas.height);
+
             canvasWrapper.classList.remove('visible');
+            buildImageControls();
             updateDeleteMarkers();
         }
 
         saveBtn.addEventListener('click', () => {
-            if (images.length === 0) {
-                alert('Please import an image first!');
-                return;
-            }
-
+            if (!items.length) { alert('Please import an image first!'); return; }
             canvas.toBlob((blob) => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');

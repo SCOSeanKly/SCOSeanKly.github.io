@@ -954,12 +954,13 @@
                     const file = files[i];
                     if (!file.type.match('image.*')) continue;
                     
-                    // Generate sequential number with leading zeros (e.g., 001, 002, etc.)
-                    const imageNumber = String(i + 1).padStart(3, '0');
-                    
-                    // Create filenames following the correct format
-                    const pngFileName = `pack${packNum}_${prefix}${imageNumber}_fullRes${titleSuffix}.png`;
-                    const jpgFileName = `pack${packNum}_${prefix}${imageNumber}${titleSuffix}.jpg`;
+                  const imageNumber = String(i + 1).padStart(3, '0');
+const titleSuffix = packTitle.value.trim() ? `[${packTitle.value.trim()}]` : '';
+const baseName = `pack${packNum}_${prefix}${titleSuffix}${imageNumber}`;
+
+const pngFileName = `${baseName}_fullRes.png`; // ✅ always ends with _fullRes.png
+const jpgFileName = `${baseName}.jpg`;
+
                     
                     try {
                         updateStatus(`Processing image ${i + 1} of ${files.length}...`, 'pending', 10 + ((i / files.length) * 50));

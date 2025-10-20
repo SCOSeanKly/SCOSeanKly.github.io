@@ -415,7 +415,7 @@
         
         <div class="pack-info">
             <p><strong>Pack Naming Convention:</strong></p>
-            <p>Files will be named: <code>pack{number}_{PREFIX}{imageNumber}_fullRes[{title}].png</code></p>
+          <p>Files will be named: <code>pack{number}_{PREFIX}[{title}]{imageNumber}_fullRes.png</code></p>
             <div class="filename-preview" id="filenamePreview">
                 pack1_SK001_fullRes.png, pack1_SK001.jpg
             </div>
@@ -534,18 +534,22 @@
         }
 
         // Update filename preview
-        function updateFilenamePreview() {
-            const prefix = creatorPrefix.value || 'SK';
-            const number = packNumber.value || 1;
-            const title = packTitle.value.trim();
-            
-            const titlePart = title ? `[${title}]` : '';
-            
-            const pngExample = `pack${number}_${prefix}${titlePart}1_fullRes.png`;
-            const jpgExample = `pack${number}_${prefix}${titlePart}1.jpg`;
-            
-            filenamePreview.textContent = `${pngExample}, ${jpgExample}, pack${number}_${prefix}${titlePart}2_fullRes.png...`;
-        }
+      function updateFilenamePreview() {
+  const prefix = creatorPrefix.value || 'SK';
+  const number = packNumber.value || 1;
+  const title = packTitle.value.trim();
+  const titlePart = title ? `[${title}]` : '';
+
+  const n1 = '001';
+  const n2 = '002';
+
+  const base1 = `pack${number}_${prefix}${titlePart}${n1}`;
+  const base2 = `pack${number}_${prefix}${titlePart}${n2}`;
+
+  filenamePreview.textContent =
+    `${base1}_fullRes.png, ${base1}.jpg, ${base2}_fullRes.png...`;
+}
+
 
         // Add event listeners to update preview
         creatorPrefix.addEventListener('input', updateFilenamePreview);

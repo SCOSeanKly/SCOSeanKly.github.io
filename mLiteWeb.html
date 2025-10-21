@@ -99,7 +99,7 @@
       align-items: center;
       justify-content: center;
       color: var(--text);
-      font-size: 20px;
+      font-size: 24px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
@@ -113,13 +113,34 @@
       background: var(--accent);
     }
     
-    .chevron {
-      transition: transform 0.3s ease;
-      display: inline-block;
+    .menu-icon {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
     
-    .menu-toggle.active .chevron {
-      transform: rotate(180deg);
+    .menu-icon span {
+      display: block;
+      height: 2px;
+      width: 100%;
+      background: var(--text);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-toggle.active .menu-icon span:nth-child(1) {
+      transform: translateY(9px) rotate(45deg);
+    }
+    
+    .menu-toggle.active .menu-icon span:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .menu-toggle.active .menu-icon span:nth-child(3) {
+      transform: translateY(-9px) rotate(-45deg);
     }
     
     .menu-items {
@@ -207,10 +228,12 @@
       overflow: hidden;
       display: flex;
       align-items: center;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
     }
     
     .mockup-showcase.hidden {
-      display: none;
+      opacity: 0;
+      visibility: hidden;
     }
     
     .mockup-track {
@@ -220,11 +243,12 @@
       will-change: transform;
     }
     
+    /* Ensure animation starts immediately */
     @keyframes scroll {
-      0% {
+      from {
         transform: translateX(0);
       }
-      100% {
+      to {
         transform: translateX(-50%);
       }
     }
@@ -257,10 +281,12 @@
       max-width: 600px;
       padding: 40px;
       pointer-events: none;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
     }
     
     .empty-state.hidden {
-      display: none;
+      opacity: 0;
+      visibility: hidden;
     }
     
     .empty-state h2 {
@@ -664,11 +690,15 @@
 <body>
   <div class="header">
     <div class="logo">mLite Web</div>
-    <button class="license-btn" id="licenseBtn">🔑 Get License</button>
+    <button class="license-btn" id="licenseBtn">🔒 Get License</button>
     
     <div class="menu-container">
       <button class="menu-toggle" id="menuToggle">
-        <span class="chevron">︿</span>
+        <div class="menu-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </button>
       <div class="menu-items" id="menuItems">
         <label class="menu-btn">
@@ -712,7 +742,7 @@
       🖼️ Add your screenshot<br>
       ✨ Export professional mockups</p>
       <div class="license-notice" id="licenseNotice">
-        🔑 License required to render and export images
+        🔒 License required to render and export images
       </div>
     </div>
     <canvas id="canvas" width="1024" height="1024"></canvas>
@@ -847,18 +877,19 @@ const MOCKUP_IMAGES = [
   'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup8.jpg',
   'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup9.jpg',
   'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup10.jpg',
-  // Add more as you upload them
 ];
 
 function initMockupShowcase() {
   if (MOCKUP_IMAGES.length === 0 || MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
-    // No images configured yet, hide showcase
     els.mockupShowcase.classList.add('hidden');
     return;
   }
   
   // Duplicate images for seamless infinite scroll
   const allImages = [...MOCKUP_IMAGES, ...MOCKUP_IMAGES];
+  
+  // Clear any existing content
+  els.mockupTrack.innerHTML = '';
   
   // Create image elements
   allImages.forEach(url => {
@@ -868,11 +899,16 @@ function initMockupShowcase() {
     img.alt = 'Mockup example';
     els.mockupTrack.appendChild(img);
   });
+  
+  // Force reflow to ensure animation starts
+  void els.mockupTrack.offsetWidth;
 }
 
-// Hide showcase when images are loaded
+// Updated function to hide showcase when ANY image is loaded
 function updateEmptyState() {
-  if (state.overlayImg || state.screenshotImg) {
+  const hasContent = state.overlayImg || state.screenshotImg;
+  
+  if (hasContent) {
     els.emptyState.classList.add('hidden');
     els.mockupShowcase.classList.add('hidden');
   } else {
@@ -1052,19 +1088,6 @@ els.closeWarning.addEventListener('click', () => {
   els.heicWarning.classList.add('hidden');
 });
 
-// Hide showcase when images are loaded
-function updateEmptyState() {
-  if (state.overlayImg || state.screenshotImg) {
-    els.emptyState.classList.add('hidden');
-    els.mockupShowcase.classList.add('hidden');
-  } else {
-    els.emptyState.classList.remove('hidden');
-    if (MOCKUP_IMAGES.length > 0 && !MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
-      els.mockupShowcase.classList.remove('hidden');
-    }
-  }
-}
-
 // ============================================
 // IMAGE PROCESSING
 // ============================================
@@ -1178,12 +1201,11 @@ function normalizeQuad(points) {
 // ============================================
 
 els.mlite.addEventListener('change', async (e) => {
-  // Check license before allowing file import
   if (!state.hasLicense) {
     setError("Please purchase a license to use mLite Web");
     setStatus("License required", "error");
     openLicenseModal();
-    e.target.value = ''; // Reset file input
+    e.target.value = '';
     return;
   }
   
@@ -1249,12 +1271,11 @@ els.mlite.addEventListener('change', async (e) => {
 });
 
 els.shot.addEventListener('change', (e) => {
-  // Check license before allowing file import
   if (!state.hasLicense) {
     setError("Please purchase a license to use mLite Web");
     setStatus("License required", "error");
     openLicenseModal();
-    e.target.value = ''; // Reset file input
+    e.target.value = '';
     return;
   }
   
@@ -1289,7 +1310,6 @@ function doRender() {
     return; 
   }
   
-  // BLOCK RENDERING FOR UNLICENSED USERS
   if (!state.hasLicense) {
     setError("Please purchase a license to use mLite Web");
     setStatus("License required", "error");
@@ -1325,8 +1345,7 @@ function doRender() {
   setStatus("Rendered ✓", "success");
 }
 
-els.save.addEventListener('click', () => {
-  // BLOCK EXPORT FOR UNLICENSED USERS
+els.save.addEventListener('click', async () => {
   if (!state.hasLicense) {
     setError("Please purchase a license to export images");
     setStatus("License required", "error");
@@ -1334,16 +1353,51 @@ els.save.addEventListener('click', () => {
     return;
   }
   
-  const url = els.canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'mlite_warp.png';
-  a.click();
-  setStatus("Exported ✓", "success");
+  try {
+    // For Safari/Mac, we need to handle download differently
+    const blob = await new Promise(resolve => els.canvas.toBlob(resolve, 'image/png'));
+    
+    // Check if we're on Safari/Mac
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    if (isSafari) {
+      // Safari method - convert to data URL for better compatibility
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const a = document.createElement('a');
+        a.href = reader.result;
+        a.download = 'mlite_warp.png';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+        }, 100);
+      };
+      reader.readAsDataURL(blob);
+    } else {
+      // Standard method for other browsers
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mlite_warp.png';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    }
+    
+    setStatus("Exported ✓", "success");
+  } catch (err) {
+    setError("Export failed: " + err.message);
+    setStatus("Export failed", "error");
+  }
 });
 
 els.share.addEventListener('click', async () => {
-  // BLOCK SHARE FOR UNLICENSED USERS
   if (!state.hasLicense) {
     setError("Please purchase a license to share images");
     setStatus("License required", "error");
@@ -1387,16 +1441,6 @@ els.website.addEventListener('click', () => {
   els.menuItems.classList.remove('active');
 });
 
-// Hide empty state when images are loaded
-function updateEmptyState() {
-  if (state.overlayImg || state.screenshotImg) {
-    els.emptyState.classList.add('hidden');
-  } else {
-    els.emptyState.classList.remove('hidden');
-  }
-}
-
-// Update UI based on license status
 function updateLicenseUI() {
   if (state.hasLicense) {
     els.menuToggle.parentElement.classList.add('show');
@@ -1406,18 +1450,19 @@ function updateLicenseUI() {
   } else {
     els.menuToggle.parentElement.classList.remove('show');
     els.menuToggle.parentElement.classList.add('hidden');
-    els.licenseNotice.textContent = '🔑 License required to render and export images';
+    els.licenseNotice.textContent = '🔒 License required to render and export images';
     els.licenseNotice.classList.remove('active');
   }
 }
 
+// ============================================
+// INITIALIZATION
+// ============================================
+
 checkExistingLicense();
 updateLicenseUI();
-
-// Initialize mockup showcase
 initMockupShowcase();
 
-// Set current year in footer
 els.currentYear.textContent = new Date().getFullYear();
 
 setStatus("Ready to import files", "idle");

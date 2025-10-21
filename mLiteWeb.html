@@ -10,7 +10,7 @@
       --card: #3a4452;
       --text: #f3f3f3;
       --muted: #9ca3af;
-      --accent: #5b9cf5; /* Blue app button colour */
+      --accent: #5b9cf5;
       --bad: #ef5350;
       --btn-bg: #4a5568;
       --disabled: #6b7280;
@@ -25,7 +25,6 @@
       flex-direction: column;
     }
 
-    /* Header */
     .header { display:flex; justify-content:flex-end; align-items:center; padding:20px 24px; gap:16px; position:relative; z-index:100; }
     .logo { font-size:24px; font-weight:700; color:var(--text); letter-spacing:-0.5px; margin-right:auto; }
     .license-btn {
@@ -36,7 +35,6 @@
     .license-btn.active { background:linear-gradient(135deg,#10b981 0%,#059669 100%); box-shadow:0 4px 12px rgba(16,185,129,.3); }
     .license-btn[disabled]{ opacity:.6; cursor:not-allowed; }
 
-    /* Expandable Menu (animated hamburger) */
     .menu-container { position:relative; display:none; }
     .menu-container.show { display:block; }
     .menu-container.hidden { display:none; }
@@ -66,17 +64,94 @@
     .menu-items.active .menu-btn:nth-child(4){ animation-delay:.2s } 
     .menu-items.active .menu-btn:nth-child(5){ animation-delay:.25s } 
     @keyframes slideIn { from{opacity:0; transform:translateX(20px)} to{opacity:1; transform:translateX(0)} }
-    .menu-btn:hover { background:#5a6578; transform:translateX(-5px); }
+    .menu-btn:hover:not(.disabled) { background:#5a6578; transform:translateX(-5px); }
     .menu-btn svg { width:18px; height:18px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-    .menu-btn.disabled, .menu-btn[disabled]{ opacity:.45; cursor:not-allowed; }
+    .menu-btn.disabled, .menu-btn[disabled]{ opacity:.45; cursor:not-allowed; pointer-events:none; }
     input[type=file]{ display:none; }
 
-    /* Canvas */
     .canvas-container { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; overflow:hidden; position:relative; }
-    canvas { max-width:100%; max-height:100%; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,.4); background:var(--card); }
 
-    /* Empty */
-    .empty-state { position:absolute; text-align:center; max-width:600px; padding:40px; pointer-events:none; transition:opacity .5s ease, visibility .5s ease; }
+    .license-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .license-card {
+      pointer-events: all;
+      width: min(560px, 92vw);
+      background: rgba(26, 32, 44, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.45);
+      display: none;
+    }
+    .license-card.show { display: block; }
+    .license-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .license-sub { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+    .license-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .license-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: #2f3846;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    .license-input.error { border-color:#ef5350; }
+    .license-input.success { border-color:#10b981; }
+    .modal-btn { padding:10px 14px; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:14px; }
+    .modal-btn.primary { background:#5b9cf5; color:#fff; }
+    .modal-btn.secondary { background:#4a5568; color:#fff; }
+
+    .mockup-showcase {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+      pointer-events: none;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      z-index: 0;
+    }
+    .mockup-track { display:flex; gap:40px; animation: scroll 60s linear infinite; will-change: transform; }
+    @keyframes scroll { from{transform: translateX(0)} to{transform: translateX(-50%)} }
+    .mockup-item { flex-shrink:0; width:512px; height:512px; border-radius:16px; object-fit:contain; filter:grayscale(30%) brightness(0.8); }
+
+    canvas { 
+      max-width:100%; 
+      max-height:100%; 
+      border-radius:16px; 
+      box-shadow:0 8px 32px rgba(0,0,0,.4); 
+      background:var(--card);
+      position: relative;
+      z-index: 1;
+    }
+
+    .empty-state { 
+      position:absolute; 
+      text-align:center; 
+      max-width:600px; 
+      padding:40px; 
+      pointer-events:none; 
+      transition:opacity .5s ease, visibility .5s ease;
+      z-index: 2;
+    }
     .empty-state.hidden { opacity:0; visibility:hidden; }
     .empty-state h2 { font-size:32px; margin:0 0 16px 0; color:var(--text); font-weight:600; }
     .empty-state p { font-size:16px; color:var(--muted); line-height:1.6; margin:0 0 12px 0; }
@@ -84,7 +159,6 @@
     .empty-state .license-notice { display:inline-block; margin-top:24px; padding:12px 20px; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); border-radius:8px; color:#f59e0b; font-size:14px; font-weight:500; }
     .empty-state .license-notice.active { background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.3); color:#10b981; }
 
-    /* Actions */
     .action-buttons { position:fixed; bottom:30px; right:30px; display:flex; flex-direction:column; gap:16px; z-index:50; }
     .action-btn { width:56px; height:56px; border-radius:16px; background:var(--accent); border:none; cursor:pointer; display:flex;
       align-items:center; justify-content:center; color:white; box-shadow:0 4px 16px rgba(91,156,245,.4); transition:all .3s ease; }
@@ -95,26 +169,18 @@
     .action-btn:disabled { opacity:.4; cursor:not-allowed; }
     .action-btn svg { width:22px; height:22px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-    /* Edit-mode aura animation + button dimming */
-    @keyframes pulseRingBlue {
-      0%   { box-shadow: 0 0 0 0 rgba(91,156,245,.55), 0 0 0 6px rgba(91,156,245,.0); }
-      70%  { box-shadow: 0 0 0 6px rgba(91,156,245,.0), 0 0 0 12px rgba(91,156,245,.0); }
-      100% { box-shadow: 0 0 0 0 rgba(91,156,245,.0), 0 0 0 0 rgba(91,156,245,.0); }
-    }
     @keyframes pulseRingRed {
       0%   { box-shadow: 0 0 0 0 rgba(230,69,69,.55), 0 0 0 6px rgba(230,69,69,.0); }
       70%  { box-shadow: 0 0 0 6px rgba(230,69,69,.0), 0 0 0 12px rgba(230,69,69,.0); }
       100% { box-shadow: 0 0 0 0 rgba(230,69,69,.0), 0 0 0 0 rgba(230,69,69,.0); }
     }
     body.editing .action-buttons .action-btn:not(#editBtn) { opacity:.35; pointer-events:auto; }
-    /* Red gradient for edit button while editing */
     body.editing #editBtn { 
       animation: pulseRingRed 1.5s ease-out infinite; 
       background: linear-gradient(135deg, #ff6b6b 0%, #e64545 100%);
       box-shadow: 0 4px 16px rgba(230,69,69,.4);
     }
 
-    /* Toast + error */
     .status-toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); padding:12px 24px; border-radius:25px; font-size:14px; font-weight:500; box-shadow:0 4px 16px rgba(0,0,0,.3); transition:transform .3s ease, opacity .3s ease; opacity:0; z-index:1000; pointer-events:none; }
     .status-toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
     .status-toast.idle { background:var(--btn-bg); color:var(--text); }
@@ -126,45 +192,6 @@
 
     .footer { padding:16px 24px; text-align:center; color:var(--muted); font-size:13px; border-top:1px solid rgba(255,255,255,.05); background:rgba(0,0,0,.2); }
     .footer a { color:var(--accent); text-decoration:none; }
-
-    /* License modal should be hidden by default */
-    #licenseModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-    }
-    #licenseModal.show { display: flex; }
-    #licenseModal .modal {
-      background: var(--card);
-      color: var(--text);
-      padding: 32px;
-      border-radius: 16px;
-      max-width: 420px;
-      width: 90%;
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-      text-align: center;
-    }
-    .license-input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#2f3846; color:var(--text); outline:none; }
-    .license-input.error { border-color:#ef5350 }
-    .license-input.success { border-color:#10b981 }
-    .btn-group { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
-    .modal-btn { padding:10px 14px; border:none; border-radius:10px; cursor:pointer; font-weight:600; }
-    .modal-btn.secondary { background:#4a5568; color:#fff }
-    .modal-btn.primary { background:#5b9cf5; color:#fff }
-    .modal-btn.purchase { width:100%; margin-top:16px; background:#1f2937; color:#fff }
-
-    /* Name modal for .mlite export */
-    #nameModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:10000; align-items:center; justify-content:center; }
-    #nameModal.show { display:flex; }
-    #nameModal .modal { background:var(--card); color:var(--text); padding:28px; border-radius:16px; width:90%; max-width:420px; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-    #nameModal h3 { margin:0 0 10px 0; }
-    #nameModal .hint { color:var(--muted); font-size:13px; margin-bottom:12px; }
-    #nameInput { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#2f3846; color:var(--text); outline:none; }
-    #nameModal .btn-row { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
   </style>
 </head>
 <body>
@@ -179,6 +206,11 @@
         </div>
       </button>
       <div class="menu-items" id="menuItems">
+        <label class="menu-btn" id="btnImportTemplate" for="templateFile">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H9l-5 5v8a1 1 0 0 0 1 1z"/></svg>
+          <input id="templateFile" type="file" accept="image/png">
+          <span>Import Template</span>
+        </label>
         <label class="menu-btn" id="btnImportMl" for="mliteFile">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
           <input id="mliteFile" type="file" accept=".mlite,application/json">
@@ -195,17 +227,33 @@
         </button>
         <button class="menu-btn" id="websiteBtn">
           <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/><path d="M3 12h18"/><path d="M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9m0-18c-2.5 2.7-4 6-4 9s1.5 6.3 4 9"/></svg>
-          <span>ShowCreative.co.uk</span>
+          <span>showcreative.co.uk</span>
         </button>
       </div>
     </div>
   </div>
 
   <div class="canvas-container">
+    <div class="mockup-showcase" id="mockupShowcase">
+      <div class="mockup-track" id="mockupTrack"></div>
+    </div>
+
+    <div class="license-panel">
+      <div class="license-card" id="licenseCard">
+        <div class="license-title">Activate License</div>
+        <div class="license-sub">Enter your license key to remove watermarks and unlock full features.</div>
+        <div class="license-row">
+          <input type="text" class="license-input" id="licenseInput" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" maxlength="39">
+          <button class="modal-btn secondary" id="purchaseBtn">Purchase</button>
+          <button class="modal-btn primary" id="activateBtn">Activate</button>
+        </div>
+      </div>
+    </div>
+
     <div class="empty-state" id="emptyState">
       <h2>Welcome to mLite Web</h2>
-      <p class="subtitle">Import your .mlite and screenshot to begin.</p>
-      <p>• The screenshot auto-warps to your .mlite coordinates<br>• Toggle Edit to drag blue corner dots</p>
+      <p class="subtitle">Import a Template PNG or a .mlite file, then import a screenshot to warp.</p>
+      <p>• Screenshot auto-warps to your quad<br>• Toggle Edit to drag blue corner dots</p>
       <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>
     </div>
     <canvas id="canvas" width="1024" height="1024"></canvas>
@@ -216,9 +264,8 @@
       <svg id="editIcon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
     </button>
     <button class="action-btn secondary" id="exportMlBtn" title="Export .mlite" aria-label="Export .mlite" disabled>
-      <svg id="exportMlIcon" viewBox="0 0 24 24"><path d="M12 5v10m0 0l-4-4m4 4 4-4M5 19h14"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 5v10m0 0l-4-4m4 4 4-4M5 19h14"/></svg>
     </button>
-    <!-- Share button removed as requested -->
     <button class="action-btn secondary" id="browseBtn" title="Community" aria-label="Community">
       <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4v-6a4 4 0 0 1 4-4"/><path d="M8 3h8a4 4 0 0 1 4 4v1"/><path d="M12 12h.01"/></svg>
     </button>
@@ -231,47 +278,31 @@
     <p>© <span id="currentYear"></span> <a href="https://showcreative.co.uk" target="_blank">ShowCreative</a> • Made with mLite</p>
   </footer>
 
-  <!-- License Modal -->
-  <div class="modal-overlay" id="licenseModal">
-    <div class="modal">
-      <h2>Activate License</h2>
-      <p>Enter your license key to remove watermarks and unlock full features.</p>
-      <div class="license-input-group">
-        <input type="text" class="license-input" id="licenseInput" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" maxlength="39">
-      </div>
-      <div class="btn-group">
-        <button class="modal-btn secondary" id="cancelBtn">Cancel</button>
-        <button class="modal-btn primary" id="activateBtn">Activate</button>
-      </div>
-      <div class="divider" style="margin:12px 0; color:var(--muted)">OR</div>
-      <button class="modal-btn purchase" id="purchaseBtn">💳 Purchase License Key</button>
-    </div>
-  </div>
-
-  <!-- Name Modal for .mlite export -->
-  <div id="nameModal">
-    <div class="modal">
-      <h3>Name your .mlite</h3>
-      <div class="hint">We'll save it with the <code>.mlite</code> extension.</div>
-      <input type="text" id="nameInput" placeholder="My Mockup.mlite" maxlength="120">
-      <div class="btn-row">
-        <button class="modal-btn secondary" id="nameCancel">Cancel</button>
-        <button class="modal-btn primary" id="nameSave">Save</button>
-      </div>
-    </div>
-  </div>
-
 <script>
-// ========= CONFIG =========
 const CONFIG = {
   GUMROAD_PRODUCT_URL: 'https://seankly.gumroad.com/l/gnvdnh',
   CLOUDFLARE_WORKER_URL: 'https://mlite-web-worker.ske-d03.workers.dev',
 };
 
-// ========= Elements =========
+const MOCKUP_IMAGES = [
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup1.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup2.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup3.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup4.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup5.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup6.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup7.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup8.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup9.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup10.jpg',
+];
+
 const els = {
+  template: document.getElementById('templateFile'),
   mlite: document.getElementById('mliteFile'),
   shot: document.getElementById('shotFile'),
+  btnImportTemplate: document.getElementById('btnImportTemplate'),
+  btnImportMl: document.getElementById('btnImportMl'),
   btnImportShot: document.getElementById('btnImportShot'),
   save: document.getElementById('saveBtn'),
   browse: document.getElementById('browseBtn'),
@@ -285,60 +316,113 @@ const els = {
   statusToast: document.getElementById('statusToast'),
   errorContainer: document.getElementById('errorContainer'),
   licenseBtn: document.getElementById('licenseBtn'),
-  licenseModal: document.getElementById('licenseModal'),
   licenseInput: document.getElementById('licenseInput'),
   activateBtn: document.getElementById('activateBtn'),
-  cancelBtn: document.getElementById('cancelBtn'),
   purchaseBtn: document.getElementById('purchaseBtn'),
   website: document.getElementById('websiteBtn'),
   editBtn: document.getElementById('editBtn'),
   exportMlBtn: document.getElementById('exportMlBtn'),
   editIcon: document.getElementById('editIcon'),
-  nameModal: document.getElementById('nameModal'),
-  nameInput: document.getElementById('nameInput'),
-  nameCancel: document.getElementById('nameCancel'),
-  nameSave: document.getElementById('nameSave'),
+  mockupShowcase: document.getElementById('mockupShowcase'),
+  mockupTrack: document.getElementById('mockupTrack'),
+  licenseCard: document.getElementById('licenseCard'),
 };
-const ctx = els.canvas.getContext('2d', { alpha:false });
+
+const ctx = els.canvas.getContext('2d', { alpha: false });
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
 
-// ========= License (as original) =========
+function initMockupShowcase() {
+  if (MOCKUP_IMAGES.length === 0) return;
+  const all = [...MOCKUP_IMAGES, ...MOCKUP_IMAGES];
+  els.mockupTrack.innerHTML = '';
+  all.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'mockup-item';
+    img.alt = 'Mockup example';
+    els.mockupTrack.appendChild(img);
+  });
+}
+
+const MESH_DETAIL_IDLE = 35;
+const MESH_DETAIL_DRAG = 0;
+let meshDetail = MESH_DETAIL_IDLE;
+const DST_EPS = 1.5;
+const SRC_EPS = 1.0;
+const ACCENT = '#5b9cf5';
+
 let state = {
   overlayImg: null,
   overlayW: 1024,
   overlayH: 1024,
   screenshotImg: null,
-  quad: null, // [TL, TR, BR, BL] in canvas px
+  quad: null,
   screenshotOnTop: false,
   cornerRadius: 0,
   hasLicense: false,
   licenseKey: null,
   editMode: false,
   activeHandle: -1,
-  originalOverlayBase64: null, // for exporting .mlite
+  originalOverlayBase64: null,
+  sourceType: null,
 };
 
 function updateEmptyState() {
   const hasContent = state.overlayImg || state.screenshotImg;
   els.emptyState.classList.toggle('hidden', !!hasContent);
 }
+
 function readyForEdit(){ return !!(state.overlayImg && state.screenshotImg && state.quad) && state.hasLicense; }
-function readyForExport(){ return readyForEdit(); }
+function readyForExport(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
+
 function updateActionStates(){
+  // Enable/disable edit button
   els.editBtn.disabled = !readyForEdit();
-  els.save.disabled = !readyForExport();
+  
+  // Enable save button if we have all required components:
+  // 1. Valid license
+  // 2. Overlay loaded (template PNG or .mlite)
+  // 3. Screenshot imported
+  // 4. Quad defined
+  const canSave = state.hasLicense && 
+                  state.overlayImg && 
+                  state.screenshotImg && 
+                  state.quad;
+  
+  // CRITICAL: Must update BOTH disabled attribute AND CSS class
+  els.save.disabled = !canSave;
+  if (canSave) {
+    els.save.classList.remove('disabled');
+  } else {
+    els.save.classList.add('disabled');
+  }
+  
+  // Enable screenshot import if template/mlite loaded and licensed
   const shotReady = !!state.overlayImg && state.hasLicense;
   els.shot.disabled = !shotReady;
   els.btnImportShot.dataset.disabled = shotReady ? '' : 'true';
   els.btnImportShot.classList.toggle('disabled', !shotReady);
-
-  // Export .mlite enabled if we have an overlay & quad (no need for screenshot), NOT while editing, and licensed
-  const canExportMl = !!(state.overlayImg && state.quad) && state.hasLicense && !state.editMode;
-  els.exportMlBtn.disabled = !canExportMl;
+  
+  // Prevent importing both template and mlite (only one source type)
+  if (state.sourceType === 'template') {
+    els.btnImportMl.classList.add('disabled');
+  } else if (state.sourceType === 'mlite') {
+    els.btnImportTemplate.classList.add('disabled');
+  } else {
+    els.btnImportMl.classList.remove('disabled');
+    els.btnImportTemplate.classList.remove('disabled');
+  }
+  
+  // Enable .mlite export if overlay + quad exist and not in edit mode
+const canExportMl = state.sourceType === 'template' &&  // ✅ MUST be template PNG
+                    state.overlayImg && 
+                    state.quad && 
+                    state.hasLicense && 
+                    !state.editMode;
+els.exportMlBtn.disabled = !canExportMl;
 }
 
-// ---- Toasts & Errors ----
 let statusTimeout;
 function setStatus(text, type='idle'){
   clearTimeout(statusTimeout);
@@ -348,6 +432,7 @@ function setStatus(text, type='idle'){
     statusTimeout = setTimeout(()=>els.statusToast.classList.remove('show'), 2500);
   }
 }
+
 function setError(text){
   if (!text) return els.errorContainer.classList.remove('show');
   els.errorContainer.textContent = text;
@@ -355,18 +440,17 @@ function setError(text){
   setTimeout(()=>els.errorContainer.classList.remove('show'), 4000);
 }
 
-// ---- License modal
-function openLicenseModal(){ els.licenseModal.classList.add('show'); els.licenseInput.value=''; els.licenseInput.classList.remove('error','success'); els.licenseInput.focus(); }
-function closeLicenseModal(){ els.licenseModal.classList.remove('show'); }
 els.licenseInput.addEventListener('input', (e)=>{
   let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   let formatted = value.match(/.{1,8}/g)?.join('-') || value;
   e.target.value = formatted;
 });
-els.licenseBtn.addEventListener('click', openLicenseModal);
-els.cancelBtn.addEventListener('click', closeLicenseModal);
+
+els.licenseBtn.addEventListener('click', () => {
+  window.open(CONFIG.GUMROAD_PRODUCT_URL, '_blank');
+});
+
 els.purchaseBtn.addEventListener('click', ()=> window.open(CONFIG.GUMROAD_PRODUCT_URL, '_blank'));
-els.licenseModal.addEventListener('click', (e)=>{ if (e.target === els.licenseModal) closeLicenseModal(); });
 
 async function validateLicenseKey(key, silent=false){
   if (!silent) setStatus('Validating license…','loading');
@@ -387,7 +471,6 @@ async function validateLicenseKey(key, silent=false){
       els.menuContainer.classList.remove('hidden');
       updateLicenseUI();
       if (!silent) setStatus('License activated!','success');
-      closeLicenseModal();
       updateActionStates();
       return true;
     } else {
@@ -399,25 +482,38 @@ async function validateLicenseKey(key, silent=false){
     return false;
   }
 }
+
 function checkExistingLicense(){
   const savedKey = localStorage.getItem('mlite_license_key');
   if (savedKey) validateLicenseKey(savedKey, true);
 }
+
 function updateLicenseUI(){
   if (state.hasLicense){
     els.licenseNotice.textContent = '✓ License activated - Ready to create!';
     els.licenseNotice.classList.add('active');
+    els.licenseCard.classList.remove('show');
   } else {
     els.licenseNotice.textContent = '🔒 License required to render and export images';
     els.licenseNotice.classList.remove('active');
+    els.licenseCard.classList.add('show');
   }
 }
 
-// ---- Menu toggle ----
+els.activateBtn.addEventListener('click', async () => {
+  const key = els.licenseInput.value.trim();
+  if (!key) {
+    setError("Please enter a license key");
+    return;
+  }
+  await validateLicenseKey(key);
+});
+
 els.menuToggle.addEventListener('click', ()=>{
   els.menuToggle.classList.toggle('active');
   els.menuItems.classList.toggle('active');
 });
+
 document.addEventListener('click', (e)=>{
   if (!els.menuContainer.contains(e.target)) {
     els.menuToggle.classList.remove('active');
@@ -425,103 +521,120 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-// ========= Warper (with seam fix) =========
-const MESH_DETAIL_IDLE = 28, MESH_DETAIL_DRAG = 10; let meshDetail = MESH_DETAIL_IDLE;
-const DST_EPS = 0.75, SRC_EPS = 0.5; const ACCENT = '#5b9cf5';
-
-function drawRoundedRect(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, w * .5, h * .5);
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.lineTo(x + w - rr, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
-  ctx.lineTo(x + w, y + h - rr);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
-  ctx.lineTo(x + rr, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
-  ctx.lineTo(x, y + rr);
-  ctx.quadraticCurveTo(x, y, x + rr, y);
-  ctx.closePath();
-}
 function normalizeQuad(points) {
   const pts = points.slice();
   pts.sort((a,b)=>a.y-b.y);
   const top = pts.slice(0,2).sort((a,b)=>a.x-b.x);
   const bot = pts.slice(2,4).sort((a,b)=>a.x-b.x);
-  return [top[0], top[1], bot[1], bot[0]]; // TL, TR, BR, BL
+  return [top[0], top[1], bot[1], bot[0]];
 }
+
 function drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx2, sy2, dx0, dy0, dx1, dy1, dx2, dy2) {
-  // Expand destination triangle by fixed pixel epsilon from centroid
   const cx = (dx0 + dx1 + dx2) / 3, cy = (dy0 + dy1 + dy2) / 3;
-  function expand(x,y){ const dx = x - cx, dy = y - cy; const len = Math.hypot(dx,dy) || 1; const k = (len + DST_EPS) / len; return [cx + dx*k, cy + dy*k]; }
+  function expand(x,y){ 
+    const dx = x - cx, dy = y - cy; 
+    const len = Math.hypot(dx,dy) || 1; 
+    const k = (len + DST_EPS) / len; 
+    return [cx + dx*k, cy + dy*k]; 
+  }
   const [edx0, edy0] = expand(dx0, dy0);
   const [edx1, edy1] = expand(dx1, dy1);
   const [edx2, edy2] = expand(dx2, dy2);
+  
   ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
   ctx.beginPath();
-  ctx.moveTo(edx0, edy0); ctx.lineTo(edx1, edy1); ctx.lineTo(edx2, edy2);
-  ctx.closePath(); ctx.clip();
+  ctx.moveTo(edx0, edy0); 
+  ctx.lineTo(edx1, edy1); 
+  ctx.lineTo(edx2, edy2);
+  ctx.closePath(); 
+  ctx.clip();
+  
   const denom = (sx0*(sy1-sy2)+sx1*(sy2-sy0)+sx2*(sy0-sy1));
   if (Math.abs(denom) < 1e-8) { ctx.restore(); return; }
+  
   const a11=(edx0*(sy1-sy2)+edx1*(sy2-sy0)+edx2*(sy0-sy1))/denom;
   const a12=(edx0*(sx2-sx1)+edx1*(sx0-sx2)+edx2*(sx1-sx0))/denom;
   const a13=(edx0*(sx1*sy2-sx2*sy1)+edx1*(sx2*sy0-sx0*sy2)+edx2*(sx0*sy1-sx1*sy0))/denom;
   const a21=(edy0*(sy1-sy2)+edy1*(sy2-sy0)+edy2*(sy0-sy1))/denom;
   const a22=(edy0*(sx2-sx1)+edy1*(sx0-sx2)+edy2*(sx1-sx0))/denom;
   const a23=(edy0*(sx1*sy2-sx2*sy1)+edy1*(sx2*sy0-sx0*sy2)+edy2*(sx0*sy1-sx1*sy0))/denom;
+  
   ctx.setTransform(a11,a21,a12,a22,a13,a23);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   const iw = (img.naturalWidth||img.width), ih = (img.naturalHeight||img.height);
   ctx.drawImage(img, -SRC_EPS, -SRC_EPS, iw + SRC_EPS*2, ih + SRC_EPS*2);
   ctx.restore();
 }
+
 function warpImageToQuad(ctx, img, dstQuad, steps) {
   const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
   const s = Math.max(2, steps|0);
   function lerp(a,b,t){ return [a[0]*(1-t)+b[0]*t, a[1]*(1-t)+b[1]*t]; }
   function toPt(p){ return {x:p[0], y:p[1]}; }
   function mix(p,q,t){ return {x:p.x*(1-t)+q.x*t, y:p.y*(1-t)+q.y*t}; }
+  
   for (let yi=0; yi<s; yi++) {
     const v0=yi/s, v1=(yi+1)/s;
     const l0 = toPt( lerp(dstQuad[0], dstQuad[3], v0) );
     const r0 = toPt( lerp(dstQuad[1], dstQuad[2], v0) );
     const l1 = toPt( lerp(dstQuad[0], dstQuad[3], v1) );
     const r1 = toPt( lerp(dstQuad[1], dstQuad[2], v1) );
+    
     for (let xi=0; xi<s; xi++) {
       const u0=xi/s, u1=(xi+1)/s;
       const p00 = mix(l0,r0,u0);
       const p10 = mix(l0,r0,u1);
       const p01 = mix(l1,r1,u0);
       const p11 = mix(l1,r1,u1);
-      const sx0=u0*w, sy0=v0*h; const sx1=u1*w, sy1=v0*h; const sx2=u0*w, sy2=v1*h; const sx3=u1*w, sy3=v1*h;
+      
+      const sx0=u0*w, sy0=v0*h; 
+      const sx1=u1*w, sy1=v0*h; 
+      const sx2=u0*w, sy2=v1*h; 
+      const sx3=u1*w, sy3=v1*h;
+      
       drawTriangle(ctx,img,sx0,sy0,sx1,sy1,sx3,sy3,p00.x,p00.y,p10.x,p10.y,p11.x,p11.y);
       drawTriangle(ctx,img,sx0,sy0,sx3,sy3,sx2,sy2,p00.x,p00.y,p11.x,p11.y,p01.x,p01.y);
     }
   }
 }
 
-// ========= Rendering & Edit UI =========
 function doRender(drawHandles=true){
-  if (!state.hasLicense || !state.overlayImg || !state.quad || !state.screenshotImg) return;
+  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
   const w = state.overlayW, h = state.overlayH;
   ctx.setTransform(1,0,0,1,0,0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   ctx.clearRect(0,0,w,h);
-  if (state.cornerRadius>0){ ctx.save(); drawRoundedRect(ctx,0,0,w,h,state.cornerRadius); ctx.clip(); }
+  
   const quadArr = [
     [state.quad[0].x, state.quad[0].y],
     [state.quad[1].x, state.quad[1].y],
     [state.quad[2].x, state.quad[2].y],
     [state.quad[3].x, state.quad[3].y],
   ];
-  if (state.screenshotOnTop) { ctx.drawImage(state.overlayImg, 0, 0); warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); }
-  else { warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); ctx.drawImage(state.overlayImg, 0, 0); }
-  if (state.cornerRadius>0) ctx.restore();
+  
+  if (state.screenshotImg) {
+    if (state.screenshotOnTop) { 
+      ctx.drawImage(state.overlayImg, 0, 0); 
+      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
+    } else { 
+      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
+      ctx.drawImage(state.overlayImg, 0, 0); 
+    }
+  } else {
+    ctx.drawImage(state.overlayImg, 0, 0);
+  }
+  
   if (state.editMode && drawHandles) drawEditHandles();
-  setStatus(state.editMode ? 'Edit mode: drag blue corners' : 'Rendered ✓', state.editMode ? 'loading' : 'success');
+  setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
 }
+
 function drawEditHandles(){
   const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010);
   ctx.save();
-  ctx.lineWidth = 1.25;
+  ctx.lineWidth = 6.00;
   ctx.strokeStyle = ACCENT;
   ctx.globalAlpha = 0.95;
   ctx.fillStyle = ACCENT;
@@ -532,6 +645,7 @@ function drawEditHandles(){
   ctx.lineTo(state.quad[3].x, state.quad[3].y);
   ctx.closePath();
   ctx.stroke();
+  
   for (let i=0;i<4;i++) {
     const p = state.quad[i];
     ctx.beginPath();
@@ -543,7 +657,7 @@ function drawEditHandles(){
   }
   ctx.restore();
 }
-// hit testing + drag
+
 function clientToCanvas(ev){
   const rect = els.canvas.getBoundingClientRect();
   const scaleX = els.canvas.width / rect.width;
@@ -552,12 +666,19 @@ function clientToCanvas(ev){
   const clientY = (ev.touches ? ev.touches[0].clientY : ev.clientY);
   return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
 }
+
 function hitTestHandle(x,y){
   const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010);
-  for (let i=0;i<4;i++){ const p = state.quad[i]; const dx=x-p.x, dy=y-p.y; if (dx*dx+dy*dy <= (r*1.6)*(r*1.6)) return i; }
+  for (let i=0;i<4;i++){ 
+    const p = state.quad[i]; 
+    const dx=x-p.x, dy=y-p.y; 
+    if (dx*dx+dy*dy <= (r*1.6)*(r*1.6)) return i; 
+  }
   return -1;
 }
+
 let dragging=false;
+
 function handlePointerDown(ev){
   if (!state.editMode) return;
   const pt = clientToCanvas(ev);
@@ -570,6 +691,7 @@ function handlePointerDown(ev){
     ev.preventDefault();
   }
 }
+
 function handlePointerMove(ev){
   if (!state.editMode || !dragging) return;
   const pt = clientToCanvas(ev);
@@ -579,14 +701,57 @@ function handlePointerMove(ev){
   doRender(true);
   ev.preventDefault();
 }
+
+function doRender(drawHandles=true, skipWarp=false){
+  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
+  const w = state.overlayW, h = state.overlayH;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.clearRect(0,0,w,h);
+  
+  const quadArr = [
+    [state.quad[0].x, state.quad[0].y],
+    [state.quad[1].x, state.quad[1].y],
+    [state.quad[2].x, state.quad[2].y],
+    [state.quad[3].x, state.quad[3].y],
+  ];
+  
+  if (state.screenshotImg && !skipWarp) {  // <-- Add skipWarp check
+    if (state.screenshotOnTop) { 
+      ctx.drawImage(state.overlayImg, 0, 0); 
+      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
+    } else { 
+      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
+      ctx.drawImage(state.overlayImg, 0, 0); 
+    }
+  } else {
+    ctx.drawImage(state.overlayImg, 0, 0);
+  }
+  
+  if (state.editMode && drawHandles) drawEditHandles();
+  setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
+}
+
+function handlePointerMove(ev){
+  if (!state.editMode || !dragging) return;
+  const pt = clientToCanvas(ev);
+  const i = state.activeHandle;
+  state.quad[i].x = Math.max(0, Math.min(state.overlayW, pt.x));
+  state.quad[i].y = Math.max(0, Math.min(state.overlayH, pt.y));
+  doRender(true, true); // <-- Pass true to skip warp during drag
+  ev.preventDefault();
+}
+
 function handlePointerUp(ev){
   if (!state.editMode) return;
   dragging = false;
   state.activeHandle = -1;
   meshDetail = MESH_DETAIL_IDLE;
-  doRender(true);
+  doRender(true, false); // <-- Full render with warp on release
   ev.preventDefault();
 }
+
 els.canvas.addEventListener('mousedown', handlePointerDown);
 window.addEventListener('mousemove', handlePointerMove);
 window.addEventListener('mouseup', handlePointerUp);
@@ -596,7 +761,7 @@ window.addEventListener('touchend', handlePointerUp);
 
 function toggleEdit(on){
   const next = (on===undefined) ? !state.editMode : !!on;
-  if (!state.hasLicense || !readyForEdit()) return;
+  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
   if (next === state.editMode) return;
   state.editMode = next;
   document.body.classList.toggle('editing', state.editMode);
@@ -608,10 +773,10 @@ function toggleEdit(on){
   updateActionStates();
   doRender(true);
 }
+
 els.editBtn.addEventListener('click', ()=>{ if (!els.editBtn.disabled) toggleEdit(); });
 window.addEventListener('keydown', (e)=>{ if (e.key.toLowerCase()==='e' && !els.editBtn.disabled) toggleEdit(); });
 
-// ========= File loading =========
 function ensureDataUrl(str) {
   if (/^data:image\//.test(str)) return str;
   const head = str.slice(0,10);
@@ -623,14 +788,101 @@ function ensureDataUrl(str) {
   else if (head.startsWith('AAAB')) mime = 'image/x-icon';
   return `data:${mime};base64,${str}`;
 }
+
+// Create default screenshot quad centered in overlay
+function createDefaultScreenshotQuad() {
+  const W = state.overlayW;
+  const H = state.overlayH;
+  const centerX = W / 2;
+  const centerY = H / 2;
+  const size = 512;
+  const halfSize = size / 2;
+  
+  return normalizeQuad([
+    { x: centerX - halfSize, y: centerY - halfSize },
+    { x: centerX + halfSize, y: centerY - halfSize },
+    { x: centerX + halfSize, y: centerY + halfSize },
+    { x: centerX - halfSize, y: centerY + halfSize }
+  ]);
+}
+
 document.getElementById('btnImportShot').addEventListener('click', (e)=>{
-  if (!state.hasLicense) { setStatus('Activate your license to import images','error'); openLicenseModal(); e.preventDefault(); e.stopPropagation(); return; }
-  if (e.currentTarget.dataset.disabled) { setStatus('Import a .mlite first to enable Screenshot import','error'); e.preventDefault(); e.stopPropagation(); }
+  if (!state.hasLicense) { 
+    setStatus('Activate your license to import images','error'); 
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    return; 
+  }
+  if (e.currentTarget.dataset.disabled) { 
+    setStatus('Import a Template PNG or .mlite first','error'); 
+    e.preventDefault(); 
+    e.stopPropagation(); 
+  }
 });
+
+// Import Template PNG
+els.template.addEventListener('change', async (e)=>{
+  if (!state.hasLicense) { 
+    setStatus('Please activate your license first.','error'); 
+    e.target.value=''; 
+    return; 
+  }
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!/\.png$/i.test(file.name)) { setError('Template must be a PNG.'); return; }
+  setStatus('Loading template…','loading');
+  try{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const overlayImg = new Image();
+      overlayImg.onload = () => {
+        state.overlayImg = overlayImg;
+        state.overlayW = overlayImg.naturalWidth;
+        state.overlayH = overlayImg.naturalHeight;
+        els.canvas.width = state.overlayW;
+        els.canvas.height = state.overlayH;
+        state.originalOverlayBase64 = String(dataUrl).split(',')[1] || '';
+        state.sourceType = 'template';
+
+        const inset = Math.round(Math.min(state.overlayW, state.overlayH) * 0.08);
+        const W = state.overlayW, H = state.overlayH;
+        state.quad = normalizeQuad([
+          { x: inset,     y: inset },
+          { x: W - inset, y: inset },
+          { x: W - inset, y: H - inset },
+          { x: inset,     y: H - inset }
+        ]);
+        state.screenshotOnTop = false;
+        state.cornerRadius = 0;
+
+        updateEmptyState();
+        updateActionStates();
+        doRender(false);
+        setStatus('Template loaded ✓','success');
+      };
+      overlayImg.onerror = ()=> setError('Failed to decode template PNG');
+      overlayImg.src = dataUrl;
+    };
+    reader.onerror = ()=> setError('Failed to read template file');
+    reader.readAsDataURL(file);
+  }catch(err){
+    setError('Template import failed: ' + err.message);
+  }
+  e.target.value = '';
+});
+
+// Import .mlite
 els.mlite.addEventListener('change', async (e)=>{
-  if (!state.hasLicense) { setStatus('Please activate your license first.','error'); openLicenseModal(); e.target.value=''; return; }
-  const file = e.target.files[0]; if (!file) return;
+  if (!state.hasLicense) { 
+    setStatus('Please activate your license first.','error'); 
+    e.target.value=''; 
+    return; 
+  }
+  const file = e.target.files[0]; 
+  if (!file) return;
   setStatus('Loading .mlite…','loading');
+  
   try{
     const txt = await file.text();
     const obj = JSON.parse(txt);
@@ -638,6 +890,8 @@ els.mlite.addEventListener('change', async (e)=>{
     if (!ovl) throw new Error('customDeviceMockupBase64 missing');
     state.originalOverlayBase64 = ovl;
     ovl = ensureDataUrl(ovl);
+    state.sourceType = 'mlite';
+    
     const overlayImg = new Image();
     overlayImg.onload = () => {
       state.overlayImg = overlayImg;
@@ -645,6 +899,7 @@ els.mlite.addEventListener('change', async (e)=>{
       state.overlayH = overlayImg.naturalHeight;
       els.canvas.width = state.overlayW;
       els.canvas.height = state.overlayH;
+      
       const pv = obj.projectionValues || {};
       const H = state.overlayH, W = state.overlayW;
       function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
@@ -655,6 +910,7 @@ els.mlite.addEventListener('change', async (e)=>{
       state.quad = normalizeQuad([tl,tr,bl,br]);
       state.screenshotOnTop = !!obj.screenshotOnTop;
       state.cornerRadius = (pv.cornerRadius) || 0;
+      
       updateEmptyState();
       updateActionStates();
       ctx.clearRect(0,0,state.overlayW,state.overlayH);
@@ -664,123 +920,185 @@ els.mlite.addEventListener('change', async (e)=>{
     };
     overlayImg.onerror = ()=> setError('Failed to decode overlay image');
     overlayImg.src = ovl;
-  }catch(err){ setError('Invalid JSON: ' + err.message); }
-});
-els.shot.addEventListener('change', (e)=>{
-  if (!state.hasLicense) { setStatus('Please activate your license first.','error'); e.target.value=''; return; }
-  const f = e.target.files[0]; if (!f) return;
-  const ext = (f.name.split('.').pop()||'').toLowerCase();
-  if (ext==='heic'||ext==='heif'){ setError('HEIC/HEIF not supported.'); return; }
-  const img = new Image();
-  img.onload = ()=>{ state.screenshotImg = img; updateEmptyState(); updateActionStates(); if (state.overlayImg && state.quad) doRender(true); };
-  img.onerror = ()=> setError('Failed to load screenshot image.');
-  img.src = URL.createObjectURL(f);
+  }catch(err){ 
+    setError('Invalid JSON: ' + err.message); 
+  }
+  e.target.value = '';
 });
 
-// ========= Save Mockup Image (PNG) =========
-els.save.addEventListener('click', async ()=>{
-  if (els.save.disabled || !state.hasLicense) return;
+// Import Screenshot
+els.shot.addEventListener('change', (e)=>{
+  if (!state.hasLicense) { 
+    setStatus('Please activate your license first.','error'); 
+    e.target.value=''; 
+    return; 
+  }
+  const f = e.target.files[0]; 
+  if (!f) return;
+  const ext = (f.name.split('.').pop()||'').toLowerCase();
+  if (ext==='heic'||ext==='heif'){ 
+    setError('HEIC/HEIF not supported.'); 
+    return; 
+  }
+  const img = new Image();
+  img.onload = ()=>{ 
+    state.screenshotImg = img;
+    
+    // If no quad exists, create default centered 512x512 quad
+    if (!state.quad) {
+      state.quad = createDefaultScreenshotQuad();
+    }
+    
+    updateEmptyState(); 
+    updateActionStates(); 
+    if (state.overlayImg && state.quad) doRender(true); 
+  };
+  img.onerror = ()=> setError('Failed to load screenshot image.');
+  img.src = URL.createObjectURL(f);
+  e.target.value = '';
+});
+
+// Save mockup image
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  if (document.getElementById('saveBtn').disabled || !state.hasLicense) return;
   try{
     const blob = await new Promise(res => els.canvas.toBlob(res,'image/png'));
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'mockup.png'; a.style.display='none';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 50);
+    a.href = url; 
+    a.download = 'mockup.png'; 
+    a.style.display='none';
+    document.body.appendChild(a); 
+    a.click();
+    setTimeout(()=>{ 
+      document.body.removeChild(a); 
+      URL.revokeObjectURL(url); 
+    }, 50);
     setStatus('Mockup image saved ✓','success');
-  }catch(err){ setError('Save failed: ' + err.message); }
+  }catch(err){ 
+    setError('Save failed: ' + err.message); 
+  }
 });
 
-// ========= Export .mlite with name prompt =========
 function toBottomLeftNorm(pxPt){
   const nx = pxPt.x / state.overlayW;
   const ny_from_top = pxPt.y / state.overlayH;
   const ny_bottom_left = 1 - ny_from_top;
   return [nx, ny_bottom_left];
 }
-function buildCurrentMlitedoc(){
+
+function buildCurrentMlitedoc(name = 'iP17Industrial', index = 0){
   if (!state.overlayImg || !state.quad) throw new Error('Nothing to export');
+
   const [TL, TR, BR, BL] = state.quad;
+
+  // bottom-left normalised (matches iOS samples)
+  function toBottomLeftNorm(pxPt){
+    const nx = pxPt.x / state.overlayW;
+    const ny_from_top = pxPt.y / state.overlayH;
+    const ny_bottom_left = 1 - ny_from_top;
+    return [nx, ny_bottom_left];
+  }
+
+  // Prefer an actual UUID if available
+  const uuid = (self.crypto && crypto.randomUUID) 
+    ? crypto.randomUUID() 
+    : (Date.now().toString(16) + Math.random().toString(16).slice(2, 10)).toUpperCase();
+
   const doc = {
-    version: 1,
+    // iOS-required keys
+    id: uuid,
     customDeviceMockupBase64: state.originalOverlayBase64,
+    index: index,
     projectionValues: {
-      topLeft: toBottomLeftNorm(TL),
-      topRight: toBottomLeftNorm(TR),
-      bottomRight: toBottomLeftNorm(BR),
-      bottomLeft: toBottomLeftNorm(BL),
-      cornerRadius: state.cornerRadius || 0
+      topLeft:      toBottomLeftNorm(TL),
+      topRight:     toBottomLeftNorm(TR),
+      bottomRight:  toBottomLeftNorm(BR),
+      bottomLeft:   toBottomLeftNorm(BL),
+      cornerRadius: Math.round(state.cornerRadius || 0) // ensure integer
     },
+    name: name,
     screenshotOnTop: !!state.screenshotOnTop,
-    meta: { exportedAt: new Date().toISOString() }
+    isFavourite: false,
+    supportsBackgrounds: false
   };
+
+  // If your iOS importer is tolerant, you can keep these.
+  // If not, DO NOT include them.
+  // doc.version = 1;
+  // doc.meta = { exportedAt: new Date().toISOString() };
+
   return doc;
 }
-function openNameModal(defaultName='My Mockup.mlite'){
-  els.nameInput.value = defaultName;
-  els.nameModal.classList.add('show');
-  setTimeout(()=> els.nameInput.focus(), 50);
-}
-function closeNameModal(){ els.nameModal.classList.remove('show'); }
-els.nameCancel.addEventListener('click', closeNameModal);
-els.nameSave.addEventListener('click', ()=>{
-  const raw = (els.nameInput.value || '').trim();
-  if (!raw){ setError('Please enter a file name'); return; }
-  let name = raw.endsWith('.mlite') ? raw : raw + '.mlite';
+
+function openNameModalLikePrompt(defaultName='My Mockup.mlite'){
+  const name = prompt('Name your .mlite file', defaultName);
+  if (!name) return;
+  const finalName = name.endsWith('.mlite') ? name : name + '.mlite';
   try{
     const doc = buildCurrentMlitedoc();
     const blob = new Blob([JSON.stringify(doc,null,2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = name;
+    a.download = finalName;
     document.body.appendChild(a);
     a.click();
     setTimeout(()=>{ document.body.removeChild(a); }, 50);
     setStatus('.mlite exported ✓','success');
-  }catch(err){ setError('Export .mlite failed: ' + err.message); }
-  closeNameModal();
-});
-els.nameModal.addEventListener('click', (e)=>{ if (e.target===els.nameModal) closeNameModal(); });
+  }catch(err){ 
+    setError('Export .mlite failed: ' + err.message); 
+  }
+}
 
 els.exportMlBtn.addEventListener('click', ()=>{
+  // Check 1: Not in edit mode
   if (state.editMode){
     setStatus('Finish editing before exporting .mlite','error');
     return;
   }
-  if (!state.hasLicense){ setStatus('Activate your license to export .mlite','error'); openLicenseModal(); return; }
-  if (!state.overlayImg || !state.quad){ setError('Load a .mlite first'); return; }
-  // Suggest a nice default name: use canvas size or a generic name
-  openNameModal('My Mockup.mlite');
+  
+  // Check 2: Must have license
+  if (!state.hasLicense){ 
+    setStatus('Activate your license to export .mlite','error'); 
+    return; 
+  }
+  
+  // Check 3: Must have overlay and quad
+  if (!state.overlayImg || !state.quad){ 
+    setStatus('Load a Template PNG first to export .mlite','error');
+    return; 
+  }
+  
+  // Check 4: Must be a Template PNG (NEW CHECK!)
+  if (state.sourceType !== 'template'){
+    setStatus('Export .mlite only works with Template PNG imports','error');
+    return;
+  }
+  
+  // All checks passed - proceed with export
+  openNameModalLikePrompt('My Mockup.mlite');
 });
 
-// ========= Website =========
-els.website?.addEventListener('click', ()=>{ window.open('https://showcreative.co.uk','_blank'); });
-
-// ========= Init =========
-els.currentYear.textContent = new Date().getFullYear();
-function updateLicenseGates(){
-  if (state.hasLicense){ els.menuContainer.classList.add('show'); els.menuContainer.classList.remove('hidden'); }
-  else { els.menuContainer.classList.remove('show'); els.menuContainer.classList.add('hidden'); }
-}
-function boot(){
-  checkExistingLicense(); // async validate saved key if present
-  updateLicenseUI();
-  updateActionStates();
-  updateLicenseGates();
-  setStatus('Ready to import files','idle');
-}
-
-// ========= Telegram / Community button =========
 els.browse?.addEventListener("click", () => {
   if (!state.hasLicense) {
     setStatus("Activate your license to join the community", "error");
-    openLicenseModal();
     return;
   }
   window.open("https://t.me/+MbrzOkWJcZRiMDg8", "_blank");
 });
 
+els.currentYear.textContent = new Date().getFullYear();
+
+function boot(){
+  checkExistingLicense();
+  updateLicenseUI();
+  updateActionStates();
+  initMockupShowcase();
+  setStatus('Ready to import files','idle');
+}
+
 boot();
 </script>
+
 </body>
 </html>

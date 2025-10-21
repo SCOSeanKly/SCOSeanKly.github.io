@@ -10,19 +10,13 @@
       --card: #3a4452;
       --text: #f3f3f3;
       --muted: #9ca3af;
-      --accent: #5b9cf5;
+      --accent: #5b9cf5; /* Blue app button colour */
       --bad: #ef5350;
       --btn-bg: #4a5568;
+      --disabled: #6b7280;
     }
-    
     * { box-sizing: border-box; }
-    
-    html, body { 
-      height: 100%; 
-      margin: 0; 
-      overflow: hidden;
-    }
-    
+    html, body { height: 100%; margin: 0; overflow: hidden; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -30,1151 +24,413 @@
       display: flex;
       flex-direction: column;
     }
-    
+
     /* Header */
-    .header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 20px 24px;
-      position: relative;
-      z-index: 100;
-      gap: 16px;
-    }
-    
-    .logo {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.5px;
-      margin-right: auto;
-    }
-    
+    .header { display:flex; justify-content:flex-end; align-items:center; padding:20px 24px; gap:16px; position:relative; z-index:100; }
+    .logo { font-size:24px; font-weight:700; color:var(--text); letter-spacing:-0.5px; margin-right:auto; }
     .license-btn {
-      padding: 10px 20px;
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      border: none;
-      border-radius: 20px;
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-      white-space: nowrap;
+      padding:10px 20px; background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+      border:none; border-radius:20px; color:white; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all .3s ease; box-shadow:0 4px 12px rgba(245,158,11,.3); white-space:nowrap;
     }
-    
-    .license-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
-    }
-    
-    .license-btn.active {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-    
-    /* Expandable Menu */
-    .menu-container {
-      position: relative;
-      display: none; /* Hidden by default until licensed */
-    }
-    
-    .menu-container.show {
-      display: block;
-    }
-    
-    .menu-container.hidden {
-      display: none;
-    }
-    
+    .license-btn.active { background:linear-gradient(135deg,#10b981 0%,#059669 100%); box-shadow:0 4px 12px rgba(16,185,129,.3); }
+    .license-btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+    /* Expandable Menu (animated hamburger) */
+    .menu-container { position:relative; display:none; }
+    .menu-container.show { display:block; }
+    .menu-container.hidden { display:none; }
     .menu-toggle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: var(--btn-bg);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text);
-      font-size: 24px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      width:50px; height:50px; border-radius:50%; background:var(--btn-bg); border:none; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; color:var(--text);
+      transition:all .3s cubic-bezier(.4,0,.2,1); box-shadow:0 4px 12px rgba(0,0,0,.3);
     }
-    
-    .menu-toggle:hover {
-      background: #5a6578;
-      transform: scale(1.05);
-    }
-    
-    .menu-toggle.active {
-      background: var(--accent);
-    }
-    
-    .menu-icon {
-      width: 20px;
-      height: 20px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    
-    .menu-icon span {
-      display: block;
-      height: 2px;
-      width: 100%;
-      background: var(--text);
-      border-radius: 2px;
-      transition: all 0.3s ease;
-    }
-    
-    .menu-toggle.active .menu-icon span:nth-child(1) {
-      transform: translateY(9px) rotate(45deg);
-    }
-    
-    .menu-toggle.active .menu-icon span:nth-child(2) {
-      opacity: 0;
-    }
-    
-    .menu-toggle.active .menu-icon span:nth-child(3) {
-      transform: translateY(-9px) rotate(-45deg);
-    }
-    
-    .menu-items {
-      position: absolute;
-      top: 60px;
-      right: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-10px);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .menu-items.active {
-      opacity: 1;
-      pointer-events: all;
-      transform: translateY(0);
-    }
-    
+    .menu-toggle:hover { background:#5a6578; transform:scale(1.05); }
+    .menu-toggle.active { background: var(--accent); }
+    .menu-icon { width:20px; height:20px; position:relative; display:flex; flex-direction:column; justify-content:space-between; }
+    .menu-icon span { display:block; height:2px; width:100%; background: var(--text); border-radius:2px; transition: all .3s ease; }
+    .menu-toggle.active .menu-icon span:nth-child(1){ transform: translateY(9px) rotate(45deg); }
+    .menu-toggle.active .menu-icon span:nth-child(2){ opacity:0; }
+    .menu-toggle.active .menu-icon span:nth-child(3){ transform: translateY(-9px) rotate(-45deg); }
+
+    .menu-items { position:absolute; top:60px; right:0; display:flex; flex-direction:column; gap:12px; opacity:0; pointer-events:none; transform:translateY(-10px); transition:all .3s cubic-bezier(.4,0,.2,1); }
+    .menu-items.active { opacity:1; pointer-events:all; transform:translateY(0); }
     .menu-btn {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 20px;
-      background: var(--btn-bg);
-      border: none;
-      border-radius: 25px;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-      animation: slideIn 0.3s ease forwards;
-      opacity: 0;
+      display:flex; align-items:center; gap:12px; padding:14px 20px; background:var(--btn-bg); border:none; border-radius:25px;
+      color:var(--text); font-size:14px; font-weight:500; cursor:pointer; white-space:nowrap;
+      box-shadow:0 4px 12px rgba(0,0,0,.3); transition:all .3s ease; animation: slideIn .3s ease forwards; opacity:0;
     }
-    
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
+    .menu-items.active .menu-btn:nth-child(1){ animation-delay:.05s } 
+    .menu-items.active .menu-btn:nth-child(2){ animation-delay:.1s } 
+    .menu-items.active .menu-btn:nth-child(3){ animation-delay:.15s } 
+    .menu-items.active .menu-btn:nth-child(4){ animation-delay:.2s } 
+    .menu-items.active .menu-btn:nth-child(5){ animation-delay:.25s } 
+    @keyframes slideIn { from{opacity:0; transform:translateX(20px)} to{opacity:1; transform:translateX(0)} }
+    .menu-btn:hover { background:#5a6578; transform:translateX(-5px); }
+    .menu-btn svg { width:18px; height:18px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .menu-btn.disabled, .menu-btn[disabled]{ opacity:.45; cursor:not-allowed; }
+    input[type=file]{ display:none; }
+
+    /* Canvas */
+    .canvas-container { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; overflow:hidden; position:relative; }
+    canvas { max-width:100%; max-height:100%; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,.4); background:var(--card); }
+
+    /* Empty */
+    .empty-state { position:absolute; text-align:center; max-width:600px; padding:40px; pointer-events:none; transition:opacity .5s ease, visibility .5s ease; }
+    .empty-state.hidden { opacity:0; visibility:hidden; }
+    .empty-state h2 { font-size:32px; margin:0 0 16px 0; color:var(--text); font-weight:600; }
+    .empty-state p { font-size:16px; color:var(--muted); line-height:1.6; margin:0 0 12px 0; }
+    .empty-state .subtitle { font-size:18px; color:var(--muted); margin:0 0 24px 0; line-height:1.5; }
+    .empty-state .license-notice { display:inline-block; margin-top:24px; padding:12px 20px; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); border-radius:8px; color:#f59e0b; font-size:14px; font-weight:500; }
+    .empty-state .license-notice.active { background:rgba(16,185,129,.1); border-color:rgba(16,185,129,.3); color:#10b981; }
+
+    /* Actions */
+    .action-buttons { position:fixed; bottom:30px; right:30px; display:flex; flex-direction:column; gap:16px; z-index:50; }
+    .action-btn { width:56px; height:56px; border-radius:16px; background:var(--accent); border:none; cursor:pointer; display:flex;
+      align-items:center; justify-content:center; color:white; box-shadow:0 4px 16px rgba(91,156,245,.4); transition:all .3s ease; }
+    .action-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(91,156,245,.6); }
+    .action-btn:active { transform:scale(.98); }
+    .action-btn.secondary { background:var(--btn-bg); color:var(--text); box-shadow:0 4px 16px rgba(0,0,0,.3); }
+    .action-btn.active { outline:3px solid rgba(91,156,245,.6); }
+    .action-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .action-btn svg { width:22px; height:22px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* Edit-mode aura animation + button dimming */
+    @keyframes pulseRingBlue {
+      0%   { box-shadow: 0 0 0 0 rgba(91,156,245,.55), 0 0 0 6px rgba(91,156,245,.0); }
+      70%  { box-shadow: 0 0 0 6px rgba(91,156,245,.0), 0 0 0 12px rgba(91,156,245,.0); }
+      100% { box-shadow: 0 0 0 0 rgba(91,156,245,.0), 0 0 0 0 rgba(91,156,245,.0); }
     }
-    
-    .menu-items.active .menu-btn:nth-child(1) { animation-delay: 0.05s; }
-    .menu-items.active .menu-btn:nth-child(2) { animation-delay: 0.1s; }
-    .menu-items.active .menu-btn:nth-child(3) { animation-delay: 0.15s; }
-    .menu-items.active .menu-btn:nth-child(4) { animation-delay: 0.2s; }
-    .menu-items.active .menu-btn:nth-child(5) { animation-delay: 0.25s; }
-    
-    .menu-btn:hover {
-      background: #5a6578;
-      transform: translateX(-5px);
+    @keyframes pulseRingRed {
+      0%   { box-shadow: 0 0 0 0 rgba(230,69,69,.55), 0 0 0 6px rgba(230,69,69,.0); }
+      70%  { box-shadow: 0 0 0 6px rgba(230,69,69,.0), 0 0 0 12px rgba(230,69,69,.0); }
+      100% { box-shadow: 0 0 0 0 rgba(230,69,69,.0), 0 0 0 0 rgba(230,69,69,.0); }
     }
-    
-    input[type=file] { display: none; }
-    
-    /* Canvas Container */
-    .canvas-container {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      overflow: hidden;
-      position: relative;
+    body.editing .action-buttons .action-btn:not(#editBtn) { opacity:.35; pointer-events:auto; }
+    /* Red gradient for edit button while editing */
+    body.editing #editBtn { 
+      animation: pulseRingRed 1.5s ease-out infinite; 
+      background: linear-gradient(135deg, #ff6b6b 0%, #e64545 100%);
+      box-shadow: 0 4px 16px rgba(230,69,69,.4);
     }
-    
-    /* Scrolling Mockup Background */
-    .mockup-showcase {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.35;
-      pointer-events: none;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-    
-    .mockup-showcase.hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    .mockup-track {
-      display: flex;
-      gap: 40px;
-      animation: scroll 60s linear infinite;
-      will-change: transform;
-    }
-    
-    /* Ensure animation starts immediately */
-    @keyframes scroll {
-      from {
-        transform: translateX(0);
-      }
-      to {
-        transform: translateX(-50%);
-      }
-    }
-    
-    .mockup-track:hover {
-      animation-play-state: paused;
-    }
-    
-    .mockup-item {
-      flex-shrink: 0;
-      width: 512px;
-      height: 512px;
-      border-radius: 16px;
-      object-fit: contain;
-      filter: grayscale(30%) brightness(0.8);
-      transition: all 0.3s ease;
-    }
-    
-    canvas {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      background: var(--card);
-    }
-    
-    .empty-state {
-      position: absolute;
-      text-align: center;
-      max-width: 600px;
-      padding: 40px;
-      pointer-events: none;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-    
-    .empty-state.hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    .empty-state h2 {
-      font-size: 32px;
-      margin: 0 0 16px 0;
-      color: var(--text);
-      font-weight: 600;
-    }
-    
-    .empty-state p {
-      font-size: 16px;
-      color: var(--muted);
-      line-height: 1.6;
-      margin: 0 0 12px 0;
-    }
-    
-    .empty-state .subtitle {
-      font-size: 18px;
-      color: var(--muted);
-      margin: 0 0 24px 0;
-      line-height: 1.5;
-    }
-    
-    .empty-state .license-notice {
-      display: inline-block;
-      margin-top: 24px;
-      padding: 12px 20px;
-      background: rgba(245, 158, 11, 0.1);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 8px;
-      color: #f59e0b;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    
-    .empty-state .license-notice.active {
-      background: rgba(16, 185, 129, 0.1);
-      border-color: rgba(16, 185, 129, 0.3);
-      color: #10b981;
-    }
-    
-    /* Bottom Right Actions */
-    .action-buttons {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      z-index: 50;
-    }
-    
-    .action-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--accent);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-      box-shadow: 0 4px 16px rgba(91, 156, 245, 0.4);
-      transition: all 0.3s ease;
-    }
-    
-    .action-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 20px rgba(91, 156, 245, 0.6);
-    }
-    
-    .action-btn:active {
-      transform: scale(0.95);
-    }
-    
-    /* Status Toast */
-    .status-toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      padding: 12px 24px;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 500;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      opacity: 0;
-      z-index: 1000;
-      pointer-events: none;
-    }
-    
-    .status-toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-    
-    .status-toast.idle {
-      background: var(--btn-bg);
-      color: var(--text);
-    }
-    
-    .status-toast.loading {
-      background: var(--accent);
-      color: white;
-    }
-    
-    .status-toast.success {
-      background: #66bb6a;
-      color: white;
-    }
-    
-    .status-toast.error {
-      background: var(--bad);
-      color: white;
-    }
-    
-    /* Error message */
-    .error-container {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 500px;
-      width: 90%;
-      padding: 16px 20px;
-      background: rgba(239, 83, 80, 0.95);
-      color: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(239, 83, 80, 0.4);
-      font-size: 14px;
-      z-index: 1000;
+
+    /* Toast + error */
+    .status-toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); padding:12px 24px; border-radius:25px; font-size:14px; font-weight:500; box-shadow:0 4px 16px rgba(0,0,0,.3); transition:transform .3s ease, opacity .3s ease; opacity:0; z-index:1000; pointer-events:none; }
+    .status-toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+    .status-toast.idle { background:var(--btn-bg); color:var(--text); }
+    .status-toast.loading { background:var(--accent); color:white; }
+    .status-toast.success { background:#66bb6a; color:white; }
+    .status-toast.error { background:var(--bad); color:white; }
+    .error-container { position:fixed; top:80px; left:50%; transform:translateX(-50%); max-width:500px; width:90%; padding:16px 20px; background:rgba(239,83,80,.95); color:white; border-radius:12px; box-shadow:0 4px 16px rgba(239,83,80,.4); font-size:14px; z-index:1000; display:none; }
+    .error-container.show { display:block; }
+
+    .footer { padding:16px 24px; text-align:center; color:var(--muted); font-size:13px; border-top:1px solid rgba(255,255,255,.05); background:rgba(0,0,0,.2); }
+    .footer a { color:var(--accent); text-decoration:none; }
+
+    /* License modal should be hidden by default */
+    #licenseModal {
       display: none;
-      animation: slideDown 0.3s ease;
-    }
-    
-    .error-container.show {
-      display: block;
-    }
-    
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    }
-    
-    /* HEIC Warning */
-    .heic-warning {
       position: fixed;
-      bottom: 20px;
-      left: 20px;
-      padding: 10px 16px 10px 16px;
-      background: rgba(74, 85, 104, 0.95);
-      color: var(--muted);
-      border-radius: 8px;
-      font-size: 12px;
-      z-index: 50;
-      max-width: 300px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    
-    .heic-warning.hidden {
-      opacity: 0;
-      transform: translateX(-20px);
-      pointer-events: none;
-    }
-    
-    .heic-warning .close-btn {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      padding: 0;
-      width: 20px;
-      height: 20px;
-      display: flex;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 10000;
       align-items: center;
       justify-content: center;
-      transition: color 0.2s ease;
-      flex-shrink: 0;
     }
-    
-    .heic-warning .close-btn:hover {
-      color: var(--text);
-    }
-    
-    @media (max-width: 768px) {
-      .action-buttons {
-        bottom: 20px;
-        right: 20px;
-      }
-      
-      .action-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
-      }
-      
-      .heic-warning {
-        display: none;
-      }
-      
-      .license-btn {
-        font-size: 12px;
-        padding: 8px 16px;
-      }
-    }
-    
-    /* License Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      animation: fadeIn 0.2s ease;
-    }
-    
-    .modal-overlay.show {
-      display: flex;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .modal {
+    #licenseModal.show { display: flex; }
+    #licenseModal .modal {
       background: var(--card);
-      border-radius: 16px;
+      color: var(--text);
       padding: 32px;
-      max-width: 500px;
+      border-radius: 16px;
+      max-width: 420px;
       width: 90%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      animation: slideUp 0.3s ease;
-    }
-    
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .modal h2 {
-      margin: 0 0 8px 0;
-      font-size: 24px;
-      color: var(--text);
-    }
-    
-    .modal p {
-      margin: 0 0 24px 0;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    
-    .license-input-group {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    
-    .license-input {
-      flex: 1;
-      padding: 12px 16px;
-      background: var(--bg);
-      border: 2px solid transparent;
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 14px;
-      font-family: ui-monospace, monospace;
-      transition: border-color 0.2s ease;
-    }
-    
-    .license-input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-    
-    .license-input.error {
-      border-color: var(--bad);
-    }
-    
-    .license-input.success {
-      border-color: #10b981;
-    }
-    
-    .btn-group {
-      display: flex;
-      gap: 12px;
-    }
-    
-    .modal-btn {
-      flex: 1;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    
-    .modal-btn.primary {
-      background: var(--accent);
-      color: white;
-    }
-    
-    .modal-btn.primary:hover {
-      background: #4a8cd4;
-    }
-    
-    .modal-btn.secondary {
-      background: var(--btn-bg);
-      color: var(--text);
-    }
-    
-    .modal-btn.secondary:hover {
-      background: #5a6578;
-    }
-    
-    .modal-btn.purchase {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: white;
-      margin-top: 8px;
-    }
-    
-    .modal-btn.purchase:hover {
-      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-    }
-    
-    .divider {
-      display: flex;
-      align-items: center;
-      margin: 20px 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--btn-bg);
-    }
-    
-    .divider::before {
-      margin-right: 12px;
-    }
-    
-    .divider::after {
-      margin-left: 12px;
-    }
-    
-    /* Footer */
-    .footer {
-      padding: 16px 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
       text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(0, 0, 0, 0.2);
     }
-    
-    .footer a {
-      color: var(--accent);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-    
-    .footer a:hover {
-      color: #4a8cd4;
-    }
+    .license-input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#2f3846; color:var(--text); outline:none; }
+    .license-input.error { border-color:#ef5350 }
+    .license-input.success { border-color:#10b981 }
+    .btn-group { display:flex; gap:10px; justify-content:flex-end; margin-top:16px; }
+    .modal-btn { padding:10px 14px; border:none; border-radius:10px; cursor:pointer; font-weight:600; }
+    .modal-btn.secondary { background:#4a5568; color:#fff }
+    .modal-btn.primary { background:#5b9cf5; color:#fff }
+    .modal-btn.purchase { width:100%; margin-top:16px; background:#1f2937; color:#fff }
+
+    /* Name modal for .mlite export */
+    #nameModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:10000; align-items:center; justify-content:center; }
+    #nameModal.show { display:flex; }
+    #nameModal .modal { background:var(--card); color:var(--text); padding:28px; border-radius:16px; width:90%; max-width:420px; box-shadow:0 8px 24px rgba(0,0,0,.4); }
+    #nameModal h3 { margin:0 0 10px 0; }
+    #nameModal .hint { color:var(--muted); font-size:13px; margin-bottom:12px; }
+    #nameInput { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15); background:#2f3846; color:var(--text); outline:none; }
+    #nameModal .btn-row { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="logo">mLite Web</div>
     <button class="license-btn" id="licenseBtn">🔒 Get License</button>
-    
-    <div class="menu-container">
-      <button class="menu-toggle" id="menuToggle">
+
+    <div class="menu-container hidden" id="menuContainer">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">
         <div class="menu-icon">
-          <span></span>
-          <span></span>
-          <span></span>
+          <span></span><span></span><span></span>
         </div>
       </button>
       <div class="menu-items" id="menuItems">
-        <label class="menu-btn">
+        <label class="menu-btn" id="btnImportMl" for="mliteFile">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
           <input id="mliteFile" type="file" accept=".mlite,application/json">
-          <span>📦</span>
           <span>Import .mlite</span>
         </label>
-        <label class="menu-btn">
-          <input id="shotFile" type="file" accept="image/*">
-          <span>🖼️</span>
+        <label class="menu-btn disabled" id="btnImportShot" data-disabled="true">
+          <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4z"/><path d="M12 10v6M9 13h6"/></svg>
+          <input id="shotFile" type="file" accept="image/*" disabled>
           <span>Import Screenshot</span>
         </label>
-        <button class="menu-btn" id="saveBtn">
-          <span>💾</span>
-          <span>Export PNG</span>
-        </button>
-        <button class="menu-btn" id="telegramBtn">
-          <span>💬</span>
-          <span>Telegram Community</span>
+        <button class="menu-btn disabled" id="saveBtn" disabled>
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 15V5"/></svg>
+          <span>Save Mockup Image</span>
         </button>
         <button class="menu-btn" id="websiteBtn">
-          <span>🌐</span>
+          <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"/><path d="M3 12h18"/><path d="M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9m0-18c-2.5 2.7-4 6-4 9s1.5 6.3 4 9"/></svg>
           <span>ShowCreative.co.uk</span>
         </button>
       </div>
     </div>
   </div>
-  
+
   <div class="canvas-container">
-    <!-- Scrolling Mockup Showcase Background -->
-    <div class="mockup-showcase" id="mockupShowcase">
-      <div class="mockup-track" id="mockupTrack">
-        <!-- Images will be loaded here via JavaScript -->
-      </div>
-    </div>
-    
     <div class="empty-state" id="emptyState">
       <h2>Welcome to mLite Web</h2>
-      <p class="subtitle">Transform your screenshots into stunning<br>device mockups</p>
-      <p>📦 Import your .mlite file to get started<br>
-      🖼️ Add your screenshot<br>
-      ✨ Export professional mockups</p>
-      <div class="license-notice" id="licenseNotice">
-        🔒 License required to render and export images
-      </div>
+      <p class="subtitle">Import your .mlite and screenshot to begin.</p>
+      <p>• The screenshot auto-warps to your .mlite coordinates<br>• Toggle Edit to drag blue corner dots</p>
+      <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>
     </div>
     <canvas id="canvas" width="1024" height="1024"></canvas>
   </div>
-  
+
   <div class="action-buttons">
-    <button class="action-btn" id="shareBtn" title="Share">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-        <polyline points="16 6 12 2 8 6"></polyline>
-        <line x1="12" y1="2" x2="12" y2="15"></line>
-      </svg>
+    <button class="action-btn" id="editBtn" title="Toggle Edit (E)" aria-label="Edit" disabled>
+      <svg id="editIcon" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
     </button>
-    <button class="action-btn" id="browseBtn" title="Browse">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7"></rect>
-        <rect x="14" y="3" width="7" height="7"></rect>
-        <rect x="14" y="14" width="7" height="7"></rect>
-        <rect x="3" y="14" width="7" height="7"></rect>
-      </svg>
+    <button class="action-btn secondary" id="exportMlBtn" title="Export .mlite" aria-label="Export .mlite" disabled>
+      <svg id="exportMlIcon" viewBox="0 0 24 24"><path d="M12 5v10m0 0l-4-4m4 4 4-4M5 19h14"/></svg>
+    </button>
+    <!-- Share button removed as requested -->
+    <button class="action-btn secondary" id="browseBtn" title="Community" aria-label="Community">
+      <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4v-6a4 4 0 0 1 4-4"/><path d="M8 3h8a4 4 0 0 1 4 4v1"/><path d="M12 12h.01"/></svg>
     </button>
   </div>
-  
+
   <div class="status-toast idle" id="statusToast">Ready</div>
   <div class="error-container" id="errorContainer"></div>
-  <div class="heic-warning" id="heicWarning">
-    <span>💡 HEIC screenshots aren't supported—export as PNG/JPG</span>
-    <button class="close-btn" id="closeWarning" title="Dismiss">×</button>
-  </div>
-  
+
   <footer class="footer">
     <p>© <span id="currentYear"></span> <a href="https://showcreative.co.uk" target="_blank">ShowCreative</a> • Made with mLite</p>
   </footer>
-  
+
   <!-- License Modal -->
   <div class="modal-overlay" id="licenseModal">
     <div class="modal">
       <h2>Activate License</h2>
       <p>Enter your license key to remove watermarks and unlock full features.</p>
-      
       <div class="license-input-group">
-        <input 
-          type="text" 
-          class="license-input" 
-          id="licenseInput" 
-          placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
-          maxlength="39"
-        >
+        <input type="text" class="license-input" id="licenseInput" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" maxlength="39">
       </div>
-      
       <div class="btn-group">
         <button class="modal-btn secondary" id="cancelBtn">Cancel</button>
         <button class="modal-btn primary" id="activateBtn">Activate</button>
       </div>
-      
-      <div class="divider">OR</div>
-      
-      <button class="modal-btn purchase" id="purchaseBtn">
-        💳 Purchase License Key
-      </button>
+      <div class="divider" style="margin:12px 0; color:var(--muted)">OR</div>
+      <button class="modal-btn purchase" id="purchaseBtn">💳 Purchase License Key</button>
+    </div>
+  </div>
+
+  <!-- Name Modal for .mlite export -->
+  <div id="nameModal">
+    <div class="modal">
+      <h3>Name your .mlite</h3>
+      <div class="hint">We'll save it with the <code>.mlite</code> extension.</div>
+      <input type="text" id="nameInput" placeholder="My Mockup.mlite" maxlength="120">
+      <div class="btn-row">
+        <button class="modal-btn secondary" id="nameCancel">Cancel</button>
+        <button class="modal-btn primary" id="nameSave">Save</button>
+      </div>
     </div>
   </div>
 
 <script>
-// ============================================
-// CONFIGURATION - YOUR SETTINGS
-// ============================================
+// ========= CONFIG =========
 const CONFIG = {
   GUMROAD_PRODUCT_URL: 'https://seankly.gumroad.com/l/gnvdnh',
   CLOUDFLARE_WORKER_URL: 'https://mlite-web-worker.ske-d03.workers.dev',
 };
 
+// ========= Elements =========
 const els = {
   mlite: document.getElementById('mliteFile'),
   shot: document.getElementById('shotFile'),
+  btnImportShot: document.getElementById('btnImportShot'),
   save: document.getElementById('saveBtn'),
-  share: document.getElementById('shareBtn'),
   browse: document.getElementById('browseBtn'),
-  telegram: document.getElementById('telegramBtn'),
-  website: document.getElementById('websiteBtn'),
   canvas: document.getElementById('canvas'),
   emptyState: document.getElementById('emptyState'),
   licenseNotice: document.getElementById('licenseNotice'),
   currentYear: document.getElementById('currentYear'),
-  mockupShowcase: document.getElementById('mockupShowcase'),
-  mockupTrack: document.getElementById('mockupTrack'),
   menuToggle: document.getElementById('menuToggle'),
   menuItems: document.getElementById('menuItems'),
+  menuContainer: document.getElementById('menuContainer'),
   statusToast: document.getElementById('statusToast'),
   errorContainer: document.getElementById('errorContainer'),
-  heicWarning: document.getElementById('heicWarning'),
-  closeWarning: document.getElementById('closeWarning'),
   licenseBtn: document.getElementById('licenseBtn'),
   licenseModal: document.getElementById('licenseModal'),
   licenseInput: document.getElementById('licenseInput'),
   activateBtn: document.getElementById('activateBtn'),
   cancelBtn: document.getElementById('cancelBtn'),
   purchaseBtn: document.getElementById('purchaseBtn'),
+  website: document.getElementById('websiteBtn'),
+  editBtn: document.getElementById('editBtn'),
+  exportMlBtn: document.getElementById('exportMlBtn'),
+  editIcon: document.getElementById('editIcon'),
+  nameModal: document.getElementById('nameModal'),
+  nameInput: document.getElementById('nameInput'),
+  nameCancel: document.getElementById('nameCancel'),
+  nameSave: document.getElementById('nameSave'),
 };
-
-const ctx = els.canvas.getContext('2d', { alpha: false });
+const ctx = els.canvas.getContext('2d', { alpha:false });
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
 
-const MESH_DETAIL = 40;
-
+// ========= License (as original) =========
 let state = {
   overlayImg: null,
   overlayW: 1024,
   overlayH: 1024,
   screenshotImg: null,
-  quadTLTRBRBL: null,
+  quad: null, // [TL, TR, BR, BL] in canvas px
   screenshotOnTop: false,
   cornerRadius: 0,
   hasLicense: false,
   licenseKey: null,
+  editMode: false,
+  activeHandle: -1,
+  originalOverlayBase64: null, // for exporting .mlite
 };
 
-// ============================================
-// MOCKUP SHOWCASE BACKGROUND
-// ============================================
-
-// Your GitHub mockup images
-const MOCKUP_IMAGES = [
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup1.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup2.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup3.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup4.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup5.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup6.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup7.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup8.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup9.jpg',
-  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup10.jpg',
-];
-
-function initMockupShowcase() {
-  if (MOCKUP_IMAGES.length === 0 || MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
-    els.mockupShowcase.classList.add('hidden');
-    return;
-  }
-  
-  // Duplicate images for seamless infinite scroll
-  const allImages = [...MOCKUP_IMAGES, ...MOCKUP_IMAGES];
-  
-  // Clear any existing content
-  els.mockupTrack.innerHTML = '';
-  
-  // Create image elements
-  allImages.forEach(url => {
-    const img = document.createElement('img');
-    img.src = url;
-    img.className = 'mockup-item';
-    img.alt = 'Mockup example';
-    els.mockupTrack.appendChild(img);
-  });
-  
-  // Force reflow to ensure animation starts
-  void els.mockupTrack.offsetWidth;
-}
-
-// Updated function to hide showcase when ANY image is loaded
 function updateEmptyState() {
   const hasContent = state.overlayImg || state.screenshotImg;
-  
-  if (hasContent) {
-    els.emptyState.classList.add('hidden');
-    els.mockupShowcase.classList.add('hidden');
-  } else {
-    els.emptyState.classList.remove('hidden');
-    if (MOCKUP_IMAGES.length > 0 && !MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
-      els.mockupShowcase.classList.remove('hidden');
-    }
-  }
+  els.emptyState.classList.toggle('hidden', !!hasContent);
+}
+function readyForEdit(){ return !!(state.overlayImg && state.screenshotImg && state.quad) && state.hasLicense; }
+function readyForExport(){ return readyForEdit(); }
+function updateActionStates(){
+  els.editBtn.disabled = !readyForEdit();
+  els.save.disabled = !readyForExport();
+  const shotReady = !!state.overlayImg && state.hasLicense;
+  els.shot.disabled = !shotReady;
+  els.btnImportShot.dataset.disabled = shotReady ? '' : 'true';
+  els.btnImportShot.classList.toggle('disabled', !shotReady);
+
+  // Export .mlite enabled if we have an overlay & quad (no need for screenshot), NOT while editing, and licensed
+  const canExportMl = !!(state.overlayImg && state.quad) && state.hasLicense && !state.editMode;
+  els.exportMlBtn.disabled = !canExportMl;
 }
 
-// ============================================
-// LICENSE MANAGEMENT
-// ============================================
-
-function checkExistingLicense() {
-  const savedKey = localStorage.getItem('mlite_license_key');
-  if (savedKey) {
-    validateLicenseKey(savedKey, true);
+// ---- Toasts & Errors ----
+let statusTimeout;
+function setStatus(text, type='idle'){
+  clearTimeout(statusTimeout);
+  els.statusToast.textContent = text;
+  els.statusToast.className = `status-toast ${type} show`;
+  if (type==='success'||type==='error') {
+    statusTimeout = setTimeout(()=>els.statusToast.classList.remove('show'), 2500);
   }
 }
+function setError(text){
+  if (!text) return els.errorContainer.classList.remove('show');
+  els.errorContainer.textContent = text;
+  els.errorContainer.classList.add('show');
+  setTimeout(()=>els.errorContainer.classList.remove('show'), 4000);
+}
 
-async function validateLicenseKey(key, silent = false) {
-  if (!silent) setStatus("Validating license...", "loading");
-  
-  try {
+// ---- License modal
+function openLicenseModal(){ els.licenseModal.classList.add('show'); els.licenseInput.value=''; els.licenseInput.classList.remove('error','success'); els.licenseInput.focus(); }
+function closeLicenseModal(){ els.licenseModal.classList.remove('show'); }
+els.licenseInput.addEventListener('input', (e)=>{
+  let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  let formatted = value.match(/.{1,8}/g)?.join('-') || value;
+  e.target.value = formatted;
+});
+els.licenseBtn.addEventListener('click', openLicenseModal);
+els.cancelBtn.addEventListener('click', closeLicenseModal);
+els.purchaseBtn.addEventListener('click', ()=> window.open(CONFIG.GUMROAD_PRODUCT_URL, '_blank'));
+els.licenseModal.addEventListener('click', (e)=>{ if (e.target === els.licenseModal) closeLicenseModal(); });
+
+async function validateLicenseKey(key, silent=false){
+  if (!silent) setStatus('Validating license…','loading');
+  try{
     const response = await fetch(CONFIG.CLOUDFLARE_WORKER_URL + '/verify-license', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ license_key: key })
     });
-    
     const data = await response.json();
-    
-    if (data.success) {
+    if (data.success){
       state.hasLicense = true;
       state.licenseKey = key;
       localStorage.setItem('mlite_license_key', key);
       els.licenseBtn.textContent = '✓ Licensed';
       els.licenseBtn.classList.add('active');
-      els.licenseInput.classList.remove('error');
-      els.licenseInput.classList.add('success');
-      
-      // Show menu when licensed
-      els.menuToggle.parentElement.classList.add('show');
-      els.menuToggle.parentElement.classList.remove('hidden');
-      
-      // Update license notice
+      els.menuContainer.classList.add('show');
+      els.menuContainer.classList.remove('hidden');
       updateLicenseUI();
-      
+      if (!silent) setStatus('License activated!','success');
       closeLicenseModal();
-      if (!silent) setStatus("License activated!", "success");
+      updateActionStates();
       return true;
     } else {
       throw new Error(data.message || 'Invalid license key');
     }
-  } catch (error) {
+  }catch(err){
     els.licenseInput.classList.add('error');
-    els.licenseInput.classList.remove('success');
-    if (!silent) {
-      setError("Invalid license key. Please check and try again.");
-      setStatus("Activation failed", "error");
-    }
+    if (!silent){ setError('Invalid license key.'); setStatus('Activation failed','error'); }
     return false;
   }
 }
-
-function openLicenseModal() {
-  els.licenseModal.classList.add('show');
-  els.licenseInput.value = '';
-  els.licenseInput.classList.remove('error', 'success');
-  els.licenseInput.focus();
+function checkExistingLicense(){
+  const savedKey = localStorage.getItem('mlite_license_key');
+  if (savedKey) validateLicenseKey(savedKey, true);
 }
-
-function closeLicenseModal() {
-  els.licenseModal.classList.remove('show');
-}
-
-els.licenseInput.addEventListener('input', (e) => {
-  let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-  let formatted = value.match(/.{1,8}/g)?.join('-') || value;
-  e.target.value = formatted;
-});
-
-els.licenseBtn.addEventListener('click', openLicenseModal);
-els.cancelBtn.addEventListener('click', closeLicenseModal);
-els.purchaseBtn.addEventListener('click', () => {
-  window.open(CONFIG.GUMROAD_PRODUCT_URL, '_blank');
-});
-
-els.activateBtn.addEventListener('click', async () => {
-  const key = els.licenseInput.value.trim();
-  if (!key) {
-    setError("Please enter a license key");
-    return;
-  }
-  await validateLicenseKey(key);
-});
-
-els.licenseModal.addEventListener('click', (e) => {
-  if (e.target === els.licenseModal) {
-    closeLicenseModal();
-  }
-});
-
-function addWatermark() {
-  if (state.hasLicense) return;
-  
-  ctx.save();
-  ctx.font = 'bold 16px system-ui';
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'bottom';
-  
-  const text = 'mLite Web - Unlicensed';
-  const padding = 20;
-  const x = els.canvas.width - padding;
-  const y = els.canvas.height - padding;
-  
-  const metrics = ctx.measureText(text);
-  const textHeight = 20;
-  
-  ctx.fillRect(
-    x - metrics.width - 12,
-    y - textHeight - 8,
-    metrics.width + 24,
-    textHeight + 16
-  );
-  
-  ctx.fillStyle = 'white';
-  ctx.fillText(text, x, y);
-  ctx.restore();
-}
-
-// ============================================
-// UI FUNCTIONS
-// ============================================
-
-let statusTimeout;
-
-function setStatus(text, type = 'idle') {
-  clearTimeout(statusTimeout);
-  els.statusToast.textContent = text;
-  els.statusToast.className = `status-toast ${type} show`;
-  
-  if (type === 'success' || type === 'error') {
-    statusTimeout = setTimeout(() => {
-      els.statusToast.classList.remove('show');
-    }, 3000);
-  }
-}
-
-function setError(text) {
-  if (text) {
-    els.errorContainer.textContent = text;
-    els.errorContainer.classList.add('show');
-    setTimeout(() => {
-      els.errorContainer.classList.remove('show');
-    }, 5000);
+function updateLicenseUI(){
+  if (state.hasLicense){
+    els.licenseNotice.textContent = '✓ License activated - Ready to create!';
+    els.licenseNotice.classList.add('active');
   } else {
-    els.errorContainer.classList.remove('show');
+    els.licenseNotice.textContent = '🔒 License required to render and export images';
+    els.licenseNotice.classList.remove('active');
   }
 }
 
-els.menuToggle.addEventListener('click', () => {
+// ---- Menu toggle ----
+els.menuToggle.addEventListener('click', ()=>{
   els.menuToggle.classList.toggle('active');
   els.menuItems.classList.toggle('active');
 });
-
-document.addEventListener('click', (e) => {
-  if (!els.menuToggle.contains(e.target) && !els.menuItems.contains(e.target)) {
+document.addEventListener('click', (e)=>{
+  if (!els.menuContainer.contains(e.target)) {
     els.menuToggle.classList.remove('active');
     els.menuItems.classList.remove('active');
   }
 });
 
-els.closeWarning.addEventListener('click', () => {
-  els.heicWarning.classList.add('hidden');
-});
-
-// ============================================
-// IMAGE PROCESSING
-// ============================================
-
-function ensureDataUrl(str) {
-  if (/^data:image\//.test(str)) return str;
-  const head = str.slice(0, 10);
-  let mime = "image/png";
-  if (head.startsWith("iVBOR")) mime = "image/png";
-  else if (head.startsWith("/9j/")) mime = "image/jpeg";
-  else if (head.startsWith("R0lGOD")) mime = "image/gif";
-  else if (head.startsWith("PHN2Zy")) mime = "image/svg+xml";
-  else if (head.startsWith("AAAB")) mime = "image/x-icon";
-  return `data:${mime};base64,${str}`;
-}
-
-function drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx2, sy2, dx0, dy0, dx1, dy1, dx2, dy2) {
-  ctx.save();
-  
-  const cx = (dx0 + dx1 + dx2) / 3;
-  const cy = (dy0 + dy1 + dy2) / 3;
-  const expand = 1.5;
-  
-  const edx0 = dx0 + (dx0 - cx) * expand / Math.hypot(dx0 - cx, dy0 - cy);
-  const edy0 = dy0 + (dy0 - cy) * expand / Math.hypot(dx0 - cx, dy0 - cy);
-  const edx1 = dx1 + (dx1 - cx) * expand / Math.hypot(dx1 - cx, dy1 - cy);
-  const edy1 = dy1 + (dy1 - cy) * expand / Math.hypot(dx1 - cx, dy1 - cy);
-  const edx2 = dx2 + (dx2 - cx) * expand / Math.hypot(dx2 - cx, dy2 - cy);
-  const edy2 = dy2 + (dy2 - cy) * expand / Math.hypot(dx2 - cx, dy2 - cy);
-  
-  ctx.beginPath();
-  ctx.moveTo(edx0, edy0);
-  ctx.lineTo(edx1, edy1);
-  ctx.lineTo(edx2, edy2);
-  ctx.closePath();
-  ctx.clip();
-  
-  const denom = (sx0 * (sy1 - sy2) + sx1 * (sy2 - sy0) + sx2 * (sy0 - sy1));
-  if (Math.abs(denom) < 1e-8) { ctx.restore(); return; }
-  
-  const a11 = (dx0 * (sy1 - sy2) + dx1 * (sy2 - sy0) + dx2 * (sy0 - sy1)) / denom;
-  const a12 = (dx0 * (sx2 - sx1) + dx1 * (sx0 - sx2) + dx2 * (sx1 - sx0)) / denom;
-  const a13 = (dx0 * (sx1 * sy2 - sx2 * sy1) + dx1 * (sx2 * sy0 - sx0 * sy2) + dx2 * (sx0 * sy1 - sx1 * sy0)) / denom;
-  const a21 = (dy0 * (sy1 - sy2) + dy1 * (sy2 - sy0) + dy2 * (sy0 - sy1)) / denom;
-  const a22 = (dy0 * (sx2 - sx1) + dy1 * (sx0 - sx2) + dy2 * (sx1 - sx0)) / denom;
-  const a23 = (dy0 * (sx1 * sy2 - sx2 * sy1) + dy1 * (sx2 * sy0 - sx0 * sy2) + dy2 * (sx0 * sy1 - sx1 * sy0)) / denom;
-  
-  ctx.setTransform(a11, a21, a12, a22, a13, a23);
-  ctx.drawImage(img, 0, 0);
-  ctx.restore();
-}
-
-function warpImageToQuad(ctx, img, dstQuad, meshSteps) {
-  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-  const steps = Math.max(2, meshSteps | 0);
-  
-  for (let yi = 0; yi < steps; yi++) {
-    const v0 = yi / steps, v1 = (yi + 1) / steps;
-    const l0 = lerp2(lerp(dstQuad[0], dstQuad[3], v0));
-    const r0 = lerp2(lerp(dstQuad[1], dstQuad[2], v0));
-    const l1 = lerp2(lerp(dstQuad[0], dstQuad[3], v1));
-    const r1 = lerp2(lerp(dstQuad[1], dstQuad[2], v1));
-    
-    for (let xi = 0; xi < steps; xi++) {
-      const u0 = xi / steps, u1 = (xi + 1) / steps;
-      const p00 = mix(l0, r0, u0);
-      const p10 = mix(l0, r0, u1);
-      const p01 = mix(l1, r1, u0);
-      const p11 = mix(l1, r1, u1);
-      
-      const sx0 = u0 * w, sy0 = v0 * h;
-      const sx1 = u1 * w, sy1 = v0 * h;
-      const sx2 = u0 * w, sy2 = v1 * h;
-      const sx3 = u1 * w, sy3 = v1 * h;
-      
-      drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx3, sy3, p00.x, p00.y, p10.x, p10.y, p11.x, p11.y);
-      drawTriangle(ctx, img, sx0, sy0, sx3, sy3, sx2, sy2, p00.x, p00.y, p11.x, p11.y, p01.x, p01.y);
-    }
-  }
-  
-  function lerp(a, b, t) { return [a[0] * (1 - t) + b[0] * t, a[1] * (1 - t) + b[1] * t]; }
-  function lerp2(p) { return { x: p[0], y: p[1] }; }
-  function mix(p, q, t) { return { x: p.x * (1 - t) + q.x * t, y: p.y * (1 - t) + q.y * t }; }
-}
+// ========= Warper (with seam fix) =========
+const MESH_DETAIL_IDLE = 28, MESH_DETAIL_DRAG = 10; let meshDetail = MESH_DETAIL_IDLE;
+const DST_EPS = 0.75, SRC_EPS = 0.5; const ACCENT = '#5b9cf5';
 
 function drawRoundedRect(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, w * 0.5, h * 0.5);
+  const rr = Math.min(r, w * .5, h * .5);
   ctx.beginPath();
   ctx.moveTo(x + rr, y);
   ctx.lineTo(x + w - rr, y);
@@ -1187,50 +443,201 @@ function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.quadraticCurveTo(x, y, x + rr, y);
   ctx.closePath();
 }
-
 function normalizeQuad(points) {
   const pts = points.slice();
-  pts.sort((a, b) => a.y - b.y);
-  const top = pts.slice(0, 2).sort((a, b) => a.x - b.x);
-  const bot = pts.slice(2, 4).sort((a, b) => a.x - b.x);
-  return [top[0], top[1], bot[1], bot[0]];
+  pts.sort((a,b)=>a.y-b.y);
+  const top = pts.slice(0,2).sort((a,b)=>a.x-b.x);
+  const bot = pts.slice(2,4).sort((a,b)=>a.x-b.x);
+  return [top[0], top[1], bot[1], bot[0]]; // TL, TR, BR, BL
+}
+function drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx2, sy2, dx0, dy0, dx1, dy1, dx2, dy2) {
+  // Expand destination triangle by fixed pixel epsilon from centroid
+  const cx = (dx0 + dx1 + dx2) / 3, cy = (dy0 + dy1 + dy2) / 3;
+  function expand(x,y){ const dx = x - cx, dy = y - cy; const len = Math.hypot(dx,dy) || 1; const k = (len + DST_EPS) / len; return [cx + dx*k, cy + dy*k]; }
+  const [edx0, edy0] = expand(dx0, dy0);
+  const [edx1, edy1] = expand(dx1, dy1);
+  const [edx2, edy2] = expand(dx2, dy2);
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(edx0, edy0); ctx.lineTo(edx1, edy1); ctx.lineTo(edx2, edy2);
+  ctx.closePath(); ctx.clip();
+  const denom = (sx0*(sy1-sy2)+sx1*(sy2-sy0)+sx2*(sy0-sy1));
+  if (Math.abs(denom) < 1e-8) { ctx.restore(); return; }
+  const a11=(edx0*(sy1-sy2)+edx1*(sy2-sy0)+edx2*(sy0-sy1))/denom;
+  const a12=(edx0*(sx2-sx1)+edx1*(sx0-sx2)+edx2*(sx1-sx0))/denom;
+  const a13=(edx0*(sx1*sy2-sx2*sy1)+edx1*(sx2*sy0-sx0*sy2)+edx2*(sx0*sy1-sx1*sy0))/denom;
+  const a21=(edy0*(sy1-sy2)+edy1*(sy2-sy0)+edy2*(sy0-sy1))/denom;
+  const a22=(edy0*(sx2-sx1)+edy1*(sx0-sx2)+edy2*(sx1-sx0))/denom;
+  const a23=(edy0*(sx1*sy2-sx2*sy1)+edy1*(sx2*sy0-sx0*sy2)+edy2*(sx0*sy1-sx1*sy0))/denom;
+  ctx.setTransform(a11,a21,a12,a22,a13,a23);
+  const iw = (img.naturalWidth||img.width), ih = (img.naturalHeight||img.height);
+  ctx.drawImage(img, -SRC_EPS, -SRC_EPS, iw + SRC_EPS*2, ih + SRC_EPS*2);
+  ctx.restore();
+}
+function warpImageToQuad(ctx, img, dstQuad, steps) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const s = Math.max(2, steps|0);
+  function lerp(a,b,t){ return [a[0]*(1-t)+b[0]*t, a[1]*(1-t)+b[1]*t]; }
+  function toPt(p){ return {x:p[0], y:p[1]}; }
+  function mix(p,q,t){ return {x:p.x*(1-t)+q.x*t, y:p.y*(1-t)+q.y*t}; }
+  for (let yi=0; yi<s; yi++) {
+    const v0=yi/s, v1=(yi+1)/s;
+    const l0 = toPt( lerp(dstQuad[0], dstQuad[3], v0) );
+    const r0 = toPt( lerp(dstQuad[1], dstQuad[2], v0) );
+    const l1 = toPt( lerp(dstQuad[0], dstQuad[3], v1) );
+    const r1 = toPt( lerp(dstQuad[1], dstQuad[2], v1) );
+    for (let xi=0; xi<s; xi++) {
+      const u0=xi/s, u1=(xi+1)/s;
+      const p00 = mix(l0,r0,u0);
+      const p10 = mix(l0,r0,u1);
+      const p01 = mix(l1,r1,u0);
+      const p11 = mix(l1,r1,u1);
+      const sx0=u0*w, sy0=v0*h; const sx1=u1*w, sy1=v0*h; const sx2=u0*w, sy2=v1*h; const sx3=u1*w, sy3=v1*h;
+      drawTriangle(ctx,img,sx0,sy0,sx1,sy1,sx3,sy3,p00.x,p00.y,p10.x,p10.y,p11.x,p11.y);
+      drawTriangle(ctx,img,sx0,sy0,sx3,sy3,sx2,sy2,p00.x,p00.y,p11.x,p11.y,p01.x,p01.y);
+    }
+  }
 }
 
-// ============================================
-// FILE HANDLERS
-// ============================================
+// ========= Rendering & Edit UI =========
+function doRender(drawHandles=true){
+  if (!state.hasLicense || !state.overlayImg || !state.quad || !state.screenshotImg) return;
+  const w = state.overlayW, h = state.overlayH;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,w,h);
+  if (state.cornerRadius>0){ ctx.save(); drawRoundedRect(ctx,0,0,w,h,state.cornerRadius); ctx.clip(); }
+  const quadArr = [
+    [state.quad[0].x, state.quad[0].y],
+    [state.quad[1].x, state.quad[1].y],
+    [state.quad[2].x, state.quad[2].y],
+    [state.quad[3].x, state.quad[3].y],
+  ];
+  if (state.screenshotOnTop) { ctx.drawImage(state.overlayImg, 0, 0); warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); }
+  else { warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); ctx.drawImage(state.overlayImg, 0, 0); }
+  if (state.cornerRadius>0) ctx.restore();
+  if (state.editMode && drawHandles) drawEditHandles();
+  setStatus(state.editMode ? 'Edit mode: drag blue corners' : 'Rendered ✓', state.editMode ? 'loading' : 'success');
+}
+function drawEditHandles(){
+  const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010);
+  ctx.save();
+  ctx.lineWidth = 1.25;
+  ctx.strokeStyle = ACCENT;
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = ACCENT;
+  ctx.beginPath();
+  ctx.moveTo(state.quad[0].x, state.quad[0].y);
+  ctx.lineTo(state.quad[1].x, state.quad[1].y);
+  ctx.lineTo(state.quad[2].x, state.quad[2].y);
+  ctx.lineTo(state.quad[3].x, state.quad[3].y);
+  ctx.closePath();
+  ctx.stroke();
+  for (let i=0;i<4;i++) {
+    const p = state.quad[i];
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = 'white';
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+// hit testing + drag
+function clientToCanvas(ev){
+  const rect = els.canvas.getBoundingClientRect();
+  const scaleX = els.canvas.width / rect.width;
+  const scaleY = els.canvas.height / rect.height;
+  const clientX = (ev.touches ? ev.touches[0].clientX : ev.clientX);
+  const clientY = (ev.touches ? ev.touches[0].clientY : ev.clientY);
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+function hitTestHandle(x,y){
+  const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010);
+  for (let i=0;i<4;i++){ const p = state.quad[i]; const dx=x-p.x, dy=y-p.y; if (dx*dx+dy*dy <= (r*1.6)*(r*1.6)) return i; }
+  return -1;
+}
+let dragging=false;
+function handlePointerDown(ev){
+  if (!state.editMode) return;
+  const pt = clientToCanvas(ev);
+  const idx = hitTestHandle(pt.x, pt.y);
+  if (idx !== -1) {
+    state.activeHandle = idx;
+    dragging = true;
+    meshDetail = MESH_DETAIL_DRAG;
+    doRender(true);
+    ev.preventDefault();
+  }
+}
+function handlePointerMove(ev){
+  if (!state.editMode || !dragging) return;
+  const pt = clientToCanvas(ev);
+  const i = state.activeHandle;
+  state.quad[i].x = Math.max(0, Math.min(state.overlayW, pt.x));
+  state.quad[i].y = Math.max(0, Math.min(state.overlayH, pt.y));
+  doRender(true);
+  ev.preventDefault();
+}
+function handlePointerUp(ev){
+  if (!state.editMode) return;
+  dragging = false;
+  state.activeHandle = -1;
+  meshDetail = MESH_DETAIL_IDLE;
+  doRender(true);
+  ev.preventDefault();
+}
+els.canvas.addEventListener('mousedown', handlePointerDown);
+window.addEventListener('mousemove', handlePointerMove);
+window.addEventListener('mouseup', handlePointerUp);
+els.canvas.addEventListener('touchstart', handlePointerDown, {passive:false});
+window.addEventListener('touchmove', handlePointerMove, {passive:false});
+window.addEventListener('touchend', handlePointerUp);
 
-els.mlite.addEventListener('change', async (e) => {
-  if (!state.hasLicense) {
-    setError("Please purchase a license to use mLite Web");
-    setStatus("License required", "error");
-    openLicenseModal();
-    e.target.value = '';
-    return;
-  }
-  
-  setError("");
-  setStatus("Loading .mlite...", "loading");
-  const file = e.target.files[0];
-  if (!file) return;
-  const txt = await file.text();
-  let obj;
-  try { 
-    obj = JSON.parse(txt); 
-  } catch (err) { 
-    setError("Invalid JSON: " + err.message); 
-    setStatus("Error", "error"); 
-    return; 
-  }
-  try {
+function toggleEdit(on){
+  const next = (on===undefined) ? !state.editMode : !!on;
+  if (!state.hasLicense || !readyForEdit()) return;
+  if (next === state.editMode) return;
+  state.editMode = next;
+  document.body.classList.toggle('editing', state.editMode);
+  els.canvas.style.cursor = state.editMode ? 'pointer' : 'default';
+  meshDetail = state.editMode ? MESH_DETAIL_DRAG : MESH_DETAIL_IDLE;
+  els.editIcon.innerHTML = state.editMode
+    ? '<path d="M3 3v6M3 3h6M21 3h-6M21 3v6M3 21v-6M3 21h6M21 21h-6M21 21v-6"/><path d="M9 9l-6-6M15 9l6-6M9 15l-6 6M15 15l6 6"/>'
+    : '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
+  updateActionStates();
+  doRender(true);
+}
+els.editBtn.addEventListener('click', ()=>{ if (!els.editBtn.disabled) toggleEdit(); });
+window.addEventListener('keydown', (e)=>{ if (e.key.toLowerCase()==='e' && !els.editBtn.disabled) toggleEdit(); });
+
+// ========= File loading =========
+function ensureDataUrl(str) {
+  if (/^data:image\//.test(str)) return str;
+  const head = str.slice(0,10);
+  let mime = 'image/png';
+  if (head.startsWith('iVBOR')) mime = 'image/png';
+  else if (head.startsWith('/9j/')) mime = 'image/jpeg';
+  else if (head.startsWith('R0lGOD')) mime = 'image/gif';
+  else if (head.startsWith('PHN2Zy')) mime = 'image/svg+xml';
+  else if (head.startsWith('AAAB')) mime = 'image/x-icon';
+  return `data:${mime};base64,${str}`;
+}
+document.getElementById('btnImportShot').addEventListener('click', (e)=>{
+  if (!state.hasLicense) { setStatus('Activate your license to import images','error'); openLicenseModal(); e.preventDefault(); e.stopPropagation(); return; }
+  if (e.currentTarget.dataset.disabled) { setStatus('Import a .mlite first to enable Screenshot import','error'); e.preventDefault(); e.stopPropagation(); }
+});
+els.mlite.addEventListener('change', async (e)=>{
+  if (!state.hasLicense) { setStatus('Please activate your license first.','error'); openLicenseModal(); e.target.value=''; return; }
+  const file = e.target.files[0]; if (!file) return;
+  setStatus('Loading .mlite…','loading');
+  try{
+    const txt = await file.text();
+    const obj = JSON.parse(txt);
     let ovl = obj.customDeviceMockupBase64;
-    if (!ovl) { 
-      setError("customDeviceMockupBase64 missing"); 
-      setStatus("Error", "error"); 
-      return; 
-    }
+    if (!ovl) throw new Error('customDeviceMockupBase64 missing');
+    state.originalOverlayBase64 = ovl;
     ovl = ensureDataUrl(ovl);
-
     const overlayImg = new Image();
     overlayImg.onload = () => {
       state.overlayImg = overlayImg;
@@ -1238,7 +645,6 @@ els.mlite.addEventListener('change', async (e) => {
       state.overlayH = overlayImg.naturalHeight;
       els.canvas.width = state.overlayW;
       els.canvas.height = state.overlayH;
-
       const pv = obj.projectionValues || {};
       const H = state.overlayH, W = state.overlayW;
       function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
@@ -1246,227 +652,135 @@ els.mlite.addEventListener('change', async (e) => {
       const tr = toPxBottomLeftNorm(pv.topRight);
       const bl = toPxBottomLeftNorm(pv.bottomLeft);
       const br = toPxBottomLeftNorm(pv.bottomRight);
-      state.quadTLTRBRBL = normalizeQuad([tl, tr, bl, br]);
+      state.quad = normalizeQuad([tl,tr,bl,br]);
       state.screenshotOnTop = !!obj.screenshotOnTop;
-      state.cornerRadius = (obj.projectionValues && obj.projectionValues.cornerRadius) || 0;
-
-      ctx.clearRect(0, 0, state.overlayW, state.overlayH);
-      ctx.drawImage(state.overlayImg, 0, 0);
+      state.cornerRadius = (pv.cornerRadius) || 0;
       updateEmptyState();
-      setStatus("mlite loaded ✓", "success");
-      
-      if (state.screenshotImg) {
-        doRender();
-      }
+      updateActionStates();
+      ctx.clearRect(0,0,state.overlayW,state.overlayH);
+      ctx.drawImage(state.overlayImg, 0, 0);
+      if (state.screenshotImg) doRender(true);
+      setStatus('mlite loaded ✓','success');
     };
-    overlayImg.onerror = () => { 
-      setError("Failed to decode overlay image"); 
-      setStatus("Error", "error"); 
-    };
+    overlayImg.onerror = ()=> setError('Failed to decode overlay image');
     overlayImg.src = ovl;
-  } catch (err) {
-    setError(err.message || String(err));
-    setStatus("Error", "error");
-  }
+  }catch(err){ setError('Invalid JSON: ' + err.message); }
 });
-
-els.shot.addEventListener('change', (e) => {
-  if (!state.hasLicense) {
-    setError("Please purchase a license to use mLite Web");
-    setStatus("License required", "error");
-    openLicenseModal();
-    e.target.value = '';
-    return;
-  }
-  
-  setError("");
-  const f = e.target.files[0];
-  if (!f) return;
-  const ext = (f.name.split('.').pop() || "").toLowerCase();
-  if (ext === "heic" || ext === "heif") {
-    setError("HEIC/HEIF not supported. Please export as PNG or JPG.");
-    return;
-  }
+els.shot.addEventListener('change', (e)=>{
+  if (!state.hasLicense) { setStatus('Please activate your license first.','error'); e.target.value=''; return; }
+  const f = e.target.files[0]; if (!f) return;
+  const ext = (f.name.split('.').pop()||'').toLowerCase();
+  if (ext==='heic'||ext==='heif'){ setError('HEIC/HEIF not supported.'); return; }
   const img = new Image();
-  img.onload = () => {
-    state.screenshotImg = img;
-    updateEmptyState();
-    if (state.overlayImg) {
-      doRender();
-    }
-  };
-  img.onerror = () => setError("Failed to load screenshot image.");
+  img.onload = ()=>{ state.screenshotImg = img; updateEmptyState(); updateActionStates(); if (state.overlayImg && state.quad) doRender(true); };
+  img.onerror = ()=> setError('Failed to load screenshot image.');
   img.src = URL.createObjectURL(f);
 });
 
-function doRender() {
-  setError("");
-  if (!state.overlayImg || !state.quadTLTRBRBL) { 
-    setError("Load a .mlite first."); 
-    return; 
-  }
-  if (!state.screenshotImg) { 
-    setError("Load a screenshot image."); 
-    return; 
-  }
-  
-  if (!state.hasLicense) {
-    setError("Please purchase a license to use mLite Web");
-    setStatus("License required", "error");
-    openLicenseModal();
-    return;
-  }
-  
-  setStatus("Rendering...", "loading");
-  
-  const w = state.overlayW, h = state.overlayH;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, w, h);
+// ========= Save Mockup Image (PNG) =========
+els.save.addEventListener('click', async ()=>{
+  if (els.save.disabled || !state.hasLicense) return;
+  try{
+    const blob = await new Promise(res => els.canvas.toBlob(res,'image/png'));
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'mockup.png'; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 50);
+    setStatus('Mockup image saved ✓','success');
+  }catch(err){ setError('Save failed: ' + err.message); }
+});
 
-  if (state.cornerRadius > 0) { 
-    ctx.save(); 
-    drawRoundedRect(ctx, 0, 0, w, h, state.cornerRadius); 
-    ctx.clip(); 
-  }
-
-  const quad = state.quadTLTRBRBL;
-  const quadArr = [[quad[0].x, quad[0].y], [quad[1].x, quad[1].y], [quad[2].x, quad[2].y], [quad[3].x, quad[3].y]];
-  
-  if (state.screenshotOnTop) {
-    ctx.drawImage(state.overlayImg, 0, 0);
-    warpImageToQuad(ctx, state.screenshotImg, quadArr, MESH_DETAIL);
-  } else {
-    warpImageToQuad(ctx, state.screenshotImg, quadArr, MESH_DETAIL);
-    ctx.drawImage(state.overlayImg, 0, 0);
-  }
-
-  if (state.cornerRadius > 0) { ctx.restore(); }
-  
-  setStatus("Rendered ✓", "success");
+// ========= Export .mlite with name prompt =========
+function toBottomLeftNorm(pxPt){
+  const nx = pxPt.x / state.overlayW;
+  const ny_from_top = pxPt.y / state.overlayH;
+  const ny_bottom_left = 1 - ny_from_top;
+  return [nx, ny_bottom_left];
 }
-
-els.save.addEventListener('click', async () => {
-  if (!state.hasLicense) {
-    setError("Please purchase a license to export images");
-    setStatus("License required", "error");
-    openLicenseModal();
-    return;
-  }
-  
-  try {
-    // For Safari/Mac, we need to handle download differently
-    const blob = await new Promise(resolve => els.canvas.toBlob(resolve, 'image/png'));
-    
-    // Check if we're on Safari/Mac
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
-    if (isSafari) {
-      // Safari method - convert to data URL for better compatibility
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const a = document.createElement('a');
-        a.href = reader.result;
-        a.download = 'mlite_warp.png';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-        }, 100);
-      };
-      reader.readAsDataURL(blob);
-    } else {
-      // Standard method for other browsers
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'mlite_warp.png';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 100);
-    }
-    
-    setStatus("Exported ✓", "success");
-  } catch (err) {
-    setError("Export failed: " + err.message);
-    setStatus("Export failed", "error");
-  }
-});
-
-els.share.addEventListener('click', async () => {
-  if (!state.hasLicense) {
-    setError("Please purchase a license to share images");
-    setStatus("License required", "error");
-    openLicenseModal();
-    return;
-  }
-  
-  const blob = await new Promise(resolve => els.canvas.toBlob(resolve, 'image/png'));
-  const file = new File([blob], 'mlite_warp.png', { type: 'image/png' });
-  
-  if (navigator.share && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: 'mLite Screenshot',
-      });
-      setStatus("Shared ✓", "success");
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError("Share failed: " + err.message);
-      }
-    }
-  } else {
-    els.save.click();
-  }
-});
-
-els.browse.addEventListener('click', () => {
-  window.open('https://t.me/+MbrzOkWJcZRiMDg8', '_blank');
-});
-
-els.telegram.addEventListener('click', () => {
-  window.open('https://t.me/+MbrzOkWJcZRiMDg8', '_blank');
-  els.menuToggle.classList.remove('active');
-  els.menuItems.classList.remove('active');
-});
-
-els.website.addEventListener('click', () => {
-  window.open('https://showcreative.co.uk', '_blank');
-  els.menuToggle.classList.remove('active');
-  els.menuItems.classList.remove('active');
-});
-
-function updateLicenseUI() {
-  if (state.hasLicense) {
-    els.menuToggle.parentElement.classList.add('show');
-    els.menuToggle.parentElement.classList.remove('hidden');
-    els.licenseNotice.textContent = '✓ License activated - Ready to create!';
-    els.licenseNotice.classList.add('active');
-  } else {
-    els.menuToggle.parentElement.classList.remove('show');
-    els.menuToggle.parentElement.classList.add('hidden');
-    els.licenseNotice.textContent = '🔒 License required to render and export images';
-    els.licenseNotice.classList.remove('active');
-  }
+function buildCurrentMlitedoc(){
+  if (!state.overlayImg || !state.quad) throw new Error('Nothing to export');
+  const [TL, TR, BR, BL] = state.quad;
+  const doc = {
+    version: 1,
+    customDeviceMockupBase64: state.originalOverlayBase64,
+    projectionValues: {
+      topLeft: toBottomLeftNorm(TL),
+      topRight: toBottomLeftNorm(TR),
+      bottomRight: toBottomLeftNorm(BR),
+      bottomLeft: toBottomLeftNorm(BL),
+      cornerRadius: state.cornerRadius || 0
+    },
+    screenshotOnTop: !!state.screenshotOnTop,
+    meta: { exportedAt: new Date().toISOString() }
+  };
+  return doc;
 }
+function openNameModal(defaultName='My Mockup.mlite'){
+  els.nameInput.value = defaultName;
+  els.nameModal.classList.add('show');
+  setTimeout(()=> els.nameInput.focus(), 50);
+}
+function closeNameModal(){ els.nameModal.classList.remove('show'); }
+els.nameCancel.addEventListener('click', closeNameModal);
+els.nameSave.addEventListener('click', ()=>{
+  const raw = (els.nameInput.value || '').trim();
+  if (!raw){ setError('Please enter a file name'); return; }
+  let name = raw.endsWith('.mlite') ? raw : raw + '.mlite';
+  try{
+    const doc = buildCurrentMlitedoc();
+    const blob = new Blob([JSON.stringify(doc,null,2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); }, 50);
+    setStatus('.mlite exported ✓','success');
+  }catch(err){ setError('Export .mlite failed: ' + err.message); }
+  closeNameModal();
+});
+els.nameModal.addEventListener('click', (e)=>{ if (e.target===els.nameModal) closeNameModal(); });
 
-// ============================================
-// INITIALIZATION
-// ============================================
+els.exportMlBtn.addEventListener('click', ()=>{
+  if (state.editMode){
+    setStatus('Finish editing before exporting .mlite','error');
+    return;
+  }
+  if (!state.hasLicense){ setStatus('Activate your license to export .mlite','error'); openLicenseModal(); return; }
+  if (!state.overlayImg || !state.quad){ setError('Load a .mlite first'); return; }
+  // Suggest a nice default name: use canvas size or a generic name
+  openNameModal('My Mockup.mlite');
+});
 
-checkExistingLicense();
-updateLicenseUI();
-initMockupShowcase();
+// ========= Website =========
+els.website?.addEventListener('click', ()=>{ window.open('https://showcreative.co.uk','_blank'); });
 
+// ========= Init =========
 els.currentYear.textContent = new Date().getFullYear();
+function updateLicenseGates(){
+  if (state.hasLicense){ els.menuContainer.classList.add('show'); els.menuContainer.classList.remove('hidden'); }
+  else { els.menuContainer.classList.remove('show'); els.menuContainer.classList.add('hidden'); }
+}
+function boot(){
+  checkExistingLicense(); // async validate saved key if present
+  updateLicenseUI();
+  updateActionStates();
+  updateLicenseGates();
+  setStatus('Ready to import files','idle');
+}
 
-setStatus("Ready to import files", "idle");
-setTimeout(() => els.statusToast.classList.remove('show'), 2000);
+// ========= Telegram / Community button =========
+els.browse?.addEventListener("click", () => {
+  if (!state.hasLicense) {
+    setStatus("Activate your license to join the community", "error");
+    openLicenseModal();
+    return;
+  }
+  window.open("https://t.me/+MbrzOkWJcZRiMDg8", "_blank");
+});
+
+boot();
 </script>
 </body>
 </html>

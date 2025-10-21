@@ -1,0 +1,1427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>mLite Web</title>
+  <style>
+    :root { 
+      --bg: #2c3541;
+      --card: #3a4452;
+      --text: #f3f3f3;
+      --muted: #9ca3af;
+      --accent: #5b9cf5;
+      --bad: #ef5350;
+      --btn-bg: #4a5568;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      overflow: hidden;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Ubuntu, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 100;
+      gap: 16px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-right: auto;
+    }
+    
+    .license-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      border: none;
+      border-radius: 20px;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      white-space: nowrap;
+    }
+    
+    .license-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+    }
+    
+    .license-btn.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    /* Expandable Menu */
+    .menu-container {
+      position: relative;
+      display: none; /* Hidden by default until licensed */
+    }
+    
+    .menu-container.show {
+      display: block;
+    }
+    
+    .menu-container.hidden {
+      display: none;
+    }
+    
+    .menu-toggle {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--btn-bg);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      font-size: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .menu-toggle:hover {
+      background: #5a6578;
+      transform: scale(1.05);
+    }
+    
+    .menu-toggle.active {
+      background: var(--accent);
+    }
+    
+    .chevron {
+      transition: transform 0.3s ease;
+      display: inline-block;
+    }
+    
+    .menu-toggle.active .chevron {
+      transform: rotate(180deg);
+    }
+    
+    .menu-items {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .menu-items.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0);
+    }
+    
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      background: var(--btn-bg);
+      border: none;
+      border-radius: 25px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      animation: slideIn 0.3s ease forwards;
+      opacity: 0;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .menu-items.active .menu-btn:nth-child(1) { animation-delay: 0.05s; }
+    .menu-items.active .menu-btn:nth-child(2) { animation-delay: 0.1s; }
+    .menu-items.active .menu-btn:nth-child(3) { animation-delay: 0.15s; }
+    .menu-items.active .menu-btn:nth-child(4) { animation-delay: 0.2s; }
+    .menu-items.active .menu-btn:nth-child(5) { animation-delay: 0.25s; }
+    
+    .menu-btn:hover {
+      background: #5a6578;
+      transform: translateX(-5px);
+    }
+    
+    input[type=file] { display: none; }
+    
+    /* Canvas Container */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Scrolling Mockup Background */
+    .mockup-showcase {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.35;
+      pointer-events: none;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    
+    .mockup-showcase.hidden {
+      display: none;
+    }
+    
+    .mockup-track {
+      display: flex;
+      gap: 40px;
+      animation: scroll 60s linear infinite;
+      will-change: transform;
+    }
+    
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+    
+    .mockup-track:hover {
+      animation-play-state: paused;
+    }
+    
+    .mockup-item {
+      flex-shrink: 0;
+      width: 512px;
+      height: 512px;
+      border-radius: 16px;
+      object-fit: contain;
+      filter: grayscale(30%) brightness(0.8);
+      transition: all 0.3s ease;
+    }
+    
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      background: var(--card);
+    }
+    
+    .empty-state {
+      position: absolute;
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+      pointer-events: none;
+    }
+    
+    .empty-state.hidden {
+      display: none;
+    }
+    
+    .empty-state h2 {
+      font-size: 32px;
+      margin: 0 0 16px 0;
+      color: var(--text);
+      font-weight: 600;
+    }
+    
+    .empty-state p {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0 0 12px 0;
+    }
+    
+    .empty-state .subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+    
+    .empty-state .license-notice {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 12px 20px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      color: #f59e0b;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .empty-state .license-notice.active {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #10b981;
+    }
+    
+    /* Bottom Right Actions */
+    .action-buttons {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 50;
+    }
+    
+    .action-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      box-shadow: 0 4px 16px rgba(91, 156, 245, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(91, 156, 245, 0.6);
+    }
+    
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* Status Toast */
+    .status-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+    
+    .status-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    
+    .status-toast.idle {
+      background: var(--btn-bg);
+      color: var(--text);
+    }
+    
+    .status-toast.loading {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .status-toast.success {
+      background: #66bb6a;
+      color: white;
+    }
+    
+    .status-toast.error {
+      background: var(--bad);
+      color: white;
+    }
+    
+    /* Error message */
+    .error-container {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 500px;
+      width: 90%;
+      padding: 16px 20px;
+      background: rgba(239, 83, 80, 0.95);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(239, 83, 80, 0.4);
+      font-size: 14px;
+      z-index: 1000;
+      display: none;
+      animation: slideDown 0.3s ease;
+    }
+    
+    .error-container.show {
+      display: block;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+    
+    /* HEIC Warning */
+    .heic-warning {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      padding: 10px 16px 10px 16px;
+      background: rgba(74, 85, 104, 0.95);
+      color: var(--muted);
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 50;
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    .heic-warning.hidden {
+      opacity: 0;
+      transform: translateX(-20px);
+      pointer-events: none;
+    }
+    
+    .heic-warning .close-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease;
+      flex-shrink: 0;
+    }
+    
+    .heic-warning .close-btn:hover {
+      color: var(--text);
+    }
+    
+    @media (max-width: 768px) {
+      .action-buttons {
+        bottom: 20px;
+        right: 20px;
+      }
+      
+      .action-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+      }
+      
+      .heic-warning {
+        display: none;
+      }
+      
+      .license-btn {
+        font-size: 12px;
+        padding: 8px 16px;
+      }
+    }
+    
+    /* License Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.2s ease;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal h2 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      color: var(--text);
+    }
+    
+    .modal p {
+      margin: 0 0 24px 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .license-input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .license-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 2px solid transparent;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: ui-monospace, monospace;
+      transition: border-color 0.2s ease;
+    }
+    
+    .license-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .license-input.error {
+      border-color: var(--bad);
+    }
+    
+    .license-input.success {
+      border-color: #10b981;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-btn.primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .modal-btn.primary:hover {
+      background: #4a8cd4;
+    }
+    
+    .modal-btn.secondary {
+      background: var(--btn-bg);
+      color: var(--text);
+    }
+    
+    .modal-btn.secondary:hover {
+      background: #5a6578;
+    }
+    
+    .modal-btn.purchase {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      margin-top: 8px;
+    }
+    
+    .modal-btn.purchase:hover {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--btn-bg);
+    }
+    
+    .divider::before {
+      margin-right: 12px;
+    }
+    
+    .divider::after {
+      margin-left: 12px;
+    }
+    
+    /* Footer */
+    .footer {
+      padding: 16px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    .footer a:hover {
+      color: #4a8cd4;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">mLite Web</div>
+    <button class="license-btn" id="licenseBtn">🔑 Get License</button>
+    
+    <div class="menu-container">
+      <button class="menu-toggle" id="menuToggle">
+        <span class="chevron">︿</span>
+      </button>
+      <div class="menu-items" id="menuItems">
+        <label class="menu-btn">
+          <input id="mliteFile" type="file" accept=".mlite,application/json">
+          <span>📦</span>
+          <span>Import .mlite</span>
+        </label>
+        <label class="menu-btn">
+          <input id="shotFile" type="file" accept="image/*">
+          <span>🖼️</span>
+          <span>Import Screenshot</span>
+        </label>
+        <button class="menu-btn" id="saveBtn">
+          <span>💾</span>
+          <span>Export PNG</span>
+        </button>
+        <button class="menu-btn" id="telegramBtn">
+          <span>💬</span>
+          <span>Telegram Community</span>
+        </button>
+        <button class="menu-btn" id="websiteBtn">
+          <span>🌐</span>
+          <span>ShowCreative.co.uk</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="canvas-container">
+    <!-- Scrolling Mockup Showcase Background -->
+    <div class="mockup-showcase" id="mockupShowcase">
+      <div class="mockup-track" id="mockupTrack">
+        <!-- Images will be loaded here via JavaScript -->
+      </div>
+    </div>
+    
+    <div class="empty-state" id="emptyState">
+      <h2>Welcome to mLite Web</h2>
+      <p class="subtitle">Transform your screenshots into stunning<br>device mockups</p>
+      <p>📦 Import your .mlite file to get started<br>
+      🖼️ Add your screenshot<br>
+      ✨ Export professional mockups</p>
+      <div class="license-notice" id="licenseNotice">
+        🔑 License required to render and export images
+      </div>
+    </div>
+    <canvas id="canvas" width="1024" height="1024"></canvas>
+  </div>
+  
+  <div class="action-buttons">
+    <button class="action-btn" id="shareBtn" title="Share">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+        <polyline points="16 6 12 2 8 6"></polyline>
+        <line x1="12" y1="2" x2="12" y2="15"></line>
+      </svg>
+    </button>
+    <button class="action-btn" id="browseBtn" title="Browse">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+    </button>
+  </div>
+  
+  <div class="status-toast idle" id="statusToast">Ready</div>
+  <div class="error-container" id="errorContainer"></div>
+  <div class="heic-warning" id="heicWarning">
+    <span>💡 HEIC screenshots aren't supported—export as PNG/JPG</span>
+    <button class="close-btn" id="closeWarning" title="Dismiss">×</button>
+  </div>
+  
+  <footer class="footer">
+    <p>© <span id="currentYear"></span> <a href="https://showcreative.co.uk" target="_blank">ShowCreative</a> • Made with mLite</p>
+  </footer>
+  
+  <!-- License Modal -->
+  <div class="modal-overlay" id="licenseModal">
+    <div class="modal">
+      <h2>Activate License</h2>
+      <p>Enter your license key to remove watermarks and unlock full features.</p>
+      
+      <div class="license-input-group">
+        <input 
+          type="text" 
+          class="license-input" 
+          id="licenseInput" 
+          placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
+          maxlength="39"
+        >
+      </div>
+      
+      <div class="btn-group">
+        <button class="modal-btn secondary" id="cancelBtn">Cancel</button>
+        <button class="modal-btn primary" id="activateBtn">Activate</button>
+      </div>
+      
+      <div class="divider">OR</div>
+      
+      <button class="modal-btn purchase" id="purchaseBtn">
+        💳 Purchase License Key
+      </button>
+    </div>
+  </div>
+
+<script>
+// ============================================
+// CONFIGURATION - YOUR SETTINGS
+// ============================================
+const CONFIG = {
+  GUMROAD_PRODUCT_URL: 'https://seankly.gumroad.com/l/gnvdnh',
+  CLOUDFLARE_WORKER_URL: 'https://mlite-web-worker.ske-d03.workers.dev',
+};
+
+const els = {
+  mlite: document.getElementById('mliteFile'),
+  shot: document.getElementById('shotFile'),
+  save: document.getElementById('saveBtn'),
+  share: document.getElementById('shareBtn'),
+  browse: document.getElementById('browseBtn'),
+  telegram: document.getElementById('telegramBtn'),
+  website: document.getElementById('websiteBtn'),
+  canvas: document.getElementById('canvas'),
+  emptyState: document.getElementById('emptyState'),
+  licenseNotice: document.getElementById('licenseNotice'),
+  currentYear: document.getElementById('currentYear'),
+  mockupShowcase: document.getElementById('mockupShowcase'),
+  mockupTrack: document.getElementById('mockupTrack'),
+  menuToggle: document.getElementById('menuToggle'),
+  menuItems: document.getElementById('menuItems'),
+  statusToast: document.getElementById('statusToast'),
+  errorContainer: document.getElementById('errorContainer'),
+  heicWarning: document.getElementById('heicWarning'),
+  closeWarning: document.getElementById('closeWarning'),
+  licenseBtn: document.getElementById('licenseBtn'),
+  licenseModal: document.getElementById('licenseModal'),
+  licenseInput: document.getElementById('licenseInput'),
+  activateBtn: document.getElementById('activateBtn'),
+  cancelBtn: document.getElementById('cancelBtn'),
+  purchaseBtn: document.getElementById('purchaseBtn'),
+};
+
+const ctx = els.canvas.getContext('2d', { alpha: false });
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = 'high';
+
+const MESH_DETAIL = 40;
+
+let state = {
+  overlayImg: null,
+  overlayW: 1024,
+  overlayH: 1024,
+  screenshotImg: null,
+  quadTLTRBRBL: null,
+  screenshotOnTop: false,
+  cornerRadius: 0,
+  hasLicense: false,
+  licenseKey: null,
+};
+
+// ============================================
+// MOCKUP SHOWCASE BACKGROUND
+// ============================================
+
+// Your GitHub mockup images
+const MOCKUP_IMAGES = [
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup1.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup2.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup3.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup4.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup5.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup6.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup7.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup8.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup9.jpg',
+  'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup10.jpg',
+  // Add more as you upload them
+];
+
+function initMockupShowcase() {
+  if (MOCKUP_IMAGES.length === 0 || MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
+    // No images configured yet, hide showcase
+    els.mockupShowcase.classList.add('hidden');
+    return;
+  }
+  
+  // Duplicate images for seamless infinite scroll
+  const allImages = [...MOCKUP_IMAGES, ...MOCKUP_IMAGES];
+  
+  // Create image elements
+  allImages.forEach(url => {
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'mockup-item';
+    img.alt = 'Mockup example';
+    els.mockupTrack.appendChild(img);
+  });
+}
+
+// Hide showcase when images are loaded
+function updateEmptyState() {
+  if (state.overlayImg || state.screenshotImg) {
+    els.emptyState.classList.add('hidden');
+    els.mockupShowcase.classList.add('hidden');
+  } else {
+    els.emptyState.classList.remove('hidden');
+    if (MOCKUP_IMAGES.length > 0 && !MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
+      els.mockupShowcase.classList.remove('hidden');
+    }
+  }
+}
+
+// ============================================
+// LICENSE MANAGEMENT
+// ============================================
+
+function checkExistingLicense() {
+  const savedKey = localStorage.getItem('mlite_license_key');
+  if (savedKey) {
+    validateLicenseKey(savedKey, true);
+  }
+}
+
+async function validateLicenseKey(key, silent = false) {
+  if (!silent) setStatus("Validating license...", "loading");
+  
+  try {
+    const response = await fetch(CONFIG.CLOUDFLARE_WORKER_URL + '/verify-license', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      state.hasLicense = true;
+      state.licenseKey = key;
+      localStorage.setItem('mlite_license_key', key);
+      els.licenseBtn.textContent = '✓ Licensed';
+      els.licenseBtn.classList.add('active');
+      els.licenseInput.classList.remove('error');
+      els.licenseInput.classList.add('success');
+      
+      // Show menu when licensed
+      els.menuToggle.parentElement.classList.add('show');
+      els.menuToggle.parentElement.classList.remove('hidden');
+      
+      // Update license notice
+      updateLicenseUI();
+      
+      closeLicenseModal();
+      if (!silent) setStatus("License activated!", "success");
+      return true;
+    } else {
+      throw new Error(data.message || 'Invalid license key');
+    }
+  } catch (error) {
+    els.licenseInput.classList.add('error');
+    els.licenseInput.classList.remove('success');
+    if (!silent) {
+      setError("Invalid license key. Please check and try again.");
+      setStatus("Activation failed", "error");
+    }
+    return false;
+  }
+}
+
+function openLicenseModal() {
+  els.licenseModal.classList.add('show');
+  els.licenseInput.value = '';
+  els.licenseInput.classList.remove('error', 'success');
+  els.licenseInput.focus();
+}
+
+function closeLicenseModal() {
+  els.licenseModal.classList.remove('show');
+}
+
+els.licenseInput.addEventListener('input', (e) => {
+  let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  let formatted = value.match(/.{1,8}/g)?.join('-') || value;
+  e.target.value = formatted;
+});
+
+els.licenseBtn.addEventListener('click', openLicenseModal);
+els.cancelBtn.addEventListener('click', closeLicenseModal);
+els.purchaseBtn.addEventListener('click', () => {
+  window.open(CONFIG.GUMROAD_PRODUCT_URL, '_blank');
+});
+
+els.activateBtn.addEventListener('click', async () => {
+  const key = els.licenseInput.value.trim();
+  if (!key) {
+    setError("Please enter a license key");
+    return;
+  }
+  await validateLicenseKey(key);
+});
+
+els.licenseModal.addEventListener('click', (e) => {
+  if (e.target === els.licenseModal) {
+    closeLicenseModal();
+  }
+});
+
+function addWatermark() {
+  if (state.hasLicense) return;
+  
+  ctx.save();
+  ctx.font = 'bold 16px system-ui';
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'bottom';
+  
+  const text = 'mLite Web - Unlicensed';
+  const padding = 20;
+  const x = els.canvas.width - padding;
+  const y = els.canvas.height - padding;
+  
+  const metrics = ctx.measureText(text);
+  const textHeight = 20;
+  
+  ctx.fillRect(
+    x - metrics.width - 12,
+    y - textHeight - 8,
+    metrics.width + 24,
+    textHeight + 16
+  );
+  
+  ctx.fillStyle = 'white';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+// ============================================
+// UI FUNCTIONS
+// ============================================
+
+let statusTimeout;
+
+function setStatus(text, type = 'idle') {
+  clearTimeout(statusTimeout);
+  els.statusToast.textContent = text;
+  els.statusToast.className = `status-toast ${type} show`;
+  
+  if (type === 'success' || type === 'error') {
+    statusTimeout = setTimeout(() => {
+      els.statusToast.classList.remove('show');
+    }, 3000);
+  }
+}
+
+function setError(text) {
+  if (text) {
+    els.errorContainer.textContent = text;
+    els.errorContainer.classList.add('show');
+    setTimeout(() => {
+      els.errorContainer.classList.remove('show');
+    }, 5000);
+  } else {
+    els.errorContainer.classList.remove('show');
+  }
+}
+
+els.menuToggle.addEventListener('click', () => {
+  els.menuToggle.classList.toggle('active');
+  els.menuItems.classList.toggle('active');
+});
+
+document.addEventListener('click', (e) => {
+  if (!els.menuToggle.contains(e.target) && !els.menuItems.contains(e.target)) {
+    els.menuToggle.classList.remove('active');
+    els.menuItems.classList.remove('active');
+  }
+});
+
+els.closeWarning.addEventListener('click', () => {
+  els.heicWarning.classList.add('hidden');
+});
+
+// Hide showcase when images are loaded
+function updateEmptyState() {
+  if (state.overlayImg || state.screenshotImg) {
+    els.emptyState.classList.add('hidden');
+    els.mockupShowcase.classList.add('hidden');
+  } else {
+    els.emptyState.classList.remove('hidden');
+    if (MOCKUP_IMAGES.length > 0 && !MOCKUP_IMAGES[0].includes('YOUR-USERNAME')) {
+      els.mockupShowcase.classList.remove('hidden');
+    }
+  }
+}
+
+// ============================================
+// IMAGE PROCESSING
+// ============================================
+
+function ensureDataUrl(str) {
+  if (/^data:image\//.test(str)) return str;
+  const head = str.slice(0, 10);
+  let mime = "image/png";
+  if (head.startsWith("iVBOR")) mime = "image/png";
+  else if (head.startsWith("/9j/")) mime = "image/jpeg";
+  else if (head.startsWith("R0lGOD")) mime = "image/gif";
+  else if (head.startsWith("PHN2Zy")) mime = "image/svg+xml";
+  else if (head.startsWith("AAAB")) mime = "image/x-icon";
+  return `data:${mime};base64,${str}`;
+}
+
+function drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx2, sy2, dx0, dy0, dx1, dy1, dx2, dy2) {
+  ctx.save();
+  
+  const cx = (dx0 + dx1 + dx2) / 3;
+  const cy = (dy0 + dy1 + dy2) / 3;
+  const expand = 1.5;
+  
+  const edx0 = dx0 + (dx0 - cx) * expand / Math.hypot(dx0 - cx, dy0 - cy);
+  const edy0 = dy0 + (dy0 - cy) * expand / Math.hypot(dx0 - cx, dy0 - cy);
+  const edx1 = dx1 + (dx1 - cx) * expand / Math.hypot(dx1 - cx, dy1 - cy);
+  const edy1 = dy1 + (dy1 - cy) * expand / Math.hypot(dx1 - cx, dy1 - cy);
+  const edx2 = dx2 + (dx2 - cx) * expand / Math.hypot(dx2 - cx, dy2 - cy);
+  const edy2 = dy2 + (dy2 - cy) * expand / Math.hypot(dx2 - cx, dy2 - cy);
+  
+  ctx.beginPath();
+  ctx.moveTo(edx0, edy0);
+  ctx.lineTo(edx1, edy1);
+  ctx.lineTo(edx2, edy2);
+  ctx.closePath();
+  ctx.clip();
+  
+  const denom = (sx0 * (sy1 - sy2) + sx1 * (sy2 - sy0) + sx2 * (sy0 - sy1));
+  if (Math.abs(denom) < 1e-8) { ctx.restore(); return; }
+  
+  const a11 = (dx0 * (sy1 - sy2) + dx1 * (sy2 - sy0) + dx2 * (sy0 - sy1)) / denom;
+  const a12 = (dx0 * (sx2 - sx1) + dx1 * (sx0 - sx2) + dx2 * (sx1 - sx0)) / denom;
+  const a13 = (dx0 * (sx1 * sy2 - sx2 * sy1) + dx1 * (sx2 * sy0 - sx0 * sy2) + dx2 * (sx0 * sy1 - sx1 * sy0)) / denom;
+  const a21 = (dy0 * (sy1 - sy2) + dy1 * (sy2 - sy0) + dy2 * (sy0 - sy1)) / denom;
+  const a22 = (dy0 * (sx2 - sx1) + dy1 * (sx0 - sx2) + dy2 * (sx1 - sx0)) / denom;
+  const a23 = (dy0 * (sx1 * sy2 - sx2 * sy1) + dy1 * (sx2 * sy0 - sx0 * sy2) + dy2 * (sx0 * sy1 - sx1 * sy0)) / denom;
+  
+  ctx.setTransform(a11, a21, a12, a22, a13, a23);
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+}
+
+function warpImageToQuad(ctx, img, dstQuad, meshSteps) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  const steps = Math.max(2, meshSteps | 0);
+  
+  for (let yi = 0; yi < steps; yi++) {
+    const v0 = yi / steps, v1 = (yi + 1) / steps;
+    const l0 = lerp2(lerp(dstQuad[0], dstQuad[3], v0));
+    const r0 = lerp2(lerp(dstQuad[1], dstQuad[2], v0));
+    const l1 = lerp2(lerp(dstQuad[0], dstQuad[3], v1));
+    const r1 = lerp2(lerp(dstQuad[1], dstQuad[2], v1));
+    
+    for (let xi = 0; xi < steps; xi++) {
+      const u0 = xi / steps, u1 = (xi + 1) / steps;
+      const p00 = mix(l0, r0, u0);
+      const p10 = mix(l0, r0, u1);
+      const p01 = mix(l1, r1, u0);
+      const p11 = mix(l1, r1, u1);
+      
+      const sx0 = u0 * w, sy0 = v0 * h;
+      const sx1 = u1 * w, sy1 = v0 * h;
+      const sx2 = u0 * w, sy2 = v1 * h;
+      const sx3 = u1 * w, sy3 = v1 * h;
+      
+      drawTriangle(ctx, img, sx0, sy0, sx1, sy1, sx3, sy3, p00.x, p00.y, p10.x, p10.y, p11.x, p11.y);
+      drawTriangle(ctx, img, sx0, sy0, sx3, sy3, sx2, sy2, p00.x, p00.y, p11.x, p11.y, p01.x, p01.y);
+    }
+  }
+  
+  function lerp(a, b, t) { return [a[0] * (1 - t) + b[0] * t, a[1] * (1 - t) + b[1] * t]; }
+  function lerp2(p) { return { x: p[0], y: p[1] }; }
+  function mix(p, q, t) { return { x: p.x * (1 - t) + q.x * t, y: p.y * (1 - t) + q.y * t }; }
+}
+
+function drawRoundedRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w * 0.5, h * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+  ctx.lineTo(x + rr, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+  ctx.lineTo(x, y + rr);
+  ctx.quadraticCurveTo(x, y, x + rr, y);
+  ctx.closePath();
+}
+
+function normalizeQuad(points) {
+  const pts = points.slice();
+  pts.sort((a, b) => a.y - b.y);
+  const top = pts.slice(0, 2).sort((a, b) => a.x - b.x);
+  const bot = pts.slice(2, 4).sort((a, b) => a.x - b.x);
+  return [top[0], top[1], bot[1], bot[0]];
+}
+
+// ============================================
+// FILE HANDLERS
+// ============================================
+
+els.mlite.addEventListener('change', async (e) => {
+  // Check license before allowing file import
+  if (!state.hasLicense) {
+    setError("Please purchase a license to use mLite Web");
+    setStatus("License required", "error");
+    openLicenseModal();
+    e.target.value = ''; // Reset file input
+    return;
+  }
+  
+  setError("");
+  setStatus("Loading .mlite...", "loading");
+  const file = e.target.files[0];
+  if (!file) return;
+  const txt = await file.text();
+  let obj;
+  try { 
+    obj = JSON.parse(txt); 
+  } catch (err) { 
+    setError("Invalid JSON: " + err.message); 
+    setStatus("Error", "error"); 
+    return; 
+  }
+  try {
+    let ovl = obj.customDeviceMockupBase64;
+    if (!ovl) { 
+      setError("customDeviceMockupBase64 missing"); 
+      setStatus("Error", "error"); 
+      return; 
+    }
+    ovl = ensureDataUrl(ovl);
+
+    const overlayImg = new Image();
+    overlayImg.onload = () => {
+      state.overlayImg = overlayImg;
+      state.overlayW = overlayImg.naturalWidth;
+      state.overlayH = overlayImg.naturalHeight;
+      els.canvas.width = state.overlayW;
+      els.canvas.height = state.overlayH;
+
+      const pv = obj.projectionValues || {};
+      const H = state.overlayH, W = state.overlayW;
+      function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
+      const tl = toPxBottomLeftNorm(pv.topLeft);
+      const tr = toPxBottomLeftNorm(pv.topRight);
+      const bl = toPxBottomLeftNorm(pv.bottomLeft);
+      const br = toPxBottomLeftNorm(pv.bottomRight);
+      state.quadTLTRBRBL = normalizeQuad([tl, tr, bl, br]);
+      state.screenshotOnTop = !!obj.screenshotOnTop;
+      state.cornerRadius = (obj.projectionValues && obj.projectionValues.cornerRadius) || 0;
+
+      ctx.clearRect(0, 0, state.overlayW, state.overlayH);
+      ctx.drawImage(state.overlayImg, 0, 0);
+      updateEmptyState();
+      setStatus("mlite loaded ✓", "success");
+      
+      if (state.screenshotImg) {
+        doRender();
+      }
+    };
+    overlayImg.onerror = () => { 
+      setError("Failed to decode overlay image"); 
+      setStatus("Error", "error"); 
+    };
+    overlayImg.src = ovl;
+  } catch (err) {
+    setError(err.message || String(err));
+    setStatus("Error", "error");
+  }
+});
+
+els.shot.addEventListener('change', (e) => {
+  // Check license before allowing file import
+  if (!state.hasLicense) {
+    setError("Please purchase a license to use mLite Web");
+    setStatus("License required", "error");
+    openLicenseModal();
+    e.target.value = ''; // Reset file input
+    return;
+  }
+  
+  setError("");
+  const f = e.target.files[0];
+  if (!f) return;
+  const ext = (f.name.split('.').pop() || "").toLowerCase();
+  if (ext === "heic" || ext === "heif") {
+    setError("HEIC/HEIF not supported. Please export as PNG or JPG.");
+    return;
+  }
+  const img = new Image();
+  img.onload = () => {
+    state.screenshotImg = img;
+    updateEmptyState();
+    if (state.overlayImg) {
+      doRender();
+    }
+  };
+  img.onerror = () => setError("Failed to load screenshot image.");
+  img.src = URL.createObjectURL(f);
+});
+
+function doRender() {
+  setError("");
+  if (!state.overlayImg || !state.quadTLTRBRBL) { 
+    setError("Load a .mlite first."); 
+    return; 
+  }
+  if (!state.screenshotImg) { 
+    setError("Load a screenshot image."); 
+    return; 
+  }
+  
+  // BLOCK RENDERING FOR UNLICENSED USERS
+  if (!state.hasLicense) {
+    setError("Please purchase a license to use mLite Web");
+    setStatus("License required", "error");
+    openLicenseModal();
+    return;
+  }
+  
+  setStatus("Rendering...", "loading");
+  
+  const w = state.overlayW, h = state.overlayH;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  if (state.cornerRadius > 0) { 
+    ctx.save(); 
+    drawRoundedRect(ctx, 0, 0, w, h, state.cornerRadius); 
+    ctx.clip(); 
+  }
+
+  const quad = state.quadTLTRBRBL;
+  const quadArr = [[quad[0].x, quad[0].y], [quad[1].x, quad[1].y], [quad[2].x, quad[2].y], [quad[3].x, quad[3].y]];
+  
+  if (state.screenshotOnTop) {
+    ctx.drawImage(state.overlayImg, 0, 0);
+    warpImageToQuad(ctx, state.screenshotImg, quadArr, MESH_DETAIL);
+  } else {
+    warpImageToQuad(ctx, state.screenshotImg, quadArr, MESH_DETAIL);
+    ctx.drawImage(state.overlayImg, 0, 0);
+  }
+
+  if (state.cornerRadius > 0) { ctx.restore(); }
+  
+  setStatus("Rendered ✓", "success");
+}
+
+els.save.addEventListener('click', () => {
+  // BLOCK EXPORT FOR UNLICENSED USERS
+  if (!state.hasLicense) {
+    setError("Please purchase a license to export images");
+    setStatus("License required", "error");
+    openLicenseModal();
+    return;
+  }
+  
+  const url = els.canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mlite_warp.png';
+  a.click();
+  setStatus("Exported ✓", "success");
+});
+
+els.share.addEventListener('click', async () => {
+  // BLOCK SHARE FOR UNLICENSED USERS
+  if (!state.hasLicense) {
+    setError("Please purchase a license to share images");
+    setStatus("License required", "error");
+    openLicenseModal();
+    return;
+  }
+  
+  const blob = await new Promise(resolve => els.canvas.toBlob(resolve, 'image/png'));
+  const file = new File([blob], 'mlite_warp.png', { type: 'image/png' });
+  
+  if (navigator.share && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'mLite Screenshot',
+      });
+      setStatus("Shared ✓", "success");
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        setError("Share failed: " + err.message);
+      }
+    }
+  } else {
+    els.save.click();
+  }
+});
+
+els.browse.addEventListener('click', () => {
+  window.open('https://t.me/+MbrzOkWJcZRiMDg8', '_blank');
+});
+
+els.telegram.addEventListener('click', () => {
+  window.open('https://t.me/+MbrzOkWJcZRiMDg8', '_blank');
+  els.menuToggle.classList.remove('active');
+  els.menuItems.classList.remove('active');
+});
+
+els.website.addEventListener('click', () => {
+  window.open('https://showcreative.co.uk', '_blank');
+  els.menuToggle.classList.remove('active');
+  els.menuItems.classList.remove('active');
+});
+
+// Hide empty state when images are loaded
+function updateEmptyState() {
+  if (state.overlayImg || state.screenshotImg) {
+    els.emptyState.classList.add('hidden');
+  } else {
+    els.emptyState.classList.remove('hidden');
+  }
+}
+
+// Update UI based on license status
+function updateLicenseUI() {
+  if (state.hasLicense) {
+    els.menuToggle.parentElement.classList.add('show');
+    els.menuToggle.parentElement.classList.remove('hidden');
+    els.licenseNotice.textContent = '✓ License activated - Ready to create!';
+    els.licenseNotice.classList.add('active');
+  } else {
+    els.menuToggle.parentElement.classList.remove('show');
+    els.menuToggle.parentElement.classList.add('hidden');
+    els.licenseNotice.textContent = '🔑 License required to render and export images';
+    els.licenseNotice.classList.remove('active');
+  }
+}
+
+checkExistingLicense();
+updateLicenseUI();
+
+// Initialize mockup showcase
+initMockupShowcase();
+
+// Set current year in footer
+els.currentYear.textContent = new Date().getFullYear();
+
+setStatus("Ready to import files", "idle");
+setTimeout(() => els.statusToast.classList.remove('show'), 2000);
+</script>
+</body>
+</html>

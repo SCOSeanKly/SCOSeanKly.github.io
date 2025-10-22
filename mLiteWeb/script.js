@@ -181,6 +181,18 @@ const DST_EPS = 1.5;
 const SRC_EPS = 1.0;
 const ACCENT = '#5b9cf5';
 
+// Detect coarse (touch) pointers
+const IS_TOUCH = (typeof window !== 'undefined') && (('ontouchstart' in window) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+
+function getHandleRadii(){
+  // Base visual radius scales with image size
+  const base = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010 * 0.5);
+  const rVis = IS_TOUCH ? Math.max(base, 12) : base;           // what we draw
+  const rHit = IS_TOUCH ? Math.max(rVis * 2.0, 28) : Math.max(rVis * 1.6, 18); // what we hit-test
+  return { rVis, rHit };
+}
+
+
 let state = {
   overlayImg: null,
   overlayW: 1024,
@@ -468,9 +480,9 @@ function doRender(drawHandles=true, skipWarp=false, useView=true){
 
 /* Edit handles */
 function drawEditHandles(){
-  const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010 * 0.5);
+  const { rVis } = getHandleRadii();
   ctx.save();
-  ctx.lineWidth = 6.0;
+  ctx.lineWidth = IS_TOUCH ? 7.0 : 6.0;
   ctx.globalAlpha = 0.95;
   ctx.strokeStyle = ACCENT;
   ctx.setLineDash([12, 8]);
@@ -488,11 +500,20 @@ function drawEditHandles(){
   for (let i=0;i<4;i++) {
     const p = state.quad[i];
     ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+    ctx.arc(p.x, p.y, rVis, 0, Math.PI*2);
     ctx.fill();
     ctx.lineWidth = 1.25;
     ctx.strokeStyle = 'white';
     ctx.stroke();
+    if (IS_TOUCH) {
+      // outer ring cue, does not affect hit area
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, rVis + 6, 0, Math.PI*2);
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = ACCENT;
+      ctx.stroke();
+      ctx.globalAlpha = 0.95;
+    }
   }
   ctx.restore();
 }
@@ -514,11 +535,11 @@ function clientToImage(ev){
 }
 
 function hitTestHandle(x,y){
-  const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010 * 0.5);
-  for (let i=0;i<4;i++){ 
-    const p = state.quad[i]; 
-    const dx=x-p.x, dy=y-p.y; 
-    if (dx*dx+dy*dy <= (r*1.8)*(r*1.8)) return i; 
+  const { rHit } = getHandleRadii();
+  for (let i=0;i<4;i++){
+    const p = state.quad[i];
+    const dx=x-p.x, dy=y-p.y;
+    if (dx*dx+dy*dy <= (rHit)*(rHit)) return i;
   }
   return -1;
 }

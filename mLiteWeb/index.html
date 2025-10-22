@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>mLite Web</title>
+<link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">mLite Web</div>
+    <button class="license-btn" id="licenseBtn">🔒 Get License</button>
+
+    <div class="menu-container hidden" id="menuContainer">
+      <button aria-label="Menu" class="menu-toggle" id="menuToggle">
+        <div class="menu-icon">
+          <span></span><span></span><span></span>
+        </div>
+      </button>
+
+      <div class="menu-items" id="menuItems">
+        <label class="menu-btn" for="mliteFile" id="btnImportMl">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+          <input accept=".mlite,application/json" id="mliteFile" type="file"/>
+          <span>Import .mlite</span>
+        </label>
+
+        <label class="menu-btn disabled" data-disabled="true" id="btnImportShot">
+          <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4z"></path><path d="M12 10v6M9 13h6"></path></svg>
+          <input accept="image/*" disabled id="shotFile" type="file"/>
+          <span>Import Screenshot</span>
+        </label>
+
+        <label class="menu-btn" for="templateFile" id="btnImportTemplate">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path><path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H9l-5 5v8a1 1 0 0 0 1 1z"></path></svg>
+          <input accept="image/png" id="templateFile" type="file"/>
+          <span>Import Template</span>
+        </label>
+
+        <button class="menu-btn disabled" disabled id="saveBtn">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5-5 5 5"></path><path d="M12 15V5"></path></svg>
+          <span>Save Mockup Image</span>
+        </button>
+
+        <button class="menu-btn" id="websiteBtn">
+          <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"></path><path d="M3 12h18"></path><path d="M12 3c2.5 2.7 4 6 4 9s-1.5 6.3-4 9m0-18c-2.5 2.7-4 6-4 9s1.5 6.3 4 9"></path></svg>
+          <span>showcreative.co.uk</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas-container" id="canvasContainer">
+    <div class="mockup-showcase" id="mockupShowcase">
+      <div class="mockup-track" id="mockupTrack"></div>
+    </div>
+
+    <!-- Zoom UI (positioned over the canvas) -->
+    <div class="zoom-ui" id="zoomUI" aria-label="Zoom controls">
+      <span class="zoom-glyph" aria-hidden="true">🔍</span>
+      <input id="zoomSlider" type="range" min="1" max="5" step="0.01" value="1" aria-label="Zoom level"/>
+      <span class="zoom-value" id="zoomValue" aria-live="polite">1.00×</span>
+    </div>
+
+    <div class="license-panel">
+      <div class="license-card" id="licenseCard">
+        <div class="license-title">Activate License</div>
+        <div class="license-sub">Enter your license key to remove watermarks and unlock full features.</div>
+        <div class="license-row">
+          <input class="license-input" id="licenseInput" maxlength="39" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" type="text"/>
+          <button class="modal-btn secondary" id="purchaseBtn">Purchase</button>
+          <button class="modal-btn primary" id="activateBtn">Activate</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <h2>Welcome to mLite Web</h2>
+      <p class="subtitle">Super Simple Mockups</p>
+      <p>• Import a mLite file using the Menu<br/>• Import a screenshot and save to your desktop</p>
+      <p>• mLite files can be found on Telegram<br/>• Visit telegram via link in the menu</p>
+      <p>• Import a Template and Screenshot<br/>• Toggle Edit to drag blue corner dots<br/>• Double click to Zoom &amp; Reset<br/>• Export image or mLite file</p>
+      <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>
+    </div>
+
+    <canvas id="canvas" width="1024" height="1024"></canvas>
+  </div>
+
+  <div class="action-buttons">
+    <button aria-label="Edit" class="action-btn" disabled id="editBtn" title="Toggle Edit (E)">
+      <svg id="editIcon" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+    </button>
+    <button aria-label="Export .mlite" class="action-btn secondary" disabled id="exportMlBtn" title="Export .mlite">
+      <svg viewBox="0 0 24 24"><path d="M12 5v10m0 0l-4-4m4 4 4-4M5 19h14"></path></svg>
+    </button>
+    <button aria-label="Community" class="action-btn secondary" id="browseBtn" title="Community">
+      <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4v-6a4 4 0 0 1 4-4"></path><path d="M8 3h8a4 4 0 0 1 4 4v1"></path><path d="M12 12h.01"></path></svg>
+    </button>
+  </div>
+
+  <div class="status-toast idle" id="statusToast">Ready</div>
+  <div class="error-container" id="errorContainer"></div>
+
+  <footer class="footer">
+    <p>© <span id="currentYear"></span> <a href="https://showcreative.co.uk" target="_blank">ShowCreative</a> • Made with mLite</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

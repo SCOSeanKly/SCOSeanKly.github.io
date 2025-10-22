@@ -863,7 +863,7 @@ els.mlite.addEventListener('change', async (e)=>{
     /* Friendly mobile error */
     if (!txt || txt.trim().length < 2){ throw new Error('Empty file'); }
     let obj;
-    try { obj = JSON.parse(txt); } catch(parseErr){ throw new Error('This doesn\'t look like a valid .mlite JSON file. If you\'re on iOS, make sure you selected the original .mlite, not a preview.'); }
+    try { obj = JSON.parse(txt); } catch(parseErr){ throw new Error('This doesn\'t look like a valid .mlite file. If you\'re on iOS, make sure you selected the original .mlite file.'); }
     let ovl = obj.customDeviceMockupBase64;
     if (!ovl) throw new Error('customDeviceMockupBase64 missing');
     state.originalOverlayBase64 = ovl;
@@ -903,7 +903,7 @@ els.mlite.addEventListener('change', async (e)=>{
     overlayImg.onerror = ()=> setError('Failed to decode overlay image');
     overlayImg.src = ovl;
   }catch(err){ 
-    setError('Invalid JSON: ' + err.message); 
+    setError('Invalid: ' + err.message); 
   }
   e.target.value = '';
 });

@@ -217,7 +217,7 @@
           <input id="shotFile" type="file" accept="image/*" disabled>
           <span>Import Screenshot</span>
         </label>
-                <label class="menu-btn" id="btnImportTemplate" for="templateFile">
+        <label class="menu-btn" id="btnImportTemplate" for="templateFile">
           <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/><path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H9l-5 5v8a1 1 0 0 0 1 1z"/></svg>
           <input id="templateFile" type="file" accept="image/png">
           <span>Import Template</span>
@@ -254,8 +254,8 @@
     <div class="empty-state" id="emptyState">
       <h2>Welcome to mLite Web</h2>
       <p class="subtitle">Super Simple Mockups</p>
-             <p>• Import a mLite file using the Menu<br>• Import a screenshot and save to your desktop</p>
-        <p>• mLite files can be found on Telegram<br>• Visit telegram via link in the menu</p>
+      <p>• Import a mLite file using the Menu<br>• Import a screenshot and save to your desktop</p>
+      <p>• mLite files can be found on Telegram<br>• Visit telegram via link in the menu</p>
       <p>• Import a Template and Screenshot<br>• Toggle Edit to drag blue corner dots<br>• Export image or mLite file</p>
 
       <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>
@@ -377,30 +377,37 @@ function updateEmptyState() {
   els.emptyState.classList.toggle('hidden', !!hasContent);
 }
 
-function readyForEdit(){ return !!(state.overlayImg && state.screenshotImg && state.quad) && state.hasLicense; }
+/* === CHANGED: allow edit without screenshot (license + overlay + quad) === */
+function readyForEdit(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
 function readyForExport(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
 
+/* marching-ants animation state */
+let antsOffset = 0;
+let antsRAF = null;
+function startAntsIfNeeded(){
+  if (!(state.editMode && !state.screenshotImg)) return;
+  if (antsRAF) return;
+  const tick = () => {
+    if (!(state.editMode && !state.screenshotImg)) { antsRAF = null; return; }
+    antsOffset = (antsOffset + 1.5) % 20;
+    // light draw (no warp needed because no screenshot)
+    doRender(true, true);
+    antsRAF = requestAnimationFrame(tick);
+  };
+  antsRAF = requestAnimationFrame(tick);
+}
+
 function updateActionStates(){
-  // Enable/disable edit button
+  // Enable/disable edit button (now allowed without screenshot)
   els.editBtn.disabled = !readyForEdit();
   
-  // Enable save button if we have all required components:
-  // 1. Valid license
-  // 2. Overlay loaded (template PNG or .mlite)
-  // 3. Screenshot imported
-  // 4. Quad defined
+  // Enable save button only when license + overlay + screenshot + quad
   const canSave = state.hasLicense && 
                   state.overlayImg && 
                   state.screenshotImg && 
                   state.quad;
-  
-  // CRITICAL: Must update BOTH disabled attribute AND CSS class
   els.save.disabled = !canSave;
-  if (canSave) {
-    els.save.classList.remove('disabled');
-  } else {
-    els.save.classList.add('disabled');
-  }
+  if (canSave) { els.save.classList.remove('disabled'); } else { els.save.classList.add('disabled'); }
   
   // Enable screenshot import if template/mlite loaded and licensed
   const shotReady = !!state.overlayImg && state.hasLicense;
@@ -418,13 +425,13 @@ function updateActionStates(){
     els.btnImportTemplate.classList.remove('disabled');
   }
   
-  // Enable .mlite export if overlay + quad exist and not in edit mode
-const canExportMl = state.sourceType === 'template' &&  // ✅ MUST be template PNG
-                    state.overlayImg && 
-                    state.quad && 
-                    state.hasLicense && 
-                    !state.editMode;
-els.exportMlBtn.disabled = !canExportMl;
+  // Enable .mlite export if overlay + quad exist and not in edit mode (template only)
+  const canExportMl = state.sourceType === 'template' &&
+                      state.overlayImg && 
+                      state.quad && 
+                      state.hasLicense && 
+                      !state.editMode;
+  els.exportMlBtn.disabled = !canExportMl;
 }
 
 let statusTimeout;
@@ -604,6 +611,7 @@ function warpImageToQuad(ctx, img, dstQuad, steps) {
   }
 }
 
+/* ORIGINAL doRender (kept) */
 function doRender(drawHandles=true){
   if (!state.hasLicense || !state.overlayImg || !state.quad) return;
   const w = state.overlayW, h = state.overlayH;
@@ -635,13 +643,23 @@ function doRender(drawHandles=true){
   setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
 }
 
+/* === CHANGED: marching-ants when no screenshot === */
 function drawEditHandles(){
   const r = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010);
   ctx.save();
-  ctx.lineWidth = 6.00;
-  ctx.strokeStyle = ACCENT;
+
+  // Interconnecting lines (solid when screenshot present, marching ants when absent)
+  ctx.lineWidth = 6.0;
   ctx.globalAlpha = 0.95;
-  ctx.fillStyle = ACCENT;
+  ctx.strokeStyle = ACCENT;
+
+  if (!state.screenshotImg) {
+    ctx.setLineDash([12, 8]);
+    ctx.lineDashOffset = -antsOffset; // animate
+  } else {
+    ctx.setLineDash([]); // solid
+  }
+
   ctx.beginPath();
   ctx.moveTo(state.quad[0].x, state.quad[0].y);
   ctx.lineTo(state.quad[1].x, state.quad[1].y);
@@ -649,7 +667,9 @@ function drawEditHandles(){
   ctx.lineTo(state.quad[3].x, state.quad[3].y);
   ctx.closePath();
   ctx.stroke();
-  
+
+  // Corner dots
+  ctx.fillStyle = ACCENT;
   for (let i=0;i<4;i++) {
     const p = state.quad[i];
     ctx.beginPath();
@@ -706,6 +726,7 @@ function handlePointerMove(ev){
   ev.preventDefault();
 }
 
+/* UPDATED doRender + skipWarp variant kept */
 function doRender(drawHandles=true, skipWarp=false){
   if (!state.hasLicense || !state.overlayImg || !state.quad) return;
   const w = state.overlayW, h = state.overlayH;
@@ -721,7 +742,7 @@ function doRender(drawHandles=true, skipWarp=false){
     [state.quad[3].x, state.quad[3].y],
   ];
   
-  if (state.screenshotImg && !skipWarp) {  // <-- Add skipWarp check
+  if (state.screenshotImg && !skipWarp) {
     if (state.screenshotOnTop) { 
       ctx.drawImage(state.overlayImg, 0, 0); 
       warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
@@ -743,7 +764,7 @@ function handlePointerMove(ev){
   const i = state.activeHandle;
   state.quad[i].x = Math.max(0, Math.min(state.overlayW, pt.x));
   state.quad[i].y = Math.max(0, Math.min(state.overlayH, pt.y));
-  doRender(true, true); // <-- Pass true to skip warp during drag
+  doRender(true, true); // skip warp during drag
   ev.preventDefault();
 }
 
@@ -752,7 +773,7 @@ function handlePointerUp(ev){
   dragging = false;
   state.activeHandle = -1;
   meshDetail = MESH_DETAIL_IDLE;
-  doRender(true, false); // <-- Full render with warp on release
+  doRender(true, false); // full render on release
   ev.preventDefault();
 }
 
@@ -776,6 +797,7 @@ function toggleEdit(on){
     : '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
   updateActionStates();
   doRender(true);
+  startAntsIfNeeded(); // start marching-ants loop if needed
 }
 
 els.editBtn.addEventListener('click', ()=>{ if (!els.editBtn.disabled) toggleEdit(); });
@@ -1027,11 +1049,6 @@ function buildCurrentMlitedoc(name = 'iP17Industrial', index = 0){
     supportsBackgrounds: false
   };
 
-  // If your iOS importer is tolerant, you can keep these.
-  // If not, DO NOT include them.
-  // doc.version = 1;
-  // doc.meta = { exportedAt: new Date().toISOString() };
-
   return doc;
 }
 
@@ -1055,31 +1072,22 @@ function openNameModalLikePrompt(defaultName='My Mockup.mlite'){
 }
 
 els.exportMlBtn.addEventListener('click', ()=>{
-  // Check 1: Not in edit mode
   if (state.editMode){
     setStatus('Finish editing before exporting .mlite','error');
     return;
   }
-  
-  // Check 2: Must have license
   if (!state.hasLicense){ 
     setStatus('Activate your license to export .mlite','error'); 
     return; 
   }
-  
-  // Check 3: Must have overlay and quad
   if (!state.overlayImg || !state.quad){ 
     setStatus('Load a Template PNG first to export .mlite','error');
     return; 
   }
-  
-  // Check 4: Must be a Template PNG (NEW CHECK!)
   if (state.sourceType !== 'template'){
     setStatus('Export .mlite only works with Template PNG imports','error');
     return;
   }
-  
-  // All checks passed - proceed with export
   openNameModalLikePrompt('My Mockup.mlite');
 });
 

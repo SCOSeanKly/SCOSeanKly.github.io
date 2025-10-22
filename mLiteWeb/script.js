@@ -335,6 +335,12 @@ els.menuToggle.addEventListener('click', ()=>{
   els.menuToggle.classList.toggle('active');
   els.menuItems.classList.toggle('active');
 });
+
+/* Open ShowCreative site */
+els.website?.addEventListener('click', ()=>{
+  window.open('https://www.showcreative.co.uk', '_blank', 'noopener');
+});
+
 document.addEventListener('click', (e)=>{
   if (!els.menuContainer.contains(e.target)) {
     els.menuToggle.classList.remove('active');

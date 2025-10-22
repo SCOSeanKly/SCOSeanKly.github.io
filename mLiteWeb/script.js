@@ -860,7 +860,10 @@ els.mlite.addEventListener('change', async (e)=>{
   
   try{
     const txt = await file.text();
-    const obj = JSON.parse(txt);
+    /* Friendly mobile error */
+    if (!txt || txt.trim().length < 2){ throw new Error('Empty file'); }
+    let obj;
+    try { obj = JSON.parse(txt); } catch(parseErr){ throw new Error('This doesn\'t look like a valid .mlite JSON file. If you\'re on iOS, make sure you selected the original .mlite, not a preview.'); }
     let ovl = obj.customDeviceMockupBase64;
     if (!ovl) throw new Error('customDeviceMockupBase64 missing');
     state.originalOverlayBase64 = ovl;
@@ -1112,8 +1115,39 @@ els.browse?.addEventListener("click", () => {
 
 els.currentYear.textContent = new Date().getFullYear();
 
+
+/* --- iOS/iPadOS detection & .mlite accept fix --- */
+function isIOSLike(){
+  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+  const iOS = /iPad|iPhone|iPod/.test(ua);
+  // iPadOS 13+ can report as Mac; detect via touch points
+  const iPadOS = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  return iOS || iPadOS;
+}
+function relaxMliteAcceptOnIOS(){
+  try{
+    if (!els.mlite) return;
+    if (isIOSLike()){
+      // Remove accept filter so iOS Files app won't grey out .mlite JSON with odd MIME/UTI
+      els.mlite.removeAttribute('accept');
+      els.mlite.setAttribute('data-allfiles', 'true');
+      // Nudge the user the first time
+      if (!localStorage.getItem('mlite_ios_accept_relaxed')){
+        setStatus('iOS Files: All files enabled for .mLite import. Select your .mlite and we\'ll validate it.', 'idle');
+        localStorage.setItem('mlite_ios_accept_relaxed', '1');
+      }
+      // Optional: update label text subtly
+      const span = els.btnImportMl?.querySelector('span');
+      if (span && !span.textContent.includes('(iOS All Files)')){
+        span.textContent = span.textContent + ' (iOS All Files)';
+      }
+    }
+  }catch(e){ /* no-op */ }
+}
+
 /* Boot */
 function boot(){
+  relaxMliteAcceptOnIOS();
   checkExistingLicense();
   updateLicenseUI();
   updateActionStates();

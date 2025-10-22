@@ -18,7 +18,7 @@ body {
   flex-direction: column;
 }
 
-/* Header, menu, etc. (unchanged) */
+/* Header, menu, etc. */
 .header { display:flex; justify-content:flex-end; align-items:center; padding:20px 24px; gap:16px; position:relative; z-index:100; }
 .logo { font-size:24px; font-weight:700; color:var(--text); letter-spacing:-0.5px; margin-right:auto; }
 .license-btn {
@@ -57,10 +57,17 @@ body {
 .menu-items.active .menu-btn:nth-child(3){ animation-delay:.15s } 
 .menu-items.active .menu-btn:nth-child(4){ animation-delay:.2s } 
 .menu-items.active .menu-btn:nth-child(5){ animation-delay:.25s } 
+.menu-items.active .menu-btn:nth-child(6){ animation-delay:.3s } 
 @keyframes slideIn { from{opacity:0; transform:translateX(20px)} to{opacity:1; transform:translateX(0)} }
 .menu-btn:hover:not(.disabled) { background:#5a6578; transform:translateX(-5px); }
 .menu-btn svg { width:18px; height:18px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-.menu-btn.disabled, .menu-btn[disabled]{ opacity:.45; cursor:not-allowed; pointer-events:none; }
+
+/* GLOBAL DISABLED VISUALS */
+.menu-btn.disabled, .menu-btn[disabled],
+.action-btn[disabled], .action-btn.disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
 input[type=file]{ display:none; }
 
 /* Canvas area */
@@ -71,12 +78,12 @@ input[type=file]{ display:none; }
 
 /* Zoom UI — minimalist vertical control pinned over the canvas */
 .zoom-ui {
-  display: none;                 /* toggled to .show in JS */
-  position: absolute;            /* anchored via JS to canvas top-right */
+  display: none;
+  position: absolute;
   padding: 6px 8px;
   gap: 6px;
   border-radius: 10px;
-  background: rgba(0,0,0,0.20);  /* subtle */
+  background: rgba(0,0,0,0.20);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255,255,255,0.06);
   color: var(--text);
@@ -84,9 +91,9 @@ input[type=file]{ display:none; }
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  z-index: 4;                    /* above canvas, below license card */
+  z-index: 4;
   pointer-events: auto;
-  transform-origin: top right;   /* for responsive scale() from JS */
+  transform-origin: top right;
 }
 .zoom-ui.show { display: inline-flex; }
 .zoom-glyph { opacity: .85; }
@@ -99,8 +106,6 @@ input[type=file]{ display:none; }
   height: 120px;
   margin: 0;
 }
-
-/* Fallback rotation for browsers without vertical slider support */
 @supports not (-webkit-appearance: slider-vertical) {
   .zoom-ui input[type="range"] {
     transform: rotate(-90deg);
@@ -109,13 +114,7 @@ input[type=file]{ display:none; }
     height: 6px;
   }
 }
-
-.zoom-value {
-  min-width: 40px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  opacity: 0.9;
-}
+.zoom-value { min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; opacity: 0.9; }
 
 /* License modal */
 .license-panel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; pointer-events: none; }
@@ -178,7 +177,7 @@ canvas {
   background:var(--card);
   position: relative;
   z-index: 1;
-  display: none; /* hidden until content exists */
+  display: none;
 }
 
 .empty-state { 
@@ -205,8 +204,14 @@ canvas {
 .action-btn:active { transform:scale(.98); }
 .action-btn.secondary { background:var(--btn-bg); color:var(--text); box-shadow:0 4px 16px rgba(0,0,0,.3); }
 .action-btn.active { outline:3px solid rgba(91,156,245,.6); }
-.action-btn:disabled { opacity:.4; cursor:not-allowed; }
-.action-btn svg { width:22px; height:22px; stroke: currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.action-btn[disabled], .action-btn.disabled { opacity:.45; cursor:not-allowed; }
+/* Resize glyphs inside action buttons */
+.action-btn svg {
+  width: 22px;   /* default is ~24px */
+  height: 22px;
+  stroke-width: 1.8; /* optional: slightly bolder lines */
+}
+
 
 @keyframes pulseRingRed {
   0%   { box-shadow: 0 0 0 0 rgba(230,69,69,.55), 0 0 0 6px rgba(230,69,69,.0); }
@@ -233,3 +238,44 @@ body.editing #editBtn {
 /* Footer */
 .footer { padding:16px 24px; text-align:center; color:var(--muted); font-size:13px; border-top:1px solid rgba(255,255,255,.05); background:rgba(0,0,0,.2); }
 .footer a { color:var(--accent); text-decoration:none; }
+
+/* Strong disabled visuals and override menu animation */
+.menu-btn.disabled, .menu-btn[disabled] { 
+  opacity: .45 !important; 
+  cursor: not-allowed !important; 
+}
+.menu-items.active .menu-btn.disabled,
+.menu-items.active .menu-btn[disabled]{
+  animation: none !important;
+  opacity: .45 !important;
+}
+/* Labels that act like buttons */
+label.menu-btn.disabled { 
+  opacity: .45 !important; 
+  cursor: not-allowed !important; 
+}
+
+/* --- Fix: White glyphs & Telegram button color --- */
+.action-btn svg {
+  stroke: #fff;
+  fill: none;
+}
+#browseBtn.action-btn {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(91,156,245,.4);
+}
+#browseBtn.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(91,156,245,.6);
+}
+
+/* --- Import buttons: selected state (brand blue) --- */
+.menu-btn.selected {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(91,156,245,.4) !important;
+}
+.menu-btn.selected svg {
+  stroke: currentColor;
+}

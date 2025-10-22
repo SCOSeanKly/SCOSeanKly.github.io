@@ -87,17 +87,14 @@ function resetView(){
 
 /* ===== Zoom UI show/position/scale ===== */
 function positionZoomUI(){
-  // Place within canvas top-right, scaled with CSS size of the canvas
   const canvasRect = els.canvas.getBoundingClientRect();
   const containerRect = els.canvasContainer.getBoundingClientRect();
-  const pad = 10; // px inside canvas
+  const pad = 10;
 
-  // Compute scale factor between CSS pixels and intrinsic canvas pixels
   const scaleX = canvasRect.width / els.canvas.width;
   const scaleY = canvasRect.height / els.canvas.height;
-  const s = Math.max(0.6, Math.min(1.25, Math.min(scaleX, scaleY))); // clamp a bit
+  const s = Math.max(0.6, Math.min(1.25, Math.min(scaleX, scaleY)));
 
-  // Position relative to container so it visually sits inside canvas bounds
   const left = (canvasRect.right - containerRect.left) - pad;
   const top  = (canvasRect.top   - containerRect.top) + pad;
 
@@ -109,13 +106,12 @@ function positionZoomUI(){
 function updateZoomUI(){
   els.zoomSlider.value = String(view.scale);
   els.zoomValue.textContent = view.scale.toFixed(2) + '×';
-  // show only in EDIT mode and when overlay exists
   const shouldShow = !!state.overlayImg && !!state.editMode;
   els.zoomUI.classList.toggle('show', shouldShow);
   if (shouldShow) positionZoomUI();
 }
 
-/* ===== Showcase (unchanged behavior) ===== */
+/* ===== Showcase (unchanged) ===== */
 function initMockupShowcase() {
   const urls = [...MOCKUP_IMAGES];
   const preload = urls.map(
@@ -169,7 +165,7 @@ function initMockupShowcase() {
       els.mockupTrack.style.transform = 'translate3d(0,0,0)';
       ensureWidth();
       els.mockupTrack.style.transform = prev;
-      positionZoomUI(); // keep zoom UI pinned on resize
+      positionZoomUI();
     };
     window.addEventListener('resize', onResize);
 
@@ -209,11 +205,9 @@ function updateEmptyState() {
   if (hasContent) positionZoomUI();
 }
 
-/* === CHANGED: allow edit without screenshot (license + overlay + quad) === */
 function readyForEdit(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
 function readyForExport(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
 
-/* marching-ants animation */
 let antsOffset = 0;
 let antsRAF = null;
 function startAntsIfNeeded(){
@@ -234,7 +228,7 @@ function updateActionStates(){
 
   const canSave = state.hasLicense && state.overlayImg && state.screenshotImg && state.quad;
   els.save.disabled = !canSave;
-  if (canSave) els.save.classList.remove('disabled'); else els.save.classList.add('disabled');
+  els.save.classList.toggle('disabled', !canSave);
 
   const shotReady = !!state.overlayImg && state.hasLicense;
   els.shot.disabled = !shotReady;
@@ -256,6 +250,7 @@ function updateActionStates(){
                       state.hasLicense && 
                       !state.editMode;
   els.exportMlBtn.disabled = !canExportMl;
+  els.exportMlBtn.classList.toggle('disabled', !canExportMl);
 }
 
 let statusTimeout;
@@ -275,7 +270,7 @@ function setError(text){
   setTimeout(()=>els.errorContainer.classList.remove('show'), 4000);
 }
 
-/* License UI/events (unchanged) */
+/* License UI/events */
 els.licenseInput.addEventListener('input', (e)=>{
   let value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   let formatted = value.match(/.{1,8}/g)?.join('-') || value;
@@ -347,7 +342,7 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-/* Geometry helpers and warp (unchanged) */
+/* Geometry & warp */
 function normalizeQuad(points) {
   const pts = points.slice();
   pts.sort((a,b)=>a.y-b.y);
@@ -462,7 +457,6 @@ function doRender(drawHandles=true, skipWarp=false, useView=true){
   if (state.editMode && drawHandles) drawEditHandles();
   setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
 
-  // Keep zoom UI pinned when canvas changes
   positionZoomUI();
 }
 
@@ -530,7 +524,6 @@ let lastTapTime=0;
 function handlePointerDown(ev){
   if (!state.hasLicense || !state.overlayImg) return;
 
-  // Double-tap/click: **enabled only in Edit Mode**
   const now = performance.now();
   const timeSince = now - lastTapTime;
   lastTapTime = now;
@@ -558,7 +551,6 @@ function handlePointerDown(ev){
       return;
     }
 
-    // Start panning **only in Edit Mode** when zoomed
     if (view.scale > 1){
       panning = true;
       panState.startX = canvasX;
@@ -569,8 +561,6 @@ function handlePointerDown(ev){
       return;
     }
   }
-
-  // In Normal mode: no panning and no double-tap zoom.
 }
 
 const panState = { startX:0, startY:0, baseOffsetX:0, baseOffsetY:0 };
@@ -620,23 +610,22 @@ els.canvas.addEventListener('touchstart', handlePointerDown, {passive:false});
 window.addEventListener('touchmove', handlePointerMove, {passive:false});
 window.addEventListener('touchend', handlePointerUp);
 
-/* Zoom slider -> updates view; visible only in edit mode */
+/* Zoom slider -> updates view */
 els.zoomSlider.addEventListener('input', (e)=>{
   const targetScale = parseFloat(e.target.value || '1');
   setView(targetScale, 0, 0, false);
 });
 
-/* Edit toggle: also updates cursor and zoom UI visibility */
+/* Edit toggle (includes reset on exit) */
 function toggleEdit(on){
   const next = (on===undefined) ? !state.editMode : !!on;
   if (!state.hasLicense || !state.overlayImg || !state.quad) return;
   if (next === state.editMode) return;
 
-  const wasEditing = state.editMode;          // ← keep previous state
+  const wasEditing = state.editMode;
   state.editMode = next;
   document.body.classList.toggle('editing', state.editMode);
 
-  // Cursor: only show grab when zoomed **and** editing
   els.canvas.style.cursor = (state.editMode && view.scale>1) ? 'grab' : (state.editMode ? 'pointer' : 'default');
 
   meshDetail = state.editMode ? MESH_DETAIL_DRAG : MESH_DETAIL_IDLE;
@@ -644,9 +633,8 @@ function toggleEdit(on){
     ? '<path d="M3 3v6M3 3h6M21 3h-6M21 3v6M3 21v-6M3 21h6M21 21h-6M21 21v-6"/><path d="M9 9l-6-6M15 9l6-6M9 15l-6 6M15 15l6 6"/>'
     : '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
 
-  // NEW: when leaving Edit Mode, reset zoom/pan to 1×
   if (wasEditing && !state.editMode) {
-    resetView();                 // ← ensures scale=1 and offsets=0
+    resetView();
   }
 
   updateActionStates();
@@ -671,7 +659,7 @@ function ensureDataUrl(str) {
   return `data:${mime};base64,${str}`;
 }
 
-/* Default 512x512 quad for screenshots */
+/* Default 512x512 quad */
 function createDefaultScreenshotQuad() {
   const W = state.overlayW;
   const H = state.overlayH;
@@ -687,17 +675,103 @@ function createDefaultScreenshotQuad() {
   ]);
 }
 
-/* Import handlers (unchanged logic) */
+/* Import handlers */
+/* Selected-state helpers for import buttons */
+function markImportSelected(btnEl, on){
+  if (!btnEl) return;
+  btnEl.classList.toggle('selected', !!on);
+}
+
+/* Clear functions */
+function clearTemplateImport(){
+  if (state.sourceType !== 'template') return;
+  state.overlayImg = null;
+  state.overlayW = 1024;
+  state.overlayH = 1024;
+  state.quad = null;
+  state.originalOverlayBase64 = null;
+  state.sourceType = null;
+  // Unselect template
+  markImportSelected(els.btnImportTemplate, false);
+  updateEmptyState();
+  updateActionStates();
+  resetView();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
+  setStatus('Template removed','idle');
+}
+
+function clearMliteImport(){
+  if (state.sourceType !== 'mlite') return;
+  state.overlayImg = null;
+  state.overlayW = 1024;
+  state.overlayH = 1024;
+  state.quad = null;
+  state.originalOverlayBase64 = null;
+  state.sourceType = null;
+  // Unselect mlite
+  markImportSelected(els.btnImportMl, false);
+  updateEmptyState();
+  updateActionStates();
+  resetView();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
+  setStatus('.mLite removed','idle');
+}
+
+function clearScreenshotImport(){
+  if (!state.screenshotImg) return;
+  state.screenshotImg = null;
+  markImportSelected(els.btnImportShot, false);
+  updateEmptyState();
+  updateActionStates();
+  doRender(true, false, true);
+  setStatus('Screenshot removed','idle');
+}
+
+/* Toggle-click behavior on import buttons:
+   - If nothing imported for that control, allow default (open file picker).
+   - If already imported, confirm removal, then clear and prevent file picker.
+*/
+els.btnImportTemplate.addEventListener('click', (e)=>{
+  if (state.sourceType === 'template' && state.overlayImg){
+    const ok = confirm('Remove the imported Template?');
+    if (ok){
+      e.preventDefault(); e.stopPropagation();
+      clearTemplateImport();
+    } else {
+      e.preventDefault(); e.stopPropagation();
+    }
+  }
+}, true);
+
+els.btnImportMl.addEventListener('click', (e)=>{
+  if (state.sourceType === 'mlite' && state.overlayImg){
+    const ok = confirm('Remove the imported .mLite file?');
+    if (ok){
+      e.preventDefault(); e.stopPropagation();
+      clearMliteImport();
+    } else {
+      e.preventDefault(); e.stopPropagation();
+    }
+  }
+}, true);
+
+els.btnImportShot.addEventListener('click', (e)=>{
+  // If disabled, global disabled handler will show toast.
+  if (state.screenshotImg){
+    const ok = confirm('Remove the imported Screenshot?');
+    if (ok){
+      e.preventDefault(); e.stopPropagation();
+      clearScreenshotImport();
+    } else {
+      e.preventDefault(); e.stopPropagation();
+    }
+  }
+}, true);
+
 document.getElementById('btnImportShot').addEventListener('click', (e)=>{
-  if (!state.hasLicense) { 
-    setStatus('Activate your license to import images','error'); 
-    e.preventDefault(); e.stopPropagation(); 
-    return; 
-  }
-  if (e.currentTarget.dataset.disabled) { 
-    setStatus('Import a Template PNG or .mlite first','error'); 
-    e.preventDefault(); e.stopPropagation(); 
-  }
+  // handled globally by disabled-click handler below
 });
 
 els.template.addEventListener('change', async (e)=>{
@@ -731,6 +805,9 @@ els.template.addEventListener('change', async (e)=>{
         state.screenshotOnTop = false;
         state.cornerRadius = 0;
 
+        // Mark Template button selected, ML button unselected (mutually exclusive)
+        markImportSelected(els.btnImportTemplate, true);
+        markImportSelected(els.btnImportMl, false);
         updateEmptyState();
         updateActionStates();
         resetView();
@@ -782,6 +859,9 @@ els.mlite.addEventListener('change', async (e)=>{
       state.screenshotOnTop = !!obj.screenshotOnTop;
       state.cornerRadius = (pv.cornerRadius) || 0;
       
+      // Mark .mLite button selected, Template button unselected (mutually exclusive)
+      markImportSelected(els.btnImportMl, true);
+      markImportSelected(els.btnImportTemplate, false);
       updateEmptyState();
       updateActionStates();
       resetView();
@@ -808,6 +888,8 @@ els.shot.addEventListener('change', (e)=>{
   img.onload = ()=>{ 
     state.screenshotImg = img;
     if (!state.quad) state.quad = createDefaultScreenshotQuad();
+    // Mark Screenshot button selected
+    markImportSelected(els.btnImportShot, true);
     updateEmptyState(); 
     updateActionStates(); 
     if (state.overlayImg && state.quad) doRender(true, false, true); 
@@ -817,7 +899,7 @@ els.shot.addEventListener('change', (e)=>{
   e.target.value = '';
 });
 
-/* Save mockup (unchanged) */
+/* Save mockup */
 document.getElementById('saveBtn').addEventListener('click', async ()=>{
   if (document.getElementById('saveBtn').disabled || !state.hasLicense) return;
   try{
@@ -868,7 +950,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
   }catch(err){ setError('Save failed: ' + err.message); }
 });
 
-/* .mlite export (unchanged) */
+/* .mlite export */
 function toBottomLeftNorm(pxPt){
   const nx = pxPt.x / state.overlayW;
   const ny_from_top = pxPt.y / state.overlayH;
@@ -925,9 +1007,75 @@ els.exportMlBtn.addEventListener('click', ()=>{
   if (state.editMode){ setStatus('Finish editing before exporting .mlite','error'); return; }
   if (!state.hasLicense){ setStatus('Activate your license to export .mlite','error'); return; }
   if (!state.overlayImg || !state.quad){ setStatus('Load a Template PNG first to export .mlite','error'); return; }
-  if (state.sourceType !== 'template'){ setStatus('Export .mlite only works with Template PNG imports','error'); return; }
+  if (state.sourceType !== 'template'){ setStatus('Only Templates can be exported as .mlite files. Import a Template to enable this option.','error'); return; }
   openNameModalLikePrompt('My Mockup.mlite');
 });
+
+/* GLOBAL DISABLED CLICK HANDLER */
+function getDisabledMessageFor(el){
+  const id = el.id || '';
+  // If no overlay/template/mlite loaded
+  const noImport = !state.overlayImg;
+  // For determining imported type
+  const notTemplate = state.sourceType !== 'template';
+
+  if (id === 'btnImportShot' || el.closest('#btnImportShot')){
+    return 'Import a .mLite file or Template before importing a Screenshot.';
+  }
+  if (id === 'exportMlBtn'){
+    if (noImport) return 'Import a .mLite file or Template before saving or exporting.';
+    if (notTemplate) return 'Only Templates can be exported as .mLite files. Import a Template to enable this option.';
+    if (state.editMode) return 'Finish editing before exporting .mLite.';
+  }
+  if (id === 'saveBtn'){
+    if (noImport) return 'Import a .mLite file or Template before saving or exporting.';
+    if (!state.hasLicense) return 'Activate your license to enable saving.';
+    if (!state.screenshotImg) return 'Import a Screenshot to enable saving.';
+  }
+  if (id === 'editBtn'){
+    if (!state.hasLicense) return 'Activate your license to edit.';
+    if (!state.overlayImg || !state.quad) return 'Import a .mLite file or Template first to enable editing.';
+  }
+  // Fallback
+  return 'This action is currently unavailable.';
+}
+
+function handleDisabledButtonClick(){
+  document.addEventListener('click', (e)=>{
+    // Find nearest actionable root (button or label acting as button)
+    const el = e.target.closest('button, label');
+    if (!el) return;
+
+    const isDisabled = el.disabled || el.classList.contains('disabled') || el.dataset.disabled === 'true';
+
+    if (isDisabled){
+      e.preventDefault();
+      e.stopPropagation();
+      const msg = getDisabledMessageFor(el);
+      setStatus(msg, 'error');
+      // Ensure visual dim state always applied
+      el.classList.add('disabled');
+      if ('disabled' in el) el.disabled = true;
+    }
+  }, true); // capture phase to intercept early
+}
+handleDisabledButtonClick();
+
+/* Robust disabled tap handler: works for true disabled buttons too */
+function isDisabledEl(el){
+  return !!(el && (el.disabled || el.classList.contains('disabled') || el.getAttribute('aria-disabled')==='true' || el.dataset.disabled === 'true'));
+}
+document.addEventListener('pointerdown', (e)=>{
+  const el = e.target.closest('button, label');
+  if (!el) return;
+  if (isDisabledEl(el)){
+    const msg = getDisabledMessageFor(el);
+    setStatus(msg, 'error');
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, true);
+
 
 /* Community link */
 els.browse?.addEventListener("click", () => {
@@ -946,8 +1094,6 @@ function boot(){
   setStatus('Ready to import files','idle');
   updateEmptyState();
   updateZoomUI();
-
-  // Keep zoom UI pinned on resize/scroll
   window.addEventListener('resize', positionZoomUI, { passive: true });
 }
 boot();

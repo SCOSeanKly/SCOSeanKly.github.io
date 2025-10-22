@@ -151,22 +151,38 @@
     .modal-btn.primary { background:#5b9cf5; color:#fff; }
     .modal-btn.secondary { background:#4a5568; color:#fff; }
 
-    .mockup-showcase {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0.35;
-      pointer-events: none;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      z-index: 0;
-    }
-    .mockup-track { display:flex; gap:40px; animation: scroll 60s linear infinite; will-change: transform; }
-    @keyframes scroll { from{transform: translateX(0)} to{transform: translateX(-50%)} }
-    .mockup-item { flex-shrink:0; width:512px; height:512px; border-radius:16px; object-fit:contain; filter:grayscale(30%) brightness(0.8); }
+ /* showcase mockup scrolling background */
+.mockup-showcase { 
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;           /* center child vertically */
+  align-items: center;     /* 👈 vertical centering */
+  z-index: 0;
+}
+
+
+.mockup-track { 
+  display: inline-flex; 
+  align-items: center;       /* ✅ vertically center all mockup images */
+  gap: 40px; 
+  will-change: transform; 
+  backface-visibility: hidden; 
+  transform: translate3d(0,0,0); 
+}
+
+
+.mockup-item { 
+  flex: 0 0 auto; 
+  width: 512px; 
+  height: 512px; 
+  border-radius: 16px; 
+  object-fit: contain; 
+  filter: grayscale(30%) brightness(0.8); 
+}
+
 
     canvas { 
       max-width:100%; 
@@ -423,18 +439,74 @@ function updateZoomUI(){
 }
 
 
+// Replace initMockupShowcase() with this:
 function initMockupShowcase() {
-  if (MOCKUP_IMAGES.length === 0) return;
-  const all = [...MOCKUP_IMAGES, ...MOCKUP_IMAGES];
-  els.mockupTrack.innerHTML = '';
-  all.forEach(url => {
-    const img = document.createElement('img');
-    img.src = url;
-    img.className = 'mockup-item';
-    img.alt = 'Mockup example';
-    els.mockupTrack.appendChild(img);
+  const urls = [...MOCKUP_IMAGES]; // originals
+  const preload = urls.map(
+    src =>
+      new Promise(res => {
+        const img = new Image();
+        img.loading = 'eager';
+        img.decoding = 'async';
+        img.onload = () => res({ ok: true, src });
+        img.onerror = () => res({ ok: false, src });
+        img.src = src;
+      })
+  );
+
+  Promise.all(preload).then(results => {
+    const okUrls = results.filter(r => r.ok).map(r => r.src);
+    if (!okUrls.length) return; // nothing to show
+
+    els.mockupTrack.innerHTML = '';
+
+    // Build enough content to be at least 2× container width
+    const ensureWidth = () => {
+      const need = els.mockupShowcase.clientWidth * 2;
+      while (els.mockupTrack.scrollWidth < need) {
+        okUrls.forEach(url => {
+          const img = document.createElement('img');
+          img.src = url;
+          img.alt = 'Mockup example';
+          img.className = 'mockup-item';
+          els.mockupTrack.appendChild(img);
+        });
+      }
+    };
+
+    ensureWidth();
+
+    // Seamless scroll loop at constant speed
+    let x = 0;
+    let speed = 60; // pixels per second; tweak to taste
+    let last = performance.now();
+
+    const step = now => {
+      const dt = (now - last) / 1000;
+      last = now;
+      x -= speed * dt;
+
+      const half = els.mockupTrack.scrollWidth / 2;
+      if (half > 0 && x <= -half) x += half;
+
+      els.mockupTrack.style.transform = `translate3d(${x}px,0,0)`;
+      rafId = requestAnimationFrame(step);
+    };
+
+    // Re-measure on resize so we keep ≥2× width
+    const onResize = () => {
+      // temporarily reset transform to measure accurately
+      const prev = els.mockupTrack.style.transform;
+      els.mockupTrack.style.transform = 'translate3d(0,0,0)';
+      ensureWidth();
+      els.mockupTrack.style.transform = prev;
+    };
+    window.addEventListener('resize', onResize);
+
+    rafId = requestAnimationFrame(step);
   });
 }
+
 
 const MESH_DETAIL_IDLE = 35;
 const MESH_DETAIL_DRAG = 0;

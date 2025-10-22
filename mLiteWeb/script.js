@@ -215,6 +215,7 @@ function updateEmptyState() {
   els.canvas.style.display = hasContent ? 'block' : 'none';
   els.zoomUI.classList.toggle('show', !!state.overlayImg && !!state.editMode);
   if (hasContent) positionZoomUI();
+  if (els.mockupShowcase) els.mockupShowcase.classList.toggle('hidden', !!hasContent);
 }
 
 function readyForEdit(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
@@ -1158,3 +1159,53 @@ function boot(){
   window.addEventListener('resize', positionZoomUI, { passive: true });
 }
 boot();
+
+
+// === Marquee toggle based on imported files (.mlite or Template) ===
+(function() {
+  function setupMarqueeToggle() {
+    var mockupShowcase = document.getElementById('mockupShowcase');
+    var mliteInput = document.getElementById('mliteFile');
+    var templateInput = document.getElementById('templateFile');
+    if (!mockupShowcase || !mliteInput || !templateInput) return;
+
+    var hasMlite = false;
+    var hasTemplate = false;
+
+    function updateShowcase() {
+      var shouldHide = hasMlite || hasTemplate;
+      if (shouldHide) {
+        mockupShowcase.classList.add('hidden');
+      } else {
+        mockupShowcase.classList.remove('hidden');
+      }
+    }
+
+    // Observe changes on the inputs
+    mliteInput.addEventListener('change', function() {
+      hasMlite = !!(mliteInput.files && mliteInput.files.length);
+      updateShowcase();
+    });
+
+    templateInput.addEventListener('change', function() {
+      hasTemplate = !!(templateInput.files && templateInput.files.length);
+      updateShowcase();
+    });
+
+    // Provide a tiny API other parts of the app can call if they clear files
+    window.mLiteMarquee = {
+      setMliteLoaded: function(loaded) { hasMlite = !!loaded; updateShowcase(); },
+      setTemplateLoaded: function(loaded) { hasTemplate = !!loaded; updateShowcase(); },
+      refresh: updateShowcase
+    };
+
+    // Initial state (show on first load)
+    updateShowcase();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupMarqueeToggle);
+  } else {
+    setupMarqueeToggle();
+  }
+})();

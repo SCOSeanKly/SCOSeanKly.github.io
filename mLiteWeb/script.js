@@ -1190,3 +1190,60 @@ if (_tplInput && !_tplInput.__skFlagBound) {
 window.__mliteSetShowcaseState = function({mlite=false, template=false}={}){
   _mliteLoaded = !!mlite; _templateLoaded = !!template; updateShowcaseVisibility();
 };
+
+
+// == Auto-close Menu Enhancements (non-breaking) ==
+(function(){
+  if (window.__mliteAutoCloseInit__) return;
+  window.__mliteAutoCloseInit__ = true;
+
+  function qs(id){ return document.getElementById(id); }
+  const menuToggle = qs('menuToggle');
+  const menuItems  = qs('menuItems');
+  // Mark likely cleanup actions to keep menu open
+  ['removeTemplateBtn','removeScreenshotBtn','refreshBtn','clearAllBtn'].forEach(id=>{
+    const el = qs(id);
+    if (el) el.dataset.keepopen = 'true';
+  });
+
+
+  function closeMenu(){
+    if (!menuItems) return;
+    menuItems.classList.remove('active');
+    menuToggle && menuToggle.classList.remove('active');
+  }
+
+  function isRemovalOrMultiStepModeActive(){
+    // Keep the menu open only if there are explicit keep-open elements (e.g., remove/cleanup buttons)
+    return !!document.querySelector('#menuItems [data-keepopen="true"]');
+  }
+
+  function maybeAutoCloseMenu(evt){
+    try {
+      if (evt?.currentTarget?.dataset?.keepopen === 'true') return;
+    } catch(e){}
+    if (isRemovalOrMultiStepModeActive()) return;
+    closeMenu();
+  }
+
+  // Wire up "one-and-done" actions to auto-close after they fire
+  const fileIds = ['mliteFile', 'shotFile', 'templateFile'];
+  fileIds.forEach(id => {
+    const el = qs(id);
+    if (el && !el.__ac_bound__) {
+      el.addEventListener('change', (e)=>{ maybeAutoCloseMenu(e); }, { passive: true });
+      el.__ac_bound__ = true;
+    }
+  });
+
+  ['saveBtn','exportMlBtn','websiteBtn'].forEach(id => {
+    const el = qs(id);
+    if (el && !el.__ac_bound__) {
+      el.addEventListener('click', maybeAutoCloseMenu, { passive: true });
+      el.__ac_bound__ = true;
+    }
+  });
+
+  // Optional: if the hamburger toggles via JS elsewhere, keep this safe no-op.
+  window.__mliteCloseMenu = closeMenu;
+})();

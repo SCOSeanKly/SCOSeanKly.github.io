@@ -67,6 +67,27 @@ const ctx = els.canvas.getContext('2d', { alpha: false });
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
 
+/* ===== PERFORMANCE OPTIMIZATION: Base Composite Cache ===== */
+let baseCompositeCanvas = null;
+let baseCompositeCtx = null;
+let baseCompositeDirty = true;
+
+function invalidateBaseComposite() {
+  baseCompositeDirty = true;
+}
+
+function ensureBaseCompositeCanvas() {
+  if (!baseCompositeCanvas || baseCompositeCanvas.width !== state.overlayW || baseCompositeCanvas.height !== state.overlayH) {
+    baseCompositeCanvas = document.createElement('canvas');
+    baseCompositeCanvas.width = state.overlayW;
+    baseCompositeCanvas.height = state.overlayH;
+    baseCompositeCtx = baseCompositeCanvas.getContext('2d', { alpha: false });
+    baseCompositeCtx.imageSmoothingEnabled = true;
+    baseCompositeCtx.imageSmoothingQuality = 'high';
+    baseCompositeDirty = true;
+  }
+}
+
 /* ===== View transform (pan & zoom) ===== */
 const view = { scale: 1, offsetX: 0, offsetY: 0 };
 
@@ -197,13 +218,11 @@ const ACCENT = '#5b9cf5';
 const IS_TOUCH = (typeof window !== 'undefined') && (('ontouchstart' in window) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
 
 function getHandleRadii(){
-  // Base visual radius scales with image size
   const base = Math.max(5, Math.min(state.overlayW, state.overlayH) * 0.010 * 0.5);
-  const rVis = IS_TOUCH ? Math.max(base, 12) : base;           // what we draw
-  const rHit = IS_TOUCH ? Math.max(rVis * 2.0, 28) : Math.max(rVis * 1.6, 18); // what we hit-test
+  const rVis = IS_TOUCH ? Math.max(base, 12) : base;
+  const rHit = IS_TOUCH ? Math.max(rVis * 2.0, 28) : Math.max(rVis * 1.6, 18);
   return { rVis, rHit };
 }
-
 
 let state = {
   overlayImg: null,
@@ -266,7 +285,6 @@ function updateActionStates(){
   els.btnImportShot.dataset.disabled = shotReady ? '' : 'true';
   els.btnImportShot.classList.toggle('disabled', !shotReady);
 
-  // Logo button follows same logic as screenshot
   const logoReady = !!state.overlayImg && state.hasLicense;
   els.logo.disabled = !logoReady;
   els.logoButtonGroup.dataset.disabled = logoReady ? '' : 'true';
@@ -373,7 +391,6 @@ els.menuToggle.addEventListener('click', ()=>{
   els.menuItems.classList.toggle('active');
 });
 
-/* Open ShowCreative site */
 els.website?.addEventListener('click', ()=>{
   window.open('https://www.showcreative.co.uk', '_blank', 'noopener');
 });
@@ -463,8 +480,116 @@ function warpImageToQuad(ctx, img, dstQuad, steps) {
   }
 }
 
-/* ===== Render ===== */
-function doRender(drawHandles=true, skipWarp=false, useView=true){
+/* ===== OPTIMIZED: Build base composite (screenshot + overlay) ===== */
+function buildBaseComposite() {
+  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
+  
+  ensureBaseCompositeCanvas();
+  
+  const quadArr = [
+    [state.quad[0].x, state.quad[0].y],
+    [state.quad[1].x, state.quad[1].y],
+    [state.quad[2].x, state.quad[2].y],
+    [state.quad[3].x, state.quad[3].y],
+  ];
+  
+  baseCompositeCtx.setTransform(1, 0, 0, 1, 0, 0);
+  baseCompositeCtx.clearRect(0, 0, baseCompositeCanvas.width, baseCompositeCanvas.height);
+  
+  if (state.screenshotImg) {
+    if (state.screenshotOnTop) {
+      baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
+      warpImageToQuad(baseCompositeCtx, state.screenshotImg, quadArr, meshDetail);
+    } else {
+      warpImageToQuad(baseCompositeCtx, state.screenshotImg, quadArr, meshDetail);
+      baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
+    }
+  } else {
+    baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
+  }
+  
+  baseCompositeDirty = false;
+}
+
+/* ===== Draw logo only (for fast slider updates) ===== */
+function drawLogoLayer(targetCtx) {
+  if (!state.logoImg) return;
+  
+  const padding = 40;
+  const baseHeight = state.overlayH * 0.15;
+  const baseWidth = state.overlayW * 0.25;
+  
+  const maxLogoHeight = baseHeight * state.logoSettings.scale;
+  const maxLogoWidth = baseWidth * state.logoSettings.scale;
+  
+  const logoAspect = state.logoImg.width / state.logoImg.height;
+  let logoW = state.logoImg.width;
+  let logoH = state.logoImg.height;
+  
+  if (logoH > maxLogoHeight) {
+    logoH = maxLogoHeight;
+    logoW = logoH * logoAspect;
+  }
+  if (logoW > maxLogoWidth) {
+    logoW = maxLogoWidth;
+    logoH = logoW / logoAspect;
+  }
+  
+  let logoX, logoY;
+  switch(state.logoSettings.position) {
+    case 'top-left':
+      logoX = padding;
+      logoY = padding;
+      break;
+    case 'top-right':
+      logoX = state.overlayW - logoW - padding;
+      logoY = padding;
+      break;
+    case 'bottom-right':
+      logoX = state.overlayW - logoW - padding;
+      logoY = state.overlayH - logoH - padding;
+      break;
+    case 'bottom-left':
+    default:
+      logoX = padding;
+      logoY = state.overlayH - logoH - padding;
+      break;
+  }
+  
+  targetCtx.save();
+  targetCtx.globalAlpha = state.logoSettings.opacity;
+  
+  if (state.logoSettings.cornerRadius > 0) {
+    targetCtx.beginPath();
+    const radius = Math.min(state.logoSettings.cornerRadius, logoW/2, logoH/2);
+    
+    if (targetCtx.roundRect) {
+      targetCtx.roundRect(logoX, logoY, logoW, logoH, radius);
+    } else {
+      targetCtx.moveTo(logoX + radius, logoY);
+      targetCtx.lineTo(logoX + logoW - radius, logoY);
+      targetCtx.quadraticCurveTo(logoX + logoW, logoY, logoX + logoW, logoY + radius);
+      targetCtx.lineTo(logoX + logoW, logoY + logoH - radius);
+      targetCtx.quadraticCurveTo(logoX + logoW, logoY + logoH, logoX + logoW - radius, logoY + logoH);
+      targetCtx.lineTo(logoX + radius, logoY + logoH);
+      targetCtx.quadraticCurveTo(logoX, logoY + logoH, logoX, logoY + logoH - radius);
+      targetCtx.lineTo(logoX, logoY + radius);
+      targetCtx.quadraticCurveTo(logoX, logoY, logoX + radius, logoY);
+      targetCtx.closePath();
+    }
+    targetCtx.clip();
+  }
+  
+  targetCtx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+  targetCtx.shadowBlur = 10;
+  targetCtx.shadowOffsetX = 2;
+  targetCtx.shadowOffsetY = 2;
+  targetCtx.drawImage(state.logoImg, logoX, logoY, logoW, logoH);
+  targetCtx.restore();
+}
+
+/* ===== OPTIMIZED: Main render with logo-only fast path ===== */
+function doRender(drawHandles=true, skipWarp=false, useView=true, logoOnly=false){
   if (!state.hasLicense || !state.overlayImg || !state.quad) return;
 
   ctx.setTransform(1,0,0,1,0,0);
@@ -474,112 +599,31 @@ function doRender(drawHandles=true, skipWarp=false, useView=true){
 
   if (useView){
     ctx.setTransform(view.scale, 0, 0, view.scale, view.offsetX, view.offsetY);
-  } else {
+    } else {
     ctx.setTransform(1,0,0,1,0,0);
   }
   
-  const quadArr = [
-    [state.quad[0].x, state.quad[0].y],
-    [state.quad[1].x, state.quad[1].y],
-    [state.quad[2].x, state.quad[2].y],
-    [state.quad[3].x, state.quad[3].y],
-  ];
-  
-  if (state.screenshotImg && !skipWarp) {
-    if (state.screenshotOnTop) { 
-      ctx.drawImage(state.overlayImg, 0, 0); 
-      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
-    } else { 
-      warpImageToQuad(ctx, state.screenshotImg, quadArr, meshDetail); 
-      ctx.drawImage(state.overlayImg, 0, 0); 
-    }
-  } else {
-    ctx.drawImage(state.overlayImg, 0, 0);
+  // FAST PATH: If only logo changed, use cached composite + redraw logo
+  if (logoOnly && !baseCompositeDirty && baseCompositeCanvas) {
+    ctx.drawImage(baseCompositeCanvas, 0, 0);
+    drawLogoLayer(ctx);
+    if (state.editMode && drawHandles) drawEditHandles();
+    positionZoomUI();
+    return;
   }
   
-  // Draw logo on top of everything if present
-  if (state.logoImg) {
-    const padding = 40; // Padding from edges
-    const baseHeight = state.overlayH * 0.15; // Base 15% of canvas height
-    const baseWidth = state.overlayW * 0.25; // Base 25% of canvas width
-    
-    // Apply scale setting
-    const maxLogoHeight = baseHeight * state.logoSettings.scale;
-    const maxLogoWidth = baseWidth * state.logoSettings.scale;
-    
-    // Calculate logo dimensions maintaining aspect ratio
-    const logoAspect = state.logoImg.width / state.logoImg.height;
-    let logoW = state.logoImg.width;
-    let logoH = state.logoImg.height;
-    
-    // Scale down if too large
-    if (logoH > maxLogoHeight) {
-      logoH = maxLogoHeight;
-      logoW = logoH * logoAspect;
-    }
-    if (logoW > maxLogoWidth) {
-      logoW = maxLogoWidth;
-      logoH = logoW / logoAspect;
-    }
-    
-    // Position based on settings
-    let logoX, logoY;
-    switch(state.logoSettings.position) {
-      case 'top-left':
-        logoX = padding;
-        logoY = padding;
-        break;
-      case 'top-right':
-        logoX = state.overlayW - logoW - padding;
-        logoY = padding;
-        break;
-      case 'bottom-right':
-        logoX = state.overlayW - logoW - padding;
-        logoY = state.overlayH - logoH - padding;
-        break;
-      case 'bottom-left':
-      default:
-        logoX = padding;
-        logoY = state.overlayH - logoH - padding;
-        break;
-    }
-    
-    // Draw with settings applied
-    ctx.save();
-    ctx.globalAlpha = state.logoSettings.opacity;
-    
-    // Apply corner radius if set
-    if (state.logoSettings.cornerRadius > 0) {
-      ctx.beginPath();
-      const radius = Math.min(state.logoSettings.cornerRadius, logoW/2, logoH/2);
-      
-      // Use roundRect if available, otherwise fall back to manual path
-      if (ctx.roundRect) {
-        ctx.roundRect(logoX, logoY, logoW, logoH, radius);
-      } else {
-        // Manual rounded rectangle path for older browsers
-        ctx.moveTo(logoX + radius, logoY);
-        ctx.lineTo(logoX + logoW - radius, logoY);
-        ctx.quadraticCurveTo(logoX + logoW, logoY, logoX + logoW, logoY + radius);
-        ctx.lineTo(logoX + logoW, logoY + logoH - radius);
-        ctx.quadraticCurveTo(logoX + logoW, logoY + logoH, logoX + logoW - radius, logoY + logoH);
-        ctx.lineTo(logoX + radius, logoY + logoH);
-        ctx.quadraticCurveTo(logoX, logoY + logoH, logoX, logoY + logoH - radius);
-        ctx.lineTo(logoX, logoY + radius);
-        ctx.quadraticCurveTo(logoX, logoY, logoX + radius, logoY);
-        ctx.closePath();
-      }
-      ctx.clip();
-    }
-    
-    // Draw with shadow for visibility
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    ctx.drawImage(state.logoImg, logoX, logoY, logoW, logoH);
-    ctx.restore();
+  // FULL RENDER: Rebuild base composite if dirty
+  if (baseCompositeDirty || !baseCompositeCanvas) {
+    buildBaseComposite();
   }
+  
+  // Draw the cached base composite
+  if (baseCompositeCanvas) {
+    ctx.drawImage(baseCompositeCanvas, 0, 0);
+  }
+  
+  // Draw logo on top
+  drawLogoLayer(ctx);
   
   if (state.editMode && drawHandles) drawEditHandles();
   setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
@@ -615,7 +659,6 @@ function drawEditHandles(){
     ctx.strokeStyle = 'white';
     ctx.stroke();
     if (IS_TOUCH) {
-      // outer ring cue, does not affect hit area
       ctx.beginPath();
       ctx.arc(p.x, p.y, rVis + 6, 0, Math.PI*2);
       ctx.globalAlpha = 0.35;
@@ -682,6 +725,7 @@ function handlePointerDown(ev){
       state.activeHandle = idx;
       dragging = true;
       meshDetail = MESH_DETAIL_DRAG;
+      invalidateBaseComposite();
       doRender(true, true, true);
       ev.preventDefault();
       return;
@@ -708,6 +752,7 @@ function handlePointerMove(ev){
     const i = state.activeHandle;
     state.quad[i].x = Math.max(0, Math.min(state.overlayW, x.x ?? x));
     state.quad[i].y = Math.max(0, Math.min(state.overlayH, y.y ?? y));
+    invalidateBaseComposite();
     doRender(true, true, true);
     ev.preventDefault();
     return;
@@ -730,6 +775,7 @@ function handlePointerUp(ev){
     dragging = false;
     state.activeHandle = -1;
     meshDetail = MESH_DETAIL_IDLE;
+    invalidateBaseComposite();
     doRender(true, false, true);
     ev.preventDefault();
   }
@@ -775,6 +821,7 @@ function toggleEdit(on){
 
   updateActionStates();
   updateZoomUI();
+  invalidateBaseComposite();
   doRender(true, false, true);
   if (state.editMode) startAntsIfNeeded(); else stopAnts();
 }
@@ -812,7 +859,6 @@ function createDefaultScreenshotQuad() {
 }
 
 /* Import handlers */
-/* Selected-state helpers for import buttons */
 function markImportSelected(btnEl, on){
   if (!btnEl) return;
   btnEl.classList.toggle('selected', !!on);
@@ -827,8 +873,8 @@ function clearTemplateImport(){
   state.quad = null;
   state.originalOverlayBase64 = null;
   state.sourceType = null;
-  // Unselect template
   markImportSelected(els.btnImportTemplate, false);
+  invalidateBaseComposite();
   updateEmptyState();
   updateActionStates();
   resetView();
@@ -845,8 +891,8 @@ function clearMliteImport(){
   state.quad = null;
   state.originalOverlayBase64 = null;
   state.sourceType = null;
-  // Unselect mlite
   markImportSelected(els.btnImportMl, false);
+  invalidateBaseComposite();
   updateEmptyState();
   updateActionStates();
   resetView();
@@ -859,6 +905,7 @@ function clearScreenshotImport(){
   if (!state.screenshotImg) return;
   state.screenshotImg = null;
   markImportSelected(els.btnImportShot, false);
+  invalidateBaseComposite();
   updateEmptyState();
   updateActionStates();
   doRender(true, false, true);
@@ -871,14 +918,12 @@ function clearLogoImport(){
   markImportSelected(els.btnImportLogo, false);
   els.btnLogoSettings.style.display = 'none';
   els.logoSettingsPanel.classList.remove('active');
-  // Reset logo settings to defaults
   state.logoSettings = {
     position: 'bottom-left',
     scale: 1.0,
     opacity: 1.0,
     cornerRadius: 0
   };
-  // Reset sliders
   if (els.logoScaleSlider) {
     els.logoScaleSlider.value = 1;
     els.logoScaleValue.textContent = '1.0';
@@ -891,7 +936,6 @@ function clearLogoImport(){
     els.logoRadiusSlider.value = 0;
     els.logoRadiusValue.textContent = '0px';
   }
-  // Reset position buttons
   document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.position-btn[data-position="bottom-left"]')?.classList.add('active');
   
@@ -901,10 +945,7 @@ function clearLogoImport(){
   setStatus('Logo removed','idle');
 }
 
-/* Toggle-click behavior on import buttons:
-   - If nothing imported for that control, allow default (open file picker).
-   - If already imported, confirm removal, then clear and prevent file picker.
-*/
+/* Toggle-click behavior on import buttons */
 els.btnImportTemplate.addEventListener('click', (e)=>{
   if (state.sourceType === 'template' && state.overlayImg){
     const ok = confirm('Remove the imported Template?');
@@ -930,7 +971,6 @@ els.btnImportMl.addEventListener('click', (e)=>{
 }, true);
 
 els.btnImportShot.addEventListener('click', (e)=>{
-  // If disabled, global disabled handler will show toast.
   if (state.screenshotImg){
     const ok = confirm('Remove the imported Screenshot?');
     if (ok){
@@ -943,7 +983,6 @@ els.btnImportShot.addEventListener('click', (e)=>{
 }, true);
 
 els.btnImportLogo.addEventListener('click', (e)=>{
-  // If disabled, global disabled handler will show toast.
   if (state.logoImg){
     const ok = confirm('Remove the imported Logo?');
     if (ok){
@@ -990,9 +1029,9 @@ els.template.addEventListener('change', async (e)=>{
         state.screenshotOnTop = false;
         state.cornerRadius = 0;
 
-        // Mark Template button selected, ML button unselected (mutually exclusive)
         markImportSelected(els.btnImportTemplate, true);
         markImportSelected(els.btnImportMl, false);
+        invalidateBaseComposite();
         updateEmptyState();
         updateActionStates();
         resetView();
@@ -1018,7 +1057,6 @@ els.mlite.addEventListener('change', async (e)=>{
   
   try{
     const txt = await file.text();
-    /* Friendly mobile error */
     if (!txt || txt.trim().length < 2){ throw new Error('Empty file'); }
     let obj;
     try { obj = JSON.parse(txt); } catch(parseErr){ throw new Error('This doesn\'t look like a valid .mlite file. If you\'re on iOS, make sure you selected the original .mlite file.'); }
@@ -1047,9 +1085,9 @@ els.mlite.addEventListener('change', async (e)=>{
       state.screenshotOnTop = !!obj.screenshotOnTop;
       state.cornerRadius = (pv.cornerRadius) || 0;
       
-      // Mark .mLite button selected, Template button unselected (mutually exclusive)
       markImportSelected(els.btnImportMl, true);
       markImportSelected(els.btnImportTemplate, false);
+      invalidateBaseComposite();
       updateEmptyState();
       updateActionStates();
       resetView();
@@ -1076,8 +1114,8 @@ els.shot.addEventListener('change', (e)=>{
   img.onload = ()=>{ 
     state.screenshotImg = img;
     if (!state.quad) state.quad = createDefaultScreenshotQuad();
-    // Mark Screenshot button selected
     markImportSelected(els.btnImportShot, true);
+    invalidateBaseComposite();
     updateEmptyState(); 
     updateActionStates(); 
     if (state.overlayImg && state.quad) doRender(true, false, true); 
@@ -1096,12 +1134,11 @@ els.logo.addEventListener('change', (e)=>{
   const img = new Image();
   img.onload = ()=>{ 
     state.logoImg = img;
-    // Mark Logo button selected and show settings button
     markImportSelected(els.btnImportLogo, true);
     els.btnLogoSettings.style.display = 'flex';
     updateEmptyState(); 
     updateActionStates(); 
-    if (state.overlayImg) doRender(true, false, true); 
+    if (state.overlayImg) doRender(true, false, true, true); 
     setStatus('Logo loaded ✓','success');
   };
   img.onerror = ()=> setError('Failed to load logo image.');
@@ -1123,7 +1160,6 @@ els.btnCloseLogoSettings?.addEventListener('click', () => {
   els.menuToggle.classList.add('active');
 });
 
-// Close logo settings when clicking outside
 document.addEventListener('click', (e) => {
   if (els.logoSettingsPanel?.classList.contains('active')) {
     if (!els.logoSettingsPanel.contains(e.target) && 
@@ -1141,36 +1177,34 @@ document.querySelectorAll('.position-btn').forEach(btn => {
     const position = btn.dataset.position;
     state.logoSettings.position = position;
     
-    // Update active state
     document.querySelectorAll('.position-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    if (state.overlayImg) doRender(true, false, true);
+    if (state.overlayImg) doRender(true, false, true, true);
   });
 });
 
-// Initialize first position button as active
 document.querySelector('.position-btn[data-position="bottom-left"]')?.classList.add('active');
 
-// Logo scale slider
+// OPTIMIZED: Logo scale slider - uses logoOnly flag
 els.logoScaleSlider?.addEventListener('input', (e) => {
   state.logoSettings.scale = parseFloat(e.target.value);
   els.logoScaleValue.textContent = state.logoSettings.scale.toFixed(1);
-  if (state.overlayImg && state.logoImg) doRender(true, false, true);
+  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
 });
 
-// Logo opacity slider
+// OPTIMIZED: Logo opacity slider - uses logoOnly flag
 els.logoOpacitySlider?.addEventListener('input', (e) => {
   state.logoSettings.opacity = parseFloat(e.target.value);
   els.logoOpacityValue.textContent = Math.round(state.logoSettings.opacity * 100) + '%';
-  if (state.overlayImg && state.logoImg) doRender(true, false, true);
+  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
 });
 
-// Logo radius slider
+// OPTIMIZED: Logo radius slider - uses logoOnly flag
 els.logoRadiusSlider?.addEventListener('input', (e) => {
   state.logoSettings.cornerRadius = parseInt(e.target.value);
   els.logoRadiusValue.textContent = state.logoSettings.cornerRadius + 'px';
-  if (state.overlayImg && state.logoImg) doRender(true, false, true);
+  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
 });
 
 /* Save mockup */
@@ -1208,82 +1242,7 @@ document.getElementById('saveBtn').addEventListener('click', async ()=>{
         ctxTarget.drawImage(state.overlayImg, 0, 0);
       }
       
-      // Draw logo on top of everything if present
-      if (state.logoImg) {
-        const padding = 40;
-        const baseHeight = state.overlayH * 0.15;
-        const baseWidth = state.overlayW * 0.25;
-        
-        const maxLogoHeight = baseHeight * state.logoSettings.scale;
-        const maxLogoWidth = baseWidth * state.logoSettings.scale;
-        
-        const logoAspect = state.logoImg.width / state.logoImg.height;
-        let logoW = state.logoImg.width;
-        let logoH = state.logoImg.height;
-        
-        if (logoH > maxLogoHeight) {
-          logoH = maxLogoHeight;
-          logoW = logoH * logoAspect;
-        }
-        if (logoW > maxLogoWidth) {
-          logoW = maxLogoWidth;
-          logoH = logoW / logoAspect;
-        }
-        
-        let logoX, logoY;
-        switch(state.logoSettings.position) {
-          case 'top-left':
-            logoX = padding;
-            logoY = padding;
-            break;
-          case 'top-right':
-            logoX = state.overlayW - logoW - padding;
-            logoY = padding;
-            break;
-          case 'bottom-right':
-            logoX = state.overlayW - logoW - padding;
-            logoY = state.overlayH - logoH - padding;
-            break;
-          case 'bottom-left':
-          default:
-            logoX = padding;
-            logoY = state.overlayH - logoH - padding;
-            break;
-        }
-        
-        ctxTarget.save();
-        ctxTarget.globalAlpha = state.logoSettings.opacity;
-        
-        if (state.logoSettings.cornerRadius > 0) {
-          ctxTarget.beginPath();
-          const radius = Math.min(state.logoSettings.cornerRadius, logoW/2, logoH/2);
-          
-          // Use roundRect if available, otherwise fall back to manual path
-          if (ctxTarget.roundRect) {
-            ctxTarget.roundRect(logoX, logoY, logoW, logoH, radius);
-          } else {
-            // Manual rounded rectangle path for older browsers
-            ctxTarget.moveTo(logoX + radius, logoY);
-            ctxTarget.lineTo(logoX + logoW - radius, logoY);
-            ctxTarget.quadraticCurveTo(logoX + logoW, logoY, logoX + logoW, logoY + radius);
-            ctxTarget.lineTo(logoX + logoW, logoY + logoH - radius);
-            ctxTarget.quadraticCurveTo(logoX + logoW, logoY + logoH, logoX + logoW - radius, logoY + logoH);
-            ctxTarget.lineTo(logoX + radius, logoY + logoH);
-            ctxTarget.quadraticCurveTo(logoX, logoY + logoH, logoX, logoY + logoH - radius);
-            ctxTarget.lineTo(logoX, logoY + radius);
-            ctxTarget.quadraticCurveTo(logoX, logoY, logoX + radius, logoY);
-            ctxTarget.closePath();
-          }
-          ctxTarget.clip();
-        }
-        
-        ctxTarget.shadowColor = 'rgba(0, 0, 0, 0.3)';
-        ctxTarget.shadowBlur = 10;
-        ctxTarget.shadowOffsetX = 2;
-        ctxTarget.shadowOffsetY = 2;
-        ctxTarget.drawImage(state.logoImg, logoX, logoY, logoW, logoH);
-        ctxTarget.restore();
-      }
+      drawLogoLayer(ctxTarget);
     })(octx);
 
     view.scale = prevScale; view.offsetX = prevOX; view.offsetY = prevOY;
@@ -1330,7 +1289,7 @@ function buildCurrentMlitedoc(name = 'iP17Industrial', index = 0){
       topRight:     toBottomLeftNorm(TR),
       bottomRight:  toBottomLeftNorm(BR),
       bottomLeft:   toBottomLeftNorm(BL),
-      cornerRadius: Math.round(state.cornerRadius || 0)
+       cornerRadius: Math.round(state.cornerRadius || 0)
     },
     name: name,
     screenshotOnTop: !!state.screenshotOnTop,
@@ -1568,3 +1527,4 @@ window.__mliteSetShowcaseState = function({mlite=false, template=false}={}){
   // Optional: if the hamburger toggles via JS elsewhere, keep this safe no-op.
   window.__mliteCloseMenu = closeMenu;
 })();
+

@@ -63,6 +63,8 @@ const els = {
   zoomValue: document.getElementById('zoomValue'),
 };
 
+
+
 const ctx = els.canvas.getContext('2d', { alpha: false });
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = 'high';
@@ -862,6 +864,19 @@ function createDefaultScreenshotQuad() {
 function markImportSelected(btnEl, on){
   if (!btnEl) return;
   btnEl.classList.toggle('selected', !!on);
+  
+  // Update button text
+  const span = btnEl.querySelector('span');
+  if (span) {
+    const currentText = span.textContent;
+    if (on) {
+      // Change "Import X" to "Remove X"
+      span.textContent = currentText.replace(/^Import\s+/i, 'Remove ');
+    } else {
+      // Change "Remove X" back to "Import X"
+      span.textContent = currentText.replace(/^Remove\s+/i, 'Import ');
+    }
+  }
 }
 
 /* Clear functions */

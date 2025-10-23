@@ -31,6 +31,17 @@
           <span>Import Screenshot</span>
         </label>
 
+        <div class="menu-btn-group disabled" data-disabled="true" id="logoButtonGroup">
+          <label class="menu-btn-main" for="logoFile" id="btnImportLogo">
+            <svg viewBox="0 0 24 24"><path d="M18 21v-2a4 4 0 0 0-4-4H10a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><path d="M16 3h5v5"></path></svg>
+            <input accept="image/*" disabled id="logoFile" type="file"/>
+            <span>Import Logo</span>
+          </label>
+          <button class="menu-btn-settings" id="btnLogoSettings" style="display:none;">
+            <svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"></path><circle cx="12" cy="12" r="10"></circle></svg>
+          </button>
+        </div>
+
         <label class="menu-btn" for="templateFile" id="btnImportTemplate">
           <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path><path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H9l-5 5v8a1 1 0 0 0 1 1z"></path></svg>
           <input accept="image/png" id="templateFile" type="file"/>
@@ -42,7 +53,6 @@
           <span>Save Mockup Image</span>
         </button>
 
-        <!-- Export .mlite in the menu (below Save Mockup Image) -->
         <button class="menu-btn disabled" disabled id="exportMlBtn">
           <svg viewBox="0 0 24 24"><path d="M12 5v10m0 0l-4-4m4 4 4-4M5 19h14"></path></svg>
           <span>Export .mlite</span>
@@ -53,8 +63,56 @@
           <span>showcreative.co.uk</span>
         </button>
       </div>
-    </div>
-  </div>
+
+      <!-- Logo Settings Panel -->
+      <div class="logo-settings-panel" id="logoSettingsPanel">
+        <div class="logo-settings-header">
+          <span>Logo Settings</span>
+          <button class="logo-settings-close" id="btnCloseLogoSettings">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div class="logo-position-group">
+          <span class="settings-label">Position</span>
+          <div class="logo-position-buttons">
+            <button class="position-btn" data-position="bottom-left" title="Bottom Left">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="14" width="6" height="6" fill="currentColor"/></svg>
+            </button>
+            <button class="position-btn" data-position="top-left" title="Top Left">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/><rect x="4" y="4" width="6" height="6" fill="currentColor"/></svg>
+            </button>
+            <button class="position-btn" data-position="top-right" title="Top Right">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="4" width="6" height="6" fill="currentColor"/></svg>
+            </button>
+            <button class="position-btn" data-position="bottom-right" title="Bottom Right">
+              <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="6" height="6" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="logo-setting-row">
+          <span class="settings-label">Scale</span>
+          <input type="range" id="logoScaleSlider" min="0.5" max="2" step="0.1" value="1" class="settings-slider"/>
+          <span class="slider-value" id="logoScaleValue">1.0</span>
+        </div>
+        
+        <div class="logo-setting-row">
+          <span class="settings-label">Opacity</span>
+          <input type="range" id="logoOpacitySlider" min="0" max="1" step="0.05" value="1" class="settings-slider"/>
+          <span class="slider-value" id="logoOpacityValue">100%</span>
+        </div>
+        
+        <div class="logo-setting-row">
+          <span class="settings-label">Radius</span>
+          <input type="range" id="logoRadiusSlider" min="0" max="50" step="1" value="0" class="settings-slider"/>
+          <span class="slider-value" id="logoRadiusValue">0px</span>
+        </div>
+      </div>
+      <!-- end logo-settings-panel -->
+
+    </div> <!-- end .menu-container -->
+  </div> <!-- end .header -->
 
   <div class="canvas-container" id="canvasContainer">
     <div class="mockup-showcase" id="mockupShowcase">
@@ -85,7 +143,7 @@
       <p class="subtitle">Super Simple Mockups</p>
       <p>• Import a mLite file using the Menu<br/>• Import a screenshot and save to your desktop</p>
       <p>• mLite files can be found on Telegram<br/>• Visit telegram via link in the menu</p>
-      <p>• Import a Template and Screenshot<br/>• Toggle Edit to drag blue corner dots<br/>• Double click to Zoom &amp; Reset<br/>• Export image or mLite file</p>
+      <p>• Import a Template and Screenshot<br/>• Toggle Edit to drag blue corner dots<br/>• Double click to Zoom & Reset<br/>• Export image or mLite file</p>
       <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>
     </div>
 

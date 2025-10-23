@@ -357,3 +357,264 @@ canvas { touch-action: none; }
 .menu-items.active {                         /* preserve existing transitions, just ensure visible */
   /* (keep existing transition/opacity/pointer-events in prior block) */
 }
+
+/* === Logo Button Group (Split Button) === */
+.menu-btn-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  animation: slideIn .3s ease forwards;
+  opacity: 0;
+}
+.menu-items.active .menu-btn-group { animation-delay: .15s; }
+
+.menu-btn-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 25px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  transition: all .3s ease;
+}
+
+.menu-btn-main:hover:not(.disabled) {
+  background: #5a6578;
+  transform: translateX(-5px);
+}
+
+.menu-btn-main svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.menu-btn-settings {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all .3s ease;
+  box-shadow: 0 4px 12px rgba(91,156,245,.4);
+}
+
+.menu-btn-settings:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(91,156,245,.6);
+}
+
+.menu-btn-settings svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Split button selected state */
+.menu-btn-main.selected {
+  background: var(--accent) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(91,156,245,.4) !important;
+}
+
+/* === Logo Settings Panel === */
+.logo-settings-panel {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 280px;
+  background: rgba(26, 32, 44, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  z-index: 100;
+}
+
+.logo-settings-panel.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.logo-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo-settings-header span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.logo-settings-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: all .2s ease;
+}
+
+.logo-settings-close:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+
+.logo-settings-close svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* Position buttons */
+.logo-position-group {
+  margin-bottom: 20px;
+}
+
+.settings-label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.logo-position-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.position-btn {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all .2s ease;
+}
+
+.position-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.05);
+}
+
+.position-btn.active {
+  background: rgba(91,156,245,0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.position-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Slider settings */
+.logo-setting-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 45px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.settings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  outline: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.settings-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 8px rgba(91,156,245,0.6);
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  transition: all .2s ease;
+}
+
+.slider-value {
+  font-size: 12px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Disabled state for logo button group */
+.menu-btn-group.disabled .menu-btn-main,
+.menu-btn-group[data-disabled="true"] .menu-btn-main {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* Mobile adjustments for logo settings */
+@media (max-width: 768px) {
+  .menu-btn-group { gap: 6px; }
+  .menu-btn-settings { width: 38px; height: 38px; }
+  .logo-settings-panel { width: 240px; padding: 14px; }
+  .position-btn svg { width: 24px; height: 24px; }
+  .logo-setting-row { grid-template-columns: 50px 1fr 40px; gap: 8px; }
+}

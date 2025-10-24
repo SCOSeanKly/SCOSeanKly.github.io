@@ -717,12 +717,31 @@ input[type="file"] {
     font-size: 13px;
   }
 
+  /* tighten top gap above "Icon Preview" */
   .main-container {
-    padding: 16px;
+    padding: 8px 16px 16px;
   }
 
+  /* allow taller / scaled carousel content to breathe,
+     stop cards being chopped vertically */
   .carousel-container {
-    height: 300px;
+    height: auto;
+    min-height: 300px;
+    overflow: visible;
+  }
+
+  .carousel-track {
+    min-height: 300px;
+  }
+
+  .carousel-item {
+    max-width: 80%;
+    max-height: 70vh;
+  }
+
+  .carousel-item img {
+    max-height: 70vh;
+    object-fit: contain;
   }
 
   .carousel-nav {
@@ -740,27 +759,26 @@ input[type="file"] {
   }
 
   /* Carousel Edge Fade */
-.carousel-container::before,
-.carousel-container::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 100px; /* width of the fade zone */
-  height: 100%;
-  z-index: 5;
-  pointer-events: none;
-}
+  .carousel-container::before,
+  .carousel-container::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 100px; /* width of the fade zone */
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+  }
 
-.carousel-container::before {
-  left: 0;
-  background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
-}
+  .carousel-container::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+  }
 
-.carousel-container::after {
-  right: 0;
-  background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
-}
-
+  .carousel-container::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg) 0%, transparent 100%);
+  }
 
   .effects-grid {
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -847,7 +865,7 @@ input[type="file"] {
   }
 
   .carousel-container {
-    height: 250px;
+    min-height: 260px;
   }
 
   .overlay-content {

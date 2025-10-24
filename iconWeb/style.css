@@ -34,7 +34,7 @@ body {
   display: flex; 
   justify-content: space-between; 
   align-items: center; 
-  padding: 20px 24px; 
+  padding: 16px 24px;
   gap: 16px; 
   position: relative; 
   z-index: 100; 
@@ -59,53 +59,67 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
+  padding: 16px 20px 20px;
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+  position: relative; /* so our loading overlays can absolutely position inside */
 }
 
-/* Empty & Loading States */
-.empty-state { 
-  text-align: center; 
-  max-width: 600px; 
-  padding: 60px 20px; 
-  margin: 40px auto;
-  transition: opacity .5s ease, visibility .5s ease;
-}
-
-.empty-state.hidden { 
-  opacity: 0; 
-  visibility: hidden;
+/* ===== ghost loading / empty blocks ===== */
+.loading-overlay {
   position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  /* visually it's up at the top of main-container */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  /* but: kill layout impact */
   pointer-events: none;
+  height: 0;
+  overflow: visible;
+  z-index: 10;
+  /* no margin, no padding: it will not push anything down */
 }
 
-.empty-state h2 { 
-  font-size: 32px; 
-  margin: 0 0 16px 0; 
-  color: var(--text); 
-  font-weight: 600; 
+.loading-overlay.hidden {
+  /* script can toggle this, fine */
+  opacity: 0;
+  visibility: hidden;
 }
 
-.empty-state p { 
-  font-size: 16px; 
-  color: var(--muted); 
-  line-height: 1.6; 
-  margin: 0 0 12px 0; 
+.loading-box {
+  /* purely cosmetic if you ever want to debug;
+     you can style this if you want a spinner overlay */
+  background: rgba(0,0,0,0); 
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  padding: 0;
+  margin-top: 0;
 }
 
-.empty-state .subtitle { 
-  font-size: 18px; 
-  color: var(--muted); 
-  margin: 0 0 24px 0; 
-  line-height: 1.5; 
+.loading-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.loading-sub {
+  color: var(--muted);
+  font-size: 13px;
 }
 
 /* Section Title */
 .section-title {
-  font-size: 22px;
-  margin-bottom: 20px;
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 16px;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -121,9 +135,7 @@ body {
 
 /* Carousel */
 .carousel-section {
-  margin-bottom: 50px;
-  opacity: 1;
-  transition: opacity .3s ease;
+  margin-bottom: 40px;
 }
 
 .carousel-section.hidden {
@@ -175,14 +187,14 @@ body {
   background: var(--btn-bg);
   border: none;
   color: var(--text);
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 20px;
   transition: all 0.3s ease;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0,0,0,.3);
@@ -190,7 +202,7 @@ body {
 
 .carousel-nav:hover {
   background: #5a6578;
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%) scale(1.08);
 }
 
 .carousel-nav.left {
@@ -203,9 +215,7 @@ body {
 
 /* Effects Grid */
 .effects-section {
-  margin-bottom: 50px;
-  opacity: 1;
-  transition: opacity .3s ease;
+  margin-bottom: 40px;
 }
 
 .effects-section.hidden {
@@ -296,9 +306,9 @@ body {
   background: var(--card);
   border: 2px dashed rgba(91,156,245,0.4);
   border-radius: 16px;
-  padding: 50px 30px;
+  padding: 40px 30px;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
   transition: all 0.3s ease;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0,0,0,.3);
@@ -322,20 +332,20 @@ body {
 }
 
 .upload-icon {
-  font-size: 60px;
-  margin-bottom: 20px;
+  font-size: 56px;
+  margin-bottom: 16px;
   opacity: 0.8;
 }
 
 .upload-section h3 {
-  font-size: 24px;
-  margin-bottom: 12px;
+  font-size: 20px;
+  margin-bottom: 8px;
   color: var(--text);
 }
 
 .upload-section p {
   color: var(--muted);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-size: 15px;
 }
 
@@ -345,8 +355,7 @@ input[type="file"] {
 
 /* Uploaded Files */
 .uploaded-files-section {
-  margin-bottom: 40px;
-  opacity: 1;
+  margin-bottom: 32px;
   transition: opacity .3s ease;
 }
 
@@ -389,10 +398,9 @@ input[type="file"] {
 .progress-section {
   background: var(--card);
   border-radius: 16px;
-  padding: 30px;
-  margin-bottom: 40px;
+  padding: 24px;
+  margin-bottom: 32px;
   box-shadow: 0 4px 16px rgba(0,0,0,.3);
-  opacity: 1;
   transition: opacity .3s ease;
 }
 
@@ -402,25 +410,25 @@ input[type="file"] {
 
 .progress-bar-container {
   width: 100%;
-  height: 50px;
+  height: 44px;
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 25px;
+  border-radius: 22px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   position: relative;
 }
 
 .progress-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--accent) 0%, #4a8fd9 100%);
-  border-radius: 25px;
+  border-radius: 22px;
   transition: width 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .progress-status {
@@ -433,13 +441,13 @@ input[type="file"] {
 .menu-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
+  gap: 8px;
+  padding: 10px 18px;
   background: var(--btn-bg);
   border: none;
   border-radius: 25px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -470,17 +478,17 @@ input[type="file"] {
 /* Floating Action Buttons */
 .action-buttons {
   position: fixed;
-  bottom: 30px;
-  right: 30px;
+  bottom: 24px;
+  right: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   z-index: 50;
 }
 
 .action-btn {
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   border-radius: 16px;
   background: var(--accent);
   border: none;
@@ -586,7 +594,7 @@ input[type="file"] {
 .overlay-content {
   background: var(--card);
   border-radius: 20px;
-  padding: 40px;
+  padding: 32px;
   max-width: 700px;
   width: 100%;
   max-height: 80vh;
@@ -596,23 +604,23 @@ input[type="file"] {
 }
 
 .overlay-content h2 {
-  font-size: 32px;
-  margin-bottom: 30px;
+  font-size: 28px;
+  margin-bottom: 24px;
   color: var(--text);
   font-weight: 700;
 }
 
 .overlay-close {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
   background: transparent;
   border: none;
   color: var(--text);
-  font-size: 40px;
+  font-size: 36px;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -630,45 +638,45 @@ input[type="file"] {
 .instructions {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .instruction-step {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: flex-start;
 }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: var(--accent);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .step-content h3 {
-  font-size: 18px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 6px;
   color: var(--text);
   font-weight: 600;
 }
 
 .step-content p {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--muted);
   line-height: 1.6;
 }
 
 /* Footer */
 .footer {
-  padding: 20px 24px;
+  padding: 16px 24px;
   text-align: center;
   color: var(--muted);
   font-size: 13px;
@@ -696,10 +704,10 @@ input[type="file"] {
   text-decoration: underline;
 }
 
-/* Mobile Responsive */
+/* Mobile tweaks */
 @media (max-width: 768px) {
   .header {
-    padding: 16px 20px;
+    padding: 12px 16px;
     flex-wrap: wrap;
   }
 
@@ -713,25 +721,22 @@ input[type="file"] {
   }
 
   .menu-btn {
-    padding: 10px 18px;
+    padding: 10px 16px;
     font-size: 13px;
   }
 
-  /* tighten top gap above "Icon Preview" */
   .main-container {
-    padding: 8px 16px 16px;
+    padding: 12px 16px 16px;
   }
 
-  /* allow taller / scaled carousel content to breathe,
-     stop cards being chopped vertically */
   .carousel-container {
     height: auto;
-    min-height: 300px;
+    min-height: 260px;
     overflow: visible;
   }
 
   .carousel-track {
-    min-height: 300px;
+    min-height: 260px;
   }
 
   .carousel-item {
@@ -747,7 +752,7 @@ input[type="file"] {
   .carousel-nav {
     width: 40px;
     height: 40px;
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .carousel-nav.left {
@@ -758,13 +763,12 @@ input[type="file"] {
     right: 10px;
   }
 
-  /* Carousel Edge Fade */
   .carousel-container::before,
   .carousel-container::after {
     content: "";
     position: absolute;
     top: 0;
-    width: 100px; /* width of the fade zone */
+    width: 80px;
     height: 100%;
     z-index: 5;
     pointer-events: none;
@@ -798,7 +802,7 @@ input[type="file"] {
   }
 
   .upload-section {
-    padding: 40px 20px;
+    padding: 32px 20px;
   }
 
   .upload-icon {
@@ -815,43 +819,8 @@ input[type="file"] {
     height: 52px;
   }
 
-  .empty-state h2 {
-    font-size: 26px;
-  }
-
-  .empty-state .subtitle {
-    font-size: 16px;
-  }
-
   .section-title {
-    font-size: 20px;
-  }
-
-  .overlay-content {
-    padding: 30px 20px;
-  }
-
-  .overlay-content h2 {
-    font-size: 26px;
-    margin-bottom: 24px;
-  }
-
-  .instruction-step {
-    gap: 16px;
-  }
-
-  .step-number {
-    width: 35px;
-    height: 35px;
     font-size: 18px;
-  }
-
-  .step-content h3 {
-    font-size: 16px;
-  }
-
-  .step-content p {
-    font-size: 14px;
   }
 }
 
@@ -862,13 +831,5 @@ input[type="file"] {
 
   .uploaded-files {
     grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-  }
-
-  .carousel-container {
-    min-height: 260px;
-  }
-
-  .overlay-content {
-    padding: 24px 16px;
   }
 }

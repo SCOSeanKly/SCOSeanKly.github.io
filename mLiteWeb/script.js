@@ -94,7 +94,7 @@ function ensureBaseCompositeCanvas() {
 const view = { scale: 1, offsetX: 0, offsetY: 0 };
 
 function setView(scale, anchorCanvasX, anchorCanvasY, keepPoint=false){
-  const clamped = Math.max(1, Math.min(5, scale));
+  const clamped = Math.max(1, Math.min(10, scale));
   if (!keepPoint){
     const cx = els.canvas.width * 0.5;
     const cy = els.canvas.height * 0.5;

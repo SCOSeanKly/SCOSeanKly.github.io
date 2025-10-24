@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IconWeb - Icon Effect Processor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">IconWeb</div>
+        <div class="header-menu">
+            <button class="menu-btn" id="howToBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                How To
+            </button>
+            <a href="https://showcreative.co.uk" target="_blank" class="menu-btn link-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Show Creative
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="empty-state">
+            <h2>Loading Images...</h2>
+            <p class="subtitle">Fetching icons and effects from GitHub</p>
+        </div>
+
+        <!-- Empty State (shown when loaded but no content) -->
+        <div id="emptyState" class="empty-state hidden">
+        </div>
+
+        <!-- Carousel Section -->
+        <div id="carouselSection" class="carousel-section hidden">
+            <h2 class="section-title">Icon Preview</h2>
+            <div class="carousel-container">
+                <div class="carousel-track" id="carouselTrack">
+                    <!-- Icons will be dynamically inserted here -->
+                </div>
+                <button class="carousel-nav left" id="prevBtn">‹</button>
+                <button class="carousel-nav right" id="nextBtn">›</button>
+            </div>
+        </div>
+
+        <!-- Effects Section -->
+        <div id="effectsSection" class="effects-section hidden">
+            <h2 class="section-title">
+                <span>Select Effects</span>
+                <span id="effectsCount" class="effects-count"></span>
+            </h2>
+            <div class="effects-grid" id="effectsGrid">
+                <!-- Effects will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div id="uploadSection" class="upload-section hidden">
+            <div class="upload-icon" id="uploadIcon">📤</div>
+            <h3 id="uploadTitle">Upload Your Icons</h3>
+            <p id="uploadSubtitle">Drag and drop your icon images here</p>
+            <button class="menu-btn" id="browseBtn">
+                <svg viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                Or Browse Files
+            </button>
+            <input type="file" id="fileInput" multiple accept="image/*">
+        </div>
+
+        <!-- Uploaded Files Display -->
+        <div id="uploadedFilesSection" class="uploaded-files-section hidden">
+            <h2 class="section-title">Uploaded Icons (<span id="uploadedCount">0</span>)</h2>
+            <div class="uploaded-files" id="uploadedFiles">
+                <!-- Uploaded file previews will appear here -->
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="progress-section hidden">
+            <h2 class="section-title">Processing</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar">
+                    <span id="progressText">0%</span>
+                </div>
+            </div>
+            <div class="progress-status" id="progressStatus"></div>
+        </div>
+
+    </div>
+
+    <!-- How To Overlay -->
+    <div id="howToOverlay" class="overlay hidden">
+        <div class="overlay-content">
+            <button class="overlay-close" id="closeOverlay">×</button>
+            <h2>How to Use IconWeb</h2>
+            <div class="instructions">
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Browse Sample Icons</h3>
+                        <p>Navigate through the carousel to preview available sample icons. Click the arrows or directly on an icon to switch between them.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Select Effects</h3>
+                        <p>Choose one or more effects from the effects grid. Selected effects will be highlighted and you can see them applied in the preview carousel.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Upload Your Icons</h3>
+                        <p>Drag and drop your icon images into the upload area, or click "Browse Files" to select them from your device.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Process & Download</h3>
+                        <p>Once you've uploaded your icons and selected effects, click the blue process button in the bottom-right corner to apply effects and download your processed icons as a ZIP file.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Toast -->
+    <div id="statusToast" class="status-toast"></div>
+
+    <!-- Floating Action Buttons -->
+    <div class="action-buttons">
+        <button class="action-btn" id="processBtn" disabled title="Process & Download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="16 12 12 8 8 12"/>
+                <line x1="12" y1="16" x2="12" y2="8"/>
+            </svg>
+        </button>
+        <button class="action-btn secondary" id="clearBtn" disabled title="Clear Uploads">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>IconWeb - Transform your icons with effects</p>
+        <p class="copyright">© 2025 IconWeb. Created by <a href="https://showcreative.co.uk" target="_blank">Show Creative</a></p>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <!-- Main Script -->
+    <script src="script.js"></script>
+</body>
+</html>

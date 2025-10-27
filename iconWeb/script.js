@@ -11,7 +11,8 @@ let state = {
     uploadedFiles: [],
     selectedEffects: [],
     currentIconIndex: 0,
-    processing: false
+    processing: false,
+    cornerRadiusPercent: 13 // Default corner radius as percentage (66px / 512px ≈ 13%)
 };
 
 // DOM Elements
@@ -43,7 +44,11 @@ const elements = {
     statusToast: document.getElementById('statusToast'),
     howToBtn: document.getElementById('howToBtn'),
     howToOverlay: document.getElementById('howToOverlay'),
-    closeOverlay: document.getElementById('closeOverlay')
+    closeOverlay: document.getElementById('closeOverlay'),
+    settingsBtn: document.getElementById('settingsBtn'),
+    settingsPanel: document.getElementById('settingsPanel'),
+    cornerRadiusSlider: document.getElementById('cornerRadiusSlider'),
+    radiusValue: document.getElementById('radiusValue')
 };
 
 // Initialize app
@@ -156,6 +161,13 @@ function convertGitHubUrlToApi(url) {
     return `https://api.github.com/repos/${user}/${repo}/contents/${path}?ref=${ref}`;
 }
 
+// Calculate corner radius in pixels based on percentage and image size
+function calculateRadius(width, height) {
+    const minDimension = Math.min(width, height);
+    const radiusPixels = (state.cornerRadiusPercent / 100) * minDimension;
+    return Math.min(radiusPixels, minDimension / 2);
+}
+
 // Render carousel
 function renderCarousel() {
     elements.carouselTrack.innerHTML = '';
@@ -172,7 +184,9 @@ function renderCarousel() {
         img.src = icon.url;
         img.alt = icon.name;
         img.className = 'carousel-base-icon';
-        img.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scale(1.0);';
+        // Use 300px as reference size for carousel items
+        const carouselRadius = calculateRadius(300, 300);
+        img.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scale(1.0); border-radius: ${carouselRadius}px;`;
         imgContainer.appendChild(img);
         
         // Add effect overlays
@@ -183,7 +197,7 @@ function renderCarousel() {
                 effectImg.src = effect.url;
                 effectImg.alt = effect.name;
                 effectImg.className = 'carousel-effect-overlay';
-                effectImg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
+                effectImg.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: ${carouselRadius}px;`;
                 imgContainer.appendChild(effectImg);
             }
         });
@@ -203,18 +217,25 @@ function getCarouselItemStyle(index) {
     const diff = index - state.currentIconIndex;
     const absN = Math.abs(diff);
     
+    // Calculate radius based on item size
+    const getRadiusForSize = (size) => calculateRadius(size, size);
+    
     if (absN === 0) {
         // Center item - no blur
-        return 'transform: translateX(0) scale(1); z-index: 5; opacity: 1; width: 300px; height: 300px; filter: blur(0px);';
+        const radius = getRadiusForSize(300);
+        return `transform: translateX(0) scale(1); z-index: 5; opacity: 1; width: 300px; height: 300px; filter: blur(0px); border-radius: ${radius}px;`;
     } else if (absN === 1) {
         // First outer items - slight blur
-        return `transform: translateX(${diff > 0 ? '350px' : '-350px'}) scale(0.8); z-index: 4; opacity: 0.7; width: 240px; height: 240px; filter: blur(2px);`;
+        const radius = getRadiusForSize(240);
+        return `transform: translateX(${diff > 0 ? '350px' : '-350px'}) scale(0.8); z-index: 4; opacity: 0.7; width: 240px; height: 240px; filter: blur(2px); border-radius: ${radius}px;`;
     } else if (absN === 2) {
         // Second outer items - more blur
-        return `transform: translateX(${diff > 0 ? '650px' : '-650px'}) scale(0.6); z-index: 3; opacity: 0.4; width: 180px; height: 180px; filter: blur(4px);`;
+        const radius = getRadiusForSize(180);
+        return `transform: translateX(${diff > 0 ? '650px' : '-650px'}) scale(0.6); z-index: 3; opacity: 0.4; width: 180px; height: 180px; filter: blur(4px); border-radius: ${radius}px;`;
     } else {
         // Furthest items - maximum blur
-        return `transform: translateX(${diff > 0 ? '900px' : '-900px'}) scale(0.4); z-index: 1; opacity: 0; width: 120px; height: 120px; filter: blur(6px);`;
+        const radius = getRadiusForSize(120);
+        return `transform: translateX(${diff > 0 ? '900px' : '-900px'}) scale(0.4); z-index: 1; opacity: 0; width: 120px; height: 120px; filter: blur(6px); border-radius: ${radius}px;`;
     }
 }
 
@@ -223,6 +244,14 @@ function updateCarousel() {
     const items = elements.carouselTrack.querySelectorAll('.carousel-item');
     items.forEach((item, index) => {
         item.style.cssText = getCarouselItemStyle(index);
+        
+        // Update border radius on all images
+        const images = item.querySelectorAll('img');
+        const itemSize = index === state.currentIconIndex ? 300 : (Math.abs(index - state.currentIconIndex) === 1 ? 240 : 180);
+        const radius = calculateRadius(itemSize, itemSize);
+        images.forEach(img => {
+            img.style.borderRadius = `${radius}px`;
+        });
     });
 }
 
@@ -299,6 +328,25 @@ function setupEventListeners() {
         updateCarousel();
     });
     
+    // Settings panel toggle
+    elements.settingsBtn.addEventListener('click', () => {
+        elements.settingsPanel.classList.toggle('hidden');
+    });
+    
+    // Corner radius slider
+    elements.cornerRadiusSlider.addEventListener('input', (e) => {
+        // Slider goes from 0-300, convert to percentage (0-50%)
+        // Max 50% makes sense as that creates a perfect circle
+        state.cornerRadiusPercent = (parseInt(e.target.value) / 300) * 50;
+        
+        // Display the pixel value for a 512x512 image
+        const displayValue = Math.round(calculateRadius(512, 512));
+        elements.radiusValue.textContent = displayValue;
+        
+        updateCarousel();
+        renderUploadedFiles();
+    });
+    
     // Upload handlers
     elements.uploadSection.addEventListener('click', () => elements.fileInput.click());
     elements.browseBtn.addEventListener('click', (e) => {
@@ -348,14 +396,41 @@ function processUploadedFiles(files) {
     
     imageFiles.forEach(file => {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
+            // Load the image to check dimensions
+            const img = await loadImage(e.target.result);
+            
+            // Check if image is square
+            const isSquare = img.width === img.height;
+            
+            // Create a canvas to resize to 512x512
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw image scaled to 512x512
+            ctx.drawImage(img, 0, 0, 512, 512);
+            
+            // Convert to data URL
+            const resizedDataUrl = canvas.toDataURL('image/png');
+            
             state.uploadedFiles.push({
                 name: file.name,
-                preview: e.target.result,
-                file: file
+                preview: resizedDataUrl,
+                file: file,
+                isSquare: isSquare,
+                originalWidth: img.width,
+                originalHeight: img.height
             });
+            
             renderUploadedFiles();
             updateButtonStates();
+            
+            // Show warning if not square
+            if (!isSquare) {
+                showToast(`Warning: "${file.name}" is not square (${img.width}×${img.height}). Results may vary.`, 'info');
+            }
         };
         reader.readAsDataURL(file);
     });
@@ -378,14 +453,17 @@ function renderUploadedFiles() {
         const item = document.createElement('div');
         item.className = 'uploaded-file';
         
+        // Calculate radius for thumbnail (90px height)
+        const thumbnailRadius = calculateRadius(90, 90);
+        
         // Create container for image + effects
         const imgContainer = document.createElement('div');
-        imgContainer.style.cssText = 'position: relative; width: 100%; height: 90px; margin-bottom: 8px; border-radius: 8px; overflow: hidden;';
+        imgContainer.style.cssText = `position: relative; width: 100%; height: 90px; margin-bottom: 8px; border-radius: ${thumbnailRadius}px; overflow: hidden;`;
         
         const img = document.createElement('img');
         img.src = file.preview;
         img.alt = file.name;
-        img.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 8px;';
+        img.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: ${thumbnailRadius}px;`;
         imgContainer.appendChild(img);
         
         // Add effect overlays if any selected
@@ -395,10 +473,23 @@ function renderUploadedFiles() {
                 const effectImg = document.createElement('img');
                 effectImg.src = effect.url;
                 effectImg.alt = effect.name;
-                effectImg.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 8px;';
+                effectImg.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: ${thumbnailRadius}px;`;
                 imgContainer.appendChild(effectImg);
             }
         });
+        
+        // Add warning icon if not square
+        if (!file.isSquare) {
+            const warning = document.createElement('div');
+            warning.className = 'warning-badge';
+            warning.innerHTML = '⚠️';
+            warning.title = 'Non-square image';
+            warning.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showToast(`"${file.name}" is not square (${file.originalWidth}×${file.originalHeight}). It has been resized to 512×512, which may distort the image. For best results, use square images.`, 'info', 5000);
+            });
+            imgContainer.appendChild(warning);
+        }
         
         const name = document.createElement('div');
         name.className = 'file-name';
@@ -446,7 +537,7 @@ function handleDrop(e) {
     processUploadedFiles(files);
 }
 
-// Process images
+// Process images with rounded corners
 async function processImages() {
     if (state.uploadedFiles.length === 0) {
         showToast('Please upload at least one icon image', 'error');
@@ -474,27 +565,61 @@ async function processImages() {
                 `Processing ${i + 1} of ${state.uploadedFiles.length}...`
             );
             
-            // Load the base image
+            // Load the base image (already 512x512)
             const img = await loadImage(file.preview);
             
-            // Create canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+            // Step 1: Create a canvas with the composited image
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const tempCtx = tempCanvas.getContext('2d', { alpha: true });
             
             // Draw base image
-            ctx.drawImage(img, 0, 0);
+            tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
             
             // Apply each selected effect
             for (const effect of effectImages) {
                 const effectImg = await loadImage(effect.url);
-                ctx.drawImage(effectImg, 0, 0, canvas.width, canvas.height);
+                tempCtx.drawImage(effectImg, 0, 0, tempCanvas.width, tempCanvas.height);
             }
+            
+            // Step 2: Create the final canvas with mask
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d', { alpha: true });
+            
+            // Clear to fully transparent
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Calculate radius based on actual export size (512x512) using percentage
+            const radius = calculateRadius(canvas.width, canvas.height);
+            
+            // Draw the rounded rectangle mask in white
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(canvas.width - radius, 0);
+            ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
+            ctx.lineTo(canvas.width, canvas.height - radius);
+            ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
+            ctx.lineTo(radius, canvas.height);
+            ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Use source-in to keep only the image within the mask
+            ctx.globalCompositeOperation = 'source-in';
+            ctx.drawImage(tempCanvas, 0, 0);
+            
+            // Reset composite operation
+            ctx.globalCompositeOperation = 'source-over';
             
             // Convert to blob and add to zip
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const fileName = `processed_${file.name}`;
+            const fileName = `processed_${file.name.replace(/\.[^/.]+$/, '')}.png`;
             zip.file(fileName, blob);
             
             setProgress(
@@ -529,6 +654,25 @@ async function processImages() {
         state.processing = false;
         updateButtonStates();
     }
+}
+
+// Create rounded rectangle path for clipping
+function createRoundedRectPath(ctx, x, y, width, height, radius) {
+    // Limit radius to half of the smallest dimension
+    const maxRadius = Math.min(width, height) / 2;
+    radius = Math.min(radius, maxRadius);
+    
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.arcTo(x + width, y, x + width, y + radius, radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
+    ctx.lineTo(x + radius, y + height);
+    ctx.arcTo(x, y + height, x, y + height - radius, radius);
+    ctx.lineTo(x, y + radius);
+    ctx.arcTo(x, y, x + radius, y, radius);
+    ctx.closePath();
 }
 
 // Load image helper
@@ -577,7 +721,7 @@ function hideElement(element) {
 }
 
 // Show toast
-function showToast(message, type = 'info') {
+function showToast(message, type = 'info', duration = 3000) {
     elements.statusToast.textContent = message;
     elements.statusToast.className = `status-toast ${type}`;
     
@@ -588,7 +732,7 @@ function showToast(message, type = 'info') {
     
     setTimeout(() => {
         elements.statusToast.classList.remove('show');
-    }, 3000);
+    }, duration);
 }
 
 // Initialize on load

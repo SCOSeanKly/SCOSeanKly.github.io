@@ -11,6 +11,13 @@
     <div class="header">
         <div class="logo">IconWeb</div>
         <div class="header-menu">
+            <button class="menu-btn" id="settingsBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                </svg>
+                Settings
+            </button>
             <button class="menu-btn" id="howToBtn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
@@ -27,6 +34,24 @@
                 </svg>
                 Show Creative
             </a>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel hidden">
+        <div class="settings-content">
+            <h3 class="settings-title">Corner Radius</h3>
+            <div class="slider-container">
+                <input type="range" id="cornerRadiusSlider" class="radius-slider" min="0" max="300" value="66" step="1">
+                <div class="slider-value">
+                    <span id="radiusValue">66</span>
+                    <span class="slider-unit">px</span>
+                </div>
+            </div>
+            <div class="slider-labels">
+                <span>Square</span>
+                <span>Rounded</span>
+            </div>
         </div>
     </div>
 
@@ -127,12 +152,19 @@
                 <div class="instruction-step">
                     <div class="step-number">3</div>
                     <div class="step-content">
+                        <h3>Adjust Corner Radius</h3>
+                        <p>Click Settings to adjust the corner radius from 0 (square) to 300 (very rounded). Changes apply to preview and export.</p>
+                    </div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
                         <h3>Upload Your Icons</h3>
                         <p>Drop PNGs/SVGs, or tap Browse.</p>
                     </div>
                 </div>
                 <div class="instruction-step">
-                    <div class="step-number">4</div>
+                    <div class="step-number">5</div>
                     <div class="step-content">
                         <h3>Download</h3>
                         <p>Tap the blue button bottom-right. We'll generate all variants and give you a ZIP.</p>

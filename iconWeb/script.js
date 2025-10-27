@@ -12,7 +12,10 @@ let state = {
     selectedEffects: [],
     currentIconIndex: 0,
     processing: false,
-    cornerRadiusPercent: 13 // Default corner radius as percentage (66px / 512px ≈ 13%)
+    cornerRadiusPercent: 13, // Default corner radius as percentage (66px / 512px ≈ 13%)
+    shadowOpacity: 0,        // Shadow opacity 0-100 (default off)
+    shadowYOffset: 10,       // Shadow Y offset in pixels
+    shadowBlur: 20           // Shadow blur/spread in pixels
 };
 
 // DOM Elements
@@ -48,7 +51,13 @@ const elements = {
     settingsBtn: document.getElementById('settingsBtn'),
     settingsPanel: document.getElementById('settingsPanel'),
     cornerRadiusSlider: document.getElementById('cornerRadiusSlider'),
-    radiusValue: document.getElementById('radiusValue')
+    radiusValue: document.getElementById('radiusValue'),
+    shadowOpacitySlider: document.getElementById('shadowOpacitySlider'),
+    shadowOpacityValue: document.getElementById('shadowOpacityValue'),
+    shadowYOffsetSlider: document.getElementById('shadowYOffsetSlider'),
+    shadowYOffsetValue: document.getElementById('shadowYOffsetValue'),
+    shadowBlurSlider: document.getElementById('shadowBlurSlider'),
+    shadowBlurValue: document.getElementById('shadowBlurValue')
 };
 
 // Initialize app
@@ -186,6 +195,7 @@ function renderCarousel() {
         img.className = 'carousel-base-icon';
         // Use 300px as reference size for carousel items
         const carouselRadius = calculateRadius(300, 300);
+        
         img.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scale(1.0); border-radius: ${carouselRadius}px;`;
         imgContainer.appendChild(img);
         
@@ -220,22 +230,41 @@ function getCarouselItemStyle(index) {
     // Calculate radius based on item size
     const getRadiusForSize = (size) => calculateRadius(size, size);
     
+    // Calculate shadow style if enabled
+    let shadowStyle = '';
+    if (state.shadowOpacity > 0) {
+        const shadowOpacityDecimal = state.shadowOpacity / 100;
+        // We'll scale the shadow based on the item size
+        const baseSize = 300; // Center item size
+        let itemSize = 300;
+        
+        if (absN === 0) itemSize = 300;
+        else if (absN === 1) itemSize = 240;
+        else if (absN === 2) itemSize = 180;
+        else itemSize = 120;
+        
+        const scale = itemSize / 512;
+        const scaledYOffset = state.shadowYOffset * scale;
+        const scaledBlur = state.shadowBlur * scale;
+        shadowStyle = ` box-shadow: 0 ${scaledYOffset}px ${scaledBlur}px rgba(0,0,0,${shadowOpacityDecimal});`;
+    }
+    
     if (absN === 0) {
         // Center item - no blur
         const radius = getRadiusForSize(300);
-        return `transform: translateX(0) scale(1); z-index: 5; opacity: 1; width: 300px; height: 300px; filter: blur(0px); border-radius: ${radius}px;`;
+        return `transform: translateX(0) scale(1); z-index: 5; opacity: 1; width: 300px; height: 300px; filter: blur(0px); border-radius: ${radius}px;${shadowStyle}`;
     } else if (absN === 1) {
         // First outer items - slight blur
         const radius = getRadiusForSize(240);
-        return `transform: translateX(${diff > 0 ? '350px' : '-350px'}) scale(0.8); z-index: 4; opacity: 0.7; width: 240px; height: 240px; filter: blur(2px); border-radius: ${radius}px;`;
+        return `transform: translateX(${diff > 0 ? '350px' : '-350px'}) scale(0.8); z-index: 4; opacity: 0.7; width: 240px; height: 240px; filter: blur(2px); border-radius: ${radius}px;${shadowStyle}`;
     } else if (absN === 2) {
         // Second outer items - more blur
         const radius = getRadiusForSize(180);
-        return `transform: translateX(${diff > 0 ? '650px' : '-650px'}) scale(0.6); z-index: 3; opacity: 0.4; width: 180px; height: 180px; filter: blur(4px); border-radius: ${radius}px;`;
+        return `transform: translateX(${diff > 0 ? '650px' : '-650px'}) scale(0.6); z-index: 3; opacity: 0.4; width: 180px; height: 180px; filter: blur(4px); border-radius: ${radius}px;${shadowStyle}`;
     } else {
         // Furthest items - maximum blur
         const radius = getRadiusForSize(120);
-        return `transform: translateX(${diff > 0 ? '900px' : '-900px'}) scale(0.4); z-index: 1; opacity: 0; width: 120px; height: 120px; filter: blur(6px); border-radius: ${radius}px;`;
+        return `transform: translateX(${diff > 0 ? '900px' : '-900px'}) scale(0.4); z-index: 1; opacity: 0; width: 120px; height: 120px; filter: blur(6px); border-radius: ${radius}px;${shadowStyle}`;
     }
 }
 
@@ -343,6 +372,30 @@ function setupEventListeners() {
         const displayValue = Math.round(calculateRadius(512, 512));
         elements.radiusValue.textContent = displayValue;
         
+        updateCarousel();
+        renderUploadedFiles();
+    });
+    
+    // Shadow opacity slider
+    elements.shadowOpacitySlider.addEventListener('input', (e) => {
+        state.shadowOpacity = parseInt(e.target.value);
+        elements.shadowOpacityValue.textContent = state.shadowOpacity;
+        updateCarousel();
+        renderUploadedFiles();
+    });
+    
+    // Shadow Y offset slider
+    elements.shadowYOffsetSlider.addEventListener('input', (e) => {
+        state.shadowYOffset = parseInt(e.target.value);
+        elements.shadowYOffsetValue.textContent = state.shadowYOffset;
+        updateCarousel();
+        renderUploadedFiles();
+    });
+    
+    // Shadow blur slider
+    elements.shadowBlurSlider.addEventListener('input', (e) => {
+        state.shadowBlur = parseInt(e.target.value);
+        elements.shadowBlurValue.textContent = state.shadowBlur;
         updateCarousel();
         renderUploadedFiles();
     });
@@ -456,9 +509,20 @@ function renderUploadedFiles() {
         // Calculate radius for thumbnail (90px height)
         const thumbnailRadius = calculateRadius(90, 90);
         
+        // Apply shadow if opacity > 0
+        let shadowStyle = '';
+        if (state.shadowOpacity > 0) {
+            const shadowOpacityDecimal = state.shadowOpacity / 100;
+            // Scale shadow offset and blur to thumbnail size (90px vs 512px)
+            const scale = 90 / 512;
+            const scaledYOffset = state.shadowYOffset * scale;
+            const scaledBlur = state.shadowBlur * scale;
+            shadowStyle = `box-shadow: 0 ${scaledYOffset}px ${scaledBlur}px rgba(0,0,0,${shadowOpacityDecimal});`;
+        }
+        
         // Create container for image + effects
         const imgContainer = document.createElement('div');
-        imgContainer.style.cssText = `position: relative; width: 100%; height: 90px; margin-bottom: 8px; border-radius: ${thumbnailRadius}px; overflow: hidden;`;
+        imgContainer.style.cssText = `position: relative; width: 100%; height: 90px; margin-bottom: 8px; border-radius: ${thumbnailRadius}px; overflow: visible; ${shadowStyle}`;
         
         const img = document.createElement('img');
         img.src = file.preview;
@@ -583,7 +647,7 @@ async function processImages() {
                 tempCtx.drawImage(effectImg, 0, 0, tempCanvas.width, tempCanvas.height);
             }
             
-            // Step 2: Create the final canvas with mask
+            // Step 2: Create the final canvas first
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
@@ -592,30 +656,105 @@ async function processImages() {
             // Clear to fully transparent
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Step 3: Calculate shadow requirements and icon scaling
+            const hasShadow = state.shadowOpacity > 0;
+            let shadowMargin = 0;
+            let iconScale = 1.0;
+            
+            if (hasShadow) {
+                // Calculate how much space we need for the shadow
+                // Shadow extends downward by yOffset + blur
+                shadowMargin = state.shadowYOffset + state.shadowBlur;
+                // Scale down the icon to make room for shadow
+                // We need to fit the icon + shadow within the canvas
+                iconScale = (canvas.width - shadowMargin * 2) / canvas.width;
+                // Ensure we don't scale too small
+                iconScale = Math.max(iconScale, 0.7);
+            }
+            
             // Calculate radius based on actual export size (512x512) using percentage
             const radius = calculateRadius(canvas.width, canvas.height);
             
-            // Draw the rounded rectangle mask in white
-            ctx.fillStyle = '#FFFFFF';
-            ctx.beginPath();
-            ctx.moveTo(radius, 0);
-            ctx.lineTo(canvas.width - radius, 0);
-            ctx.quadraticCurveTo(canvas.width, 0, canvas.width, radius);
-            ctx.lineTo(canvas.width, canvas.height - radius);
-            ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - radius, canvas.height);
-            ctx.lineTo(radius, canvas.height);
-            ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - radius);
-            ctx.lineTo(0, radius);
-            ctx.quadraticCurveTo(0, 0, radius, 0);
-            ctx.closePath();
-            ctx.fill();
+            // Calculate scaled dimensions and position
+            const scaledSize = canvas.width * iconScale;
+            const offset = (canvas.width - scaledSize) / 2;
             
-            // Use source-in to keep only the image within the mask
-            ctx.globalCompositeOperation = 'source-in';
-            ctx.drawImage(tempCanvas, 0, 0);
+            // Step 4: Draw shadow if enabled
+            if (hasShadow) {
+                ctx.save();
+                
+                // Set shadow properties
+                ctx.shadowColor = `rgba(0, 0, 0, ${state.shadowOpacity / 100})`;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = state.shadowYOffset;
+                ctx.shadowBlur = state.shadowBlur;
+                
+                // Draw the rounded rectangle for shadow (filled shape)
+                const scaledRadius = radius * iconScale;
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // The shadow is created from this
+                ctx.beginPath();
+                ctx.moveTo(offset + scaledRadius, offset);
+                ctx.lineTo(offset + scaledSize - scaledRadius, offset);
+                ctx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
+                ctx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
+                ctx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
+                ctx.lineTo(offset + scaledRadius, offset + scaledSize);
+                ctx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
+                ctx.lineTo(offset, offset + scaledRadius);
+                ctx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // Clear the shape itself (we only want the shadow)
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+                ctx.beginPath();
+                ctx.moveTo(offset + scaledRadius, offset);
+                ctx.lineTo(offset + scaledSize - scaledRadius, offset);
+                ctx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
+                ctx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
+                ctx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
+                ctx.lineTo(offset + scaledRadius, offset + scaledSize);
+                ctx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
+                ctx.lineTo(offset, offset + scaledRadius);
+                ctx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.globalCompositeOperation = 'source-over';
+            }
             
-            // Reset composite operation
-            ctx.globalCompositeOperation = 'source-over';
+            // Step 5: Create mask for the icon content
+            // Create a temporary canvas for the mask
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = canvas.width;
+            maskCanvas.height = canvas.height;
+            const maskCtx = maskCanvas.getContext('2d', { alpha: true });
+            
+            // Draw the rounded rectangle mask
+            const scaledRadius = radius * iconScale;
+            maskCtx.fillStyle = '#FFFFFF';
+            maskCtx.beginPath();
+            maskCtx.moveTo(offset + scaledRadius, offset);
+            maskCtx.lineTo(offset + scaledSize - scaledRadius, offset);
+            maskCtx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
+            maskCtx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
+            maskCtx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
+            maskCtx.lineTo(offset + scaledRadius, offset + scaledSize);
+            maskCtx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
+            maskCtx.lineTo(offset, offset + scaledRadius);
+            maskCtx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+            maskCtx.closePath();
+            maskCtx.fill();
+            
+            // Apply the composited image within the mask
+            maskCtx.globalCompositeOperation = 'source-in';
+            maskCtx.drawImage(tempCanvas, offset, offset, scaledSize, scaledSize);
+            
+            // Step 6: Draw the masked icon on top of the shadow
+            ctx.drawImage(maskCanvas, 0, 0);
             
             // Convert to blob and add to zip
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));

@@ -67,7 +67,27 @@ body {
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.3s ease,
               padding 0.4s ease;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.settings-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+  background: rgba(0,0,0,.2);
+  border-radius: 3px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.settings-panel::-webkit-scrollbar-thumb:hover {
+  background: #7ab5ff;
 }
 
 .settings-panel.hidden {
@@ -882,6 +902,7 @@ input[type="file"] {
 
   .settings-panel {
     padding: 16px 20px;
+    max-height: 60vh;
   }
 
   .settings-panel.hidden {

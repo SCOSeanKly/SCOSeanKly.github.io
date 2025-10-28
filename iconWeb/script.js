@@ -647,39 +647,30 @@ async function processImages() {
                 tempCtx.drawImage(effectImg, 0, 0, tempCanvas.width, tempCanvas.height);
             }
             
-            // Step 2: Create the final canvas first
+            // Step 2: Calculate shadow padding needed
+            const hasShadow = state.shadowOpacity > 0;
+            const shadowPadding = hasShadow 
+                ? Math.ceil(state.shadowYOffset + state.shadowBlur) 
+                : 0;
+            
+            // Create the final canvas with extra space for shadow
             const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
+            const baseSize = img.width; // Original size (512x512)
+            canvas.width = baseSize + (shadowPadding * 2);
+            canvas.height = baseSize + (shadowPadding * 2);
             const ctx = canvas.getContext('2d', { alpha: true });
             
             // Clear to fully transparent
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Step 3: Calculate shadow requirements and icon scaling
-            const hasShadow = state.shadowOpacity > 0;
-            let shadowMargin = 0;
-            let iconScale = 1.0;
+            // Calculate radius based on the original base size
+            const radius = calculateRadius(baseSize, baseSize);
             
-            if (hasShadow) {
-                // Calculate how much space we need for the shadow
-                // Shadow extends downward by yOffset + blur
-                shadowMargin = state.shadowYOffset + state.shadowBlur;
-                // Scale down the icon to make room for shadow
-                // We need to fit the icon + shadow within the canvas
-                iconScale = (canvas.width - shadowMargin * 2) / canvas.width;
-                // Ensure we don't scale too small
-                iconScale = Math.max(iconScale, 0.7);
-            }
+            // Position icon in the center with shadow padding offset
+            const offset = shadowPadding;
             
-            // Calculate radius based on actual export size (512x512) using percentage
-            const radius = calculateRadius(canvas.width, canvas.height);
-            
-            // Calculate scaled dimensions and position
-            const scaledSize = canvas.width * iconScale;
-            const offset = (canvas.width - scaledSize) / 2;
-            
-            // Step 4: Draw shadow if enabled
+            // Step 3: Draw shadow if enabled
+            // Step 3: Draw shadow if enabled
             if (hasShadow) {
                 ctx.save();
                 
@@ -690,18 +681,17 @@ async function processImages() {
                 ctx.shadowBlur = state.shadowBlur;
                 
                 // Draw the rounded rectangle for shadow (filled shape)
-                const scaledRadius = radius * iconScale;
                 ctx.fillStyle = 'rgba(0, 0, 0, 1)'; // The shadow is created from this
                 ctx.beginPath();
-                ctx.moveTo(offset + scaledRadius, offset);
-                ctx.lineTo(offset + scaledSize - scaledRadius, offset);
-                ctx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
-                ctx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
-                ctx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
-                ctx.lineTo(offset + scaledRadius, offset + scaledSize);
-                ctx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
-                ctx.lineTo(offset, offset + scaledRadius);
-                ctx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+                ctx.moveTo(offset + radius, offset);
+                ctx.lineTo(offset + baseSize - radius, offset);
+                ctx.quadraticCurveTo(offset + baseSize, offset, offset + baseSize, offset + radius);
+                ctx.lineTo(offset + baseSize, offset + baseSize - radius);
+                ctx.quadraticCurveTo(offset + baseSize, offset + baseSize, offset + baseSize - radius, offset + baseSize);
+                ctx.lineTo(offset + radius, offset + baseSize);
+                ctx.quadraticCurveTo(offset, offset + baseSize, offset, offset + baseSize - radius);
+                ctx.lineTo(offset, offset + radius);
+                ctx.quadraticCurveTo(offset, offset, offset + radius, offset);
                 ctx.closePath();
                 ctx.fill();
                 
@@ -711,22 +701,22 @@ async function processImages() {
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.fillStyle = 'rgba(0, 0, 0, 1)';
                 ctx.beginPath();
-                ctx.moveTo(offset + scaledRadius, offset);
-                ctx.lineTo(offset + scaledSize - scaledRadius, offset);
-                ctx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
-                ctx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
-                ctx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
-                ctx.lineTo(offset + scaledRadius, offset + scaledSize);
-                ctx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
-                ctx.lineTo(offset, offset + scaledRadius);
-                ctx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+                ctx.moveTo(offset + radius, offset);
+                ctx.lineTo(offset + baseSize - radius, offset);
+                ctx.quadraticCurveTo(offset + baseSize, offset, offset + baseSize, offset + radius);
+                ctx.lineTo(offset + baseSize, offset + baseSize - radius);
+                ctx.quadraticCurveTo(offset + baseSize, offset + baseSize, offset + baseSize - radius, offset + baseSize);
+                ctx.lineTo(offset + radius, offset + baseSize);
+                ctx.quadraticCurveTo(offset, offset + baseSize, offset, offset + baseSize - radius);
+                ctx.lineTo(offset, offset + radius);
+                ctx.quadraticCurveTo(offset, offset, offset + radius, offset);
                 ctx.closePath();
                 ctx.fill();
                 
                 ctx.globalCompositeOperation = 'source-over';
             }
             
-            // Step 5: Create mask for the icon content
+            // Step 4: Create mask for the icon content
             // Create a temporary canvas for the mask
             const maskCanvas = document.createElement('canvas');
             maskCanvas.width = canvas.width;
@@ -734,26 +724,25 @@ async function processImages() {
             const maskCtx = maskCanvas.getContext('2d', { alpha: true });
             
             // Draw the rounded rectangle mask
-            const scaledRadius = radius * iconScale;
             maskCtx.fillStyle = '#FFFFFF';
             maskCtx.beginPath();
-            maskCtx.moveTo(offset + scaledRadius, offset);
-            maskCtx.lineTo(offset + scaledSize - scaledRadius, offset);
-            maskCtx.quadraticCurveTo(offset + scaledSize, offset, offset + scaledSize, offset + scaledRadius);
-            maskCtx.lineTo(offset + scaledSize, offset + scaledSize - scaledRadius);
-            maskCtx.quadraticCurveTo(offset + scaledSize, offset + scaledSize, offset + scaledSize - scaledRadius, offset + scaledSize);
-            maskCtx.lineTo(offset + scaledRadius, offset + scaledSize);
-            maskCtx.quadraticCurveTo(offset, offset + scaledSize, offset, offset + scaledSize - scaledRadius);
-            maskCtx.lineTo(offset, offset + scaledRadius);
-            maskCtx.quadraticCurveTo(offset, offset, offset + scaledRadius, offset);
+            maskCtx.moveTo(offset + radius, offset);
+            maskCtx.lineTo(offset + baseSize - radius, offset);
+            maskCtx.quadraticCurveTo(offset + baseSize, offset, offset + baseSize, offset + radius);
+            maskCtx.lineTo(offset + baseSize, offset + baseSize - radius);
+            maskCtx.quadraticCurveTo(offset + baseSize, offset + baseSize, offset + baseSize - radius, offset + baseSize);
+            maskCtx.lineTo(offset + radius, offset + baseSize);
+            maskCtx.quadraticCurveTo(offset, offset + baseSize, offset, offset + baseSize - radius);
+            maskCtx.lineTo(offset, offset + radius);
+            maskCtx.quadraticCurveTo(offset, offset, offset + radius, offset);
             maskCtx.closePath();
             maskCtx.fill();
             
             // Apply the composited image within the mask
             maskCtx.globalCompositeOperation = 'source-in';
-            maskCtx.drawImage(tempCanvas, offset, offset, scaledSize, scaledSize);
+            maskCtx.drawImage(tempCanvas, offset, offset, baseSize, baseSize);
             
-            // Step 6: Draw the masked icon on top of the shadow
+            // Step 5: Draw the masked icon on top of the shadow
             ctx.drawImage(maskCanvas, 0, 0);
             
             // Convert to blob and add to zip

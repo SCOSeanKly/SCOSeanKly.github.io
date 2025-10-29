@@ -1241,7 +1241,7 @@ async function handleMliteFileDrop(file) {
   // Validate file type
   const fileName = file.name.toLowerCase();
   if (!fileName.endsWith('.mlite') && !fileName.endsWith('.json')) {
-    setError('Please drop a .mlite or .json file in the mLite zone.');
+    setError('Please drop a .mlite file in the mLite zone.');
     return;
   }
   

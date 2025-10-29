@@ -628,7 +628,7 @@ function doRender(drawHandles=true, skipWarp=false, useView=true, logoOnly=false
   drawLogoLayer(ctx);
   
   if (state.editMode && drawHandles) drawEditHandles();
-  setStatus(state.editMode ? 'Edit mode: drag blue corners' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
+  setStatus(state.editMode ? 'Edit mode: drag blue corners 2 x Tap to zoom' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
 
   positionZoomUI();
 }
@@ -1197,6 +1197,264 @@ document.querySelectorAll('.position-btn').forEach(btn => {
     
     if (state.overlayImg) doRender(true, false, true, true);
   });
+});
+
+/* ===== Drag and Drop Functionality ===== */
+let dragCounter = 0;
+let currentDraggedFile = null;
+let activeDropZone = null;
+
+// Get drop zone elements
+const dropZones = {
+  mlite: document.getElementById('dropZoneMlite'),
+  template: document.getElementById('dropZoneTemplate'),
+  screenshot: document.getElementById('dropZoneScreenshot')
+};
+
+// Process dropped file based on zone type
+async function processDroppedFile(file, zoneType) {
+  if (!state.hasLicense) {
+    setStatus('Please activate your license first.', 'error');
+    return;
+  }
+  
+  switch(zoneType) {
+    case 'mlite':
+      await handleMliteFileDrop(file);
+      break;
+      
+    case 'template':
+      await handleTemplateFileDrop(file);
+      break;
+      
+    case 'screenshot':
+      await handleScreenshotFileDrop(file);
+      break;
+      
+    default:
+      setError('Invalid drop zone type.');
+  }
+}
+
+// Handle .mlite file drop
+async function handleMliteFileDrop(file) {
+  // Validate file type
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.mlite') && !fileName.endsWith('.json')) {
+    setError('Please drop a .mlite or .json file in the mLite zone.');
+    return;
+  }
+  
+  // Check if mlite already imported
+  if (state.sourceType === 'mlite' && state.overlayImg) {
+    const ok = confirm('An .mlite file is already imported. Do you want to replace it with this new file?');
+    if (!ok) return;
+    clearMliteImport();
+  } else if (state.sourceType === 'template' && state.overlayImg) {
+    // Clear template automatically when importing mlite (they're mutually exclusive)
+    clearTemplateImport();
+  }
+  
+  // Trigger the existing mlite import handler
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  els.mlite.files = dataTransfer.files;
+  els.mlite.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Handle template PNG file drop
+async function handleTemplateFileDrop(file) {
+  // Validate file type
+  const fileName = file.name.toLowerCase();
+  const fileType = file.type.toLowerCase();
+  if (!fileName.endsWith('.png') || fileType !== 'image/png') {
+    setError('Templates must be PNG files. Please drop a PNG file in the Template zone.');
+    return;
+  }
+  
+  // Check if template already imported
+  if (state.sourceType === 'template' && state.overlayImg) {
+    const ok = confirm('A template is already imported. Do you want to replace it with this new template?');
+    if (!ok) return;
+    clearTemplateImport();
+  } else if (state.sourceType === 'mlite' && state.overlayImg) {
+    // Clear mlite automatically when importing template (they're mutually exclusive)
+    clearMliteImport();
+  }
+  
+  // Trigger the existing template import handler
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  els.template.files = dataTransfer.files;
+  els.template.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Handle screenshot file drop
+async function handleScreenshotFileDrop(file) {
+  // First check if we have a template or mlite file
+  if (!state.overlayImg) {
+    setError('Please import a template or .mlite file first before adding a screenshot.');
+    return;
+  }
+  
+  // Validate file type
+  const fileType = file.type.toLowerCase();
+  if (!fileType.startsWith('image/')) {
+    setError('Please drop an image file in the Screenshot zone.');
+    return;
+  }
+  
+  // Check for HEIC/HEIF
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (ext === 'heic' || ext === 'heif') {
+    setError('HEIC/HEIF not supported.');
+    return;
+  }
+  
+  // Check if screenshot already exists
+  if (state.screenshotImg) {
+    const ok = confirm('A screenshot is already imported. Do you want to replace it with this new image?');
+    if (!ok) return;
+    clearScreenshotImport();
+  }
+  
+  // Trigger the existing screenshot import handler
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(file);
+  els.shot.files = dataTransfer.files;
+  els.shot.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Main canvas drag and drop handlers
+els.canvasContainer.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'copy';
+});
+
+els.canvasContainer.addEventListener('dragenter', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragCounter++;
+  if (dragCounter === 1) {
+    els.canvasContainer.classList.add('drag-over');
+    // Update screenshot zone disabled state based on whether template/mlite exists
+    if (dropZones.screenshot) {
+      const shouldDisable = !state.overlayImg;
+      dropZones.screenshot.classList.toggle('disabled', shouldDisable);
+    }
+    // Store the file for later use
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      currentDraggedFile = e.dataTransfer.items[0];
+    }
+  }
+});
+
+els.canvasContainer.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragCounter--;
+  if (dragCounter === 0) {
+    els.canvasContainer.classList.remove('drag-over');
+    currentDraggedFile = null;
+    // Remove active state from all zones
+    Object.values(dropZones).forEach(zone => {
+      if (zone) zone.classList.remove('active');
+    });
+  }
+});
+
+els.canvasContainer.addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  dragCounter = 0;
+  els.canvasContainer.classList.remove('drag-over');
+  currentDraggedFile = null;
+  
+  // Remove active state from all zones
+  Object.values(dropZones).forEach(zone => {
+    if (zone) zone.classList.remove('active');
+  });
+  
+  // If dropped on main canvas (not a zone), do nothing
+  setStatus('Please drop files on one of the specific zones', 'error');
+});
+
+// Individual drop zone handlers
+Object.entries(dropZones).forEach(([type, zone]) => {
+  if (!zone) return;
+  
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't allow dragover on disabled zones
+    if (zone.classList.contains('disabled')) {
+      e.dataTransfer.dropEffect = 'none';
+      return;
+    }
+    
+    e.dataTransfer.dropEffect = 'copy';
+    
+    // Add active state to this zone
+    if (!zone.classList.contains('active')) {
+      // Remove active from other zones
+      Object.values(dropZones).forEach(z => {
+        if (z && z !== zone) z.classList.remove('active');
+      });
+      zone.classList.add('active');
+    }
+  });
+  
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check if we're leaving to another element that's not a child
+    const rect = zone.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+      zone.classList.remove('active');
+    }
+  });
+  
+  zone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Don't allow drop on disabled zones
+    if (zone.classList.contains('disabled')) {
+      if (type === 'screenshot') {
+        setError('Please import a template or .mlite file first before adding a screenshot.');
+      }
+      dragCounter = 0;
+      els.canvasContainer.classList.remove('drag-over');
+      return;
+    }
+    
+    const files = e.dataTransfer.files;
+    if (files.length === 0) return;
+    
+    // Process only the first file
+    const file = files[0];
+    await processDroppedFile(file, type);
+    
+    // Clean up
+    dragCounter = 0;
+    els.canvasContainer.classList.remove('drag-over');
+    zone.classList.remove('active');
+  });
+});
+
+// Prevent default drag behavior on the whole document
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
 });
 
 document.querySelector('.position-btn[data-position="bottom-left"]')?.classList.add('active');

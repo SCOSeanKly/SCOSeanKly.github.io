@@ -121,6 +121,25 @@
       <div class="mockup-track" id="mockupTrack"></div>
     </div>
 
+    <!-- Drag and Drop Zones -->
+    <div class="drop-zones" id="dropZones">
+      <div class="drop-zone" data-type="mlite" id="dropZoneMlite">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-4h10a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+        <span class="drop-zone-title">mLite File</span>
+        <span class="drop-zone-hint">.mlite or .json</span>
+      </div>
+      <div class="drop-zone" data-type="template" id="dropZoneTemplate">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path><path d="M4 19h16a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H9l-5 5v8a1 1 0 0 0 1 1z"></path></svg>
+        <span class="drop-zone-title">Template</span>
+        <span class="drop-zone-hint">PNG image</span>
+      </div>
+      <div class="drop-zone" data-type="screenshot" id="dropZoneScreenshot">
+        <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4z"></path><path d="M12 10v6M9 13h6"></path></svg>
+        <span class="drop-zone-title">Screenshot</span>
+        <span class="drop-zone-hint">Any image</span>
+      </div>
+    </div>
+
     <!-- Zoom UI (positioned over the canvas) -->
     <div class="zoom-ui" id="zoomUI" aria-label="Zoom controls">
       <span class="zoom-glyph" aria-hidden="true">🔍</span>
@@ -143,7 +162,7 @@
     <div class="empty-state" id="emptyState">
       <h2>Welcome to mLite Web</h2>
       <p class="subtitle">Super Simple Mockups</p>
-      <p>• Import a mLite file using the Menu<br/>• Import a screenshot and save to your desktop</p>
+      <p>• Import a mLite file using the Menu<br/>• Import a screenshot and save to your desktop<br/>• Or simply drag & drop files directly here!</p>
       <p>• mLite files can be found on Telegram<br/>• Visit telegram via link in the menu</p>
       <p>• Import a Template and Screenshot<br/>• Toggle Edit to drag blue corner dots<br/>• Double click to Zoom & Reset<br/>• Export image or mLite file</p>
       <div class="license-notice" id="licenseNotice">🔒 License required to render and export images</div>

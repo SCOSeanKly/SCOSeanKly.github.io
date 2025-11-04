@@ -16,6 +16,14 @@ const MOCKUP_IMAGES = [
   'https://raw.githubusercontent.com/SCOSeanKly/mLiteWeb/main/mockup10.jpg',
 ];
 
+// Screenshot color assignments
+const SCREENSHOT_COLORS = [
+  { name: 'Blue', hex: '#5b9cf5', rgb: 'rgba(91, 156, 245, 0.8)' },
+  { name: 'Green', hex: '#10b981', rgb: 'rgba(16, 185, 129, 0.8)' },
+  { name: 'Orange', hex: '#f59e0b', rgb: 'rgba(245, 158, 11, 0.8)' },
+  { name: 'Purple', hex: '#a855f7', rgb: 'rgba(168, 85, 247, 0.8)' }
+];
+
 const els = {
   template: document.getElementById('templateFile'),
   mlite: document.getElementById('mliteFile'),
@@ -61,6 +69,8 @@ const els = {
   zoomUI: document.getElementById('zoomUI'),
   zoomSlider: document.getElementById('zoomSlider'),
   zoomValue: document.getElementById('zoomValue'),
+  screenshotList: document.getElementById('screenshotList'),
+  addScreenshotBtn: document.getElementById('addScreenshotBtn'),
 };
 
 
@@ -90,11 +100,11 @@ function ensureBaseCompositeCanvas() {
   }
 }
 
-/* ===== View transform (pan & zoom) ===== */
+/* ===== View transform (pan & zoom) - canvas rendering approach ===== */
 const view = { scale: 1, offsetX: 0, offsetY: 0 };
 
 function setView(scale, anchorCanvasX, anchorCanvasY, keepPoint=false){
-  const clamped = Math.max(1, Math.min(10, scale));
+  const clamped = Math.max(1, Math.min(4, scale));
   if (!keepPoint){
     const cx = els.canvas.width * 0.5;
     const cy = els.canvas.height * 0.5;
@@ -102,7 +112,7 @@ function setView(scale, anchorCanvasX, anchorCanvasY, keepPoint=false){
     const imgY = (cy - view.offsetY) / view.scale;
     view.scale = clamped;
     view.offsetX = cx - imgX * view.scale;
-    view.offsetY = cy - imgY * view.scale;
+    view.offsetY = cy - imgX * view.scale;
   } else {
     const imgX = (anchorCanvasX - view.offsetX) / view.scale;
     const imgY = (anchorCanvasY - view.offsetY) / view.scale;
@@ -115,7 +125,9 @@ function setView(scale, anchorCanvasX, anchorCanvasY, keepPoint=false){
 }
 
 function resetView(){
-  view.scale = 1; view.offsetX = 0; view.offsetY = 0;
+  view.scale = 1; 
+  view.offsetX = 0; 
+  view.offsetY = 0;
   updateZoomUI();
   doRender(true, false, true);
 }
@@ -212,6 +224,9 @@ function initMockupShowcase() {
 const MESH_DETAIL_IDLE = 35;
 const MESH_DETAIL_DRAG = 0;
 let meshDetail = MESH_DETAIL_IDLE;
+
+let rafId = null;
+
 const DST_EPS = 1.5;
 const SRC_EPS = 1.0;
 const ACCENT = '#5b9cf5';
@@ -230,7 +245,8 @@ let state = {
   overlayImg: null,
   overlayW: 1024,
   overlayH: 1024,
-  screenshotImg: null,
+  screenshots: [], // Array of screenshot objects: { id, img, quad, colorIndex }
+  activeScreenshotId: null,
   logoImg: null,
   logoSettings: {
     position: 'bottom-left',
@@ -238,7 +254,6 @@ let state = {
     opacity: 1.0,
     cornerRadius: 0
   },
-  quad: null,
   screenshotOnTop: false,
   cornerRadius: 0,
   hasLicense: false,
@@ -250,15 +265,15 @@ let state = {
 };
 
 function updateEmptyState() {
-  const hasContent = state.overlayImg || state.screenshotImg;
+  const hasContent = state.overlayImg || state.screenshots.length > 0;
   els.emptyState.classList.toggle('hidden', !!hasContent);
   els.canvas.style.display = hasContent ? 'block' : 'none';
   els.zoomUI.classList.toggle('show', !!state.overlayImg && !!state.editMode);
   if (hasContent) positionZoomUI();
 }
 
-function readyForEdit(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
-function readyForExport(){ return !!(state.overlayImg && state.quad) && state.hasLicense; }
+function readyForEdit(){ return !!(state.overlayImg && state.screenshots.length > 0) && state.hasLicense; }
+function readyForExport(){ return !!(state.overlayImg && state.screenshots.length > 0) && state.hasLicense; }
 
 let antsOffset = 0;
 let antsRAF = null;
@@ -278,11 +293,11 @@ function stopAnts(){ if (antsRAF){ cancelAnimationFrame(antsRAF); antsRAF = null
 function updateActionStates(){
   els.editBtn.disabled = !readyForEdit();
 
-  const canSave = state.hasLicense && state.overlayImg && state.screenshotImg && state.quad;
+  const canSave = state.hasLicense && state.overlayImg && state.screenshots.length > 0;
   els.save.disabled = !canSave;
   els.save.classList.toggle('disabled', !canSave);
 
-  const shotReady = !!state.overlayImg && state.hasLicense;
+  const shotReady = !!state.overlayImg && state.hasLicense && state.screenshots.length < 4;
   els.shot.disabled = !shotReady;
   els.btnImportShot.dataset.disabled = shotReady ? '' : 'true';
   els.btnImportShot.classList.toggle('disabled', !shotReady);
@@ -303,11 +318,18 @@ function updateActionStates(){
 
   const canExportMl = state.sourceType === 'template' &&
                       state.overlayImg && 
-                      state.quad && 
+                      state.screenshots.length > 0 && 
                       state.hasLicense && 
                       !state.editMode;
   els.exportMlBtn.disabled = !canExportMl;
   els.exportMlBtn.classList.toggle('disabled', !canExportMl);
+
+  // Update add screenshot button
+  if (els.addScreenshotBtn) {
+    const canAdd = state.screenshots.length < 4 && state.overlayImg && state.hasLicense;
+    els.addScreenshotBtn.disabled = !canAdd;
+    els.addScreenshotBtn.classList.toggle('disabled', !canAdd);
+  }
 }
 
 let statusTimeout;
@@ -482,31 +504,46 @@ function warpImageToQuad(ctx, img, dstQuad, steps) {
   }
 }
 
-/* ===== OPTIMIZED: Build base composite (screenshot + overlay) ===== */
+/* ===== OPTIMIZED: Build base composite (screenshots + overlay) ===== */
 function buildBaseComposite() {
-  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
+  if (!state.hasLicense || !state.overlayImg) return;
   
   ensureBaseCompositeCanvas();
-  
-  const quadArr = [
-    [state.quad[0].x, state.quad[0].y],
-    [state.quad[1].x, state.quad[1].y],
-    [state.quad[2].x, state.quad[2].y],
-    [state.quad[3].x, state.quad[3].y],
-  ];
   
   baseCompositeCtx.setTransform(1, 0, 0, 1, 0, 0);
   baseCompositeCtx.clearRect(0, 0, baseCompositeCanvas.width, baseCompositeCanvas.height);
   
-  if (state.screenshotImg) {
+  // Filter out screenshots that don't have images loaded
+  const loadedScreenshots = state.screenshots.filter(shot => shot.img);
+  
+  if (loadedScreenshots.length > 0) {
     if (state.screenshotOnTop) {
       baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
-      warpImageToQuad(baseCompositeCtx, state.screenshotImg, quadArr, meshDetail);
+      // Draw all loaded screenshots
+      loadedScreenshots.forEach(shot => {
+        const quadArr = [
+          [shot.quad[0].x, shot.quad[0].y],
+          [shot.quad[1].x, shot.quad[1].y],
+          [shot.quad[2].x, shot.quad[2].y],
+          [shot.quad[3].x, shot.quad[3].y],
+        ];
+        warpImageToQuad(baseCompositeCtx, shot.img, quadArr, meshDetail);
+      });
     } else {
-      warpImageToQuad(baseCompositeCtx, state.screenshotImg, quadArr, meshDetail);
+      // Draw all loaded screenshots
+      loadedScreenshots.forEach(shot => {
+        const quadArr = [
+          [shot.quad[0].x, shot.quad[0].y],
+          [shot.quad[1].x, shot.quad[1].y],
+          [shot.quad[2].x, shot.quad[2].y],
+          [shot.quad[3].x, shot.quad[3].y],
+        ];
+        warpImageToQuad(baseCompositeCtx, shot.img, quadArr, meshDetail);
+      });
       baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
     }
   } else {
+    // No screenshots loaded, just draw the overlay
     baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
   }
   
@@ -592,225 +629,302 @@ function drawLogoLayer(targetCtx) {
 
 /* ===== OPTIMIZED: Main render with logo-only fast path ===== */
 function doRender(drawHandles=true, skipWarp=false, useView=true, logoOnly=false){
-  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
+  if (!state.hasLicense || !state.overlayImg) return;
 
   ctx.setTransform(1,0,0,1,0,0);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
   ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
 
-  if (useView){
-    ctx.setTransform(view.scale, 0, 0, view.scale, view.offsetX, view.offsetY);
-    } else {
-    ctx.setTransform(1,0,0,1,0,0);
+  // Apply view transform if requested
+  if (useView) {
+    ctx.save();
+    ctx.translate(view.offsetX, view.offsetY);
+    ctx.scale(view.scale, view.scale);
   }
-  
-  // FAST PATH: If only logo changed, use cached composite + redraw logo
+
+  // Fast path for logo-only adjustments
   if (logoOnly && !baseCompositeDirty && baseCompositeCanvas) {
     ctx.drawImage(baseCompositeCanvas, 0, 0);
     drawLogoLayer(ctx);
-    if (state.editMode && drawHandles) drawEditHandles();
-    positionZoomUI();
+    if (useView) ctx.restore();
     return;
   }
-  
-  // FULL RENDER: Rebuild base composite if dirty
+
+  // Build or rebuild base composite if needed
   if (baseCompositeDirty || !baseCompositeCanvas) {
     buildBaseComposite();
   }
-  
-  // Draw the cached base composite
+
   if (baseCompositeCanvas) {
     ctx.drawImage(baseCompositeCanvas, 0, 0);
   }
-  
-  // Draw logo on top
+
+  // Draw logo
   drawLogoLayer(ctx);
-  
-  if (state.editMode && drawHandles) drawEditHandles();
-  setStatus(state.editMode ? 'Edit mode: drag blue corners 2 x Tap to zoom' : (state.screenshotImg ? 'Rendered ✓' : 'Template loaded ✓'), state.editMode ? 'loading' : 'success');
 
-  positionZoomUI();
-}
-
-/* Edit handles */
-function drawEditHandles(){
-  const { rVis } = getHandleRadii();
-  ctx.save();
-  ctx.lineWidth = IS_TOUCH ? 7.0 : 6.0;
-  ctx.globalAlpha = 0.95;
-  ctx.strokeStyle = ACCENT;
-  ctx.setLineDash([12, 8]);
-  ctx.lineDashOffset = -antsOffset;
-
-  ctx.beginPath();
-  ctx.moveTo(state.quad[0].x, state.quad[0].y);
-  ctx.lineTo(state.quad[1].x, state.quad[1].y);
-  ctx.lineTo(state.quad[2].x, state.quad[2].y);
-  ctx.lineTo(state.quad[3].x, state.quad[3].y);
-  ctx.closePath();
-  ctx.stroke();
-
-  ctx.fillStyle = ACCENT;
-  for (let i=0;i<4;i++) {
-    const p = state.quad[i];
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, rVis, 0, Math.PI*2);
-    ctx.fill();
-    ctx.lineWidth = 1.25;
-    ctx.strokeStyle = 'white';
-    ctx.stroke();
-    if (IS_TOUCH) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, rVis + 6, 0, Math.PI*2);
-      ctx.globalAlpha = 0.35;
-      ctx.strokeStyle = ACCENT;
-      ctx.stroke();
-      ctx.globalAlpha = 0.95;
+  // Draw edit handles and marching ants if in edit mode
+  if (drawHandles && state.editMode && state.activeScreenshotId) {
+    const screenshot = state.screenshots.find(s => s.id === state.activeScreenshotId);
+    if (screenshot && screenshot.quad) {
+      const color = SCREENSHOT_COLORS[screenshot.colorIndex];
+      drawQuadOutlineAndHandles(ctx, screenshot.quad, color);
     }
   }
+
+  if (useView) ctx.restore();
+}
+
+function drawQuadOutlineAndHandles(ctx, quad, color) {
+  const { rVis, rHit } = getHandleRadii();
+  
+  // Draw marching ants outline
+  ctx.save();
+  ctx.setLineDash([10, 10]);
+  ctx.lineDashOffset = -antsOffset;
+  ctx.strokeStyle = color.hex;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(quad[0].x, quad[0].y);
+  ctx.lineTo(quad[1].x, quad[1].y);
+  ctx.lineTo(quad[2].x, quad[2].y);
+  ctx.lineTo(quad[3].x, quad[3].y);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw corner handles
+  ctx.save();
+  quad.forEach((pt, i) => {
+    ctx.fillStyle = color.hex;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, rVis, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
   ctx.restore();
 }
 
-/* ===== Pointer helpers ===== */
-function clientToCanvasXY(ev){
+// Helper to convert screen coordinates to canvas image coordinates
+function screenToCanvasCoords(screenX, screenY) {
   const rect = els.canvas.getBoundingClientRect();
-  const clientX = (ev.touches ? ev.touches[0].clientX : ev.clientX);
-  const clientY = (ev.touches ? ev.touches[0].clientY : ev.clientY);
-  const x = (clientX - rect.left) * (els.canvas.width / rect.width);
-  const y = (clientY - rect.top) * (els.canvas.height / rect.height);
-  return { x, y };
-}
-function clientToImage(ev){
-  const pt = clientToCanvasXY(ev);
-  const imgX = (pt.x - view.offsetX) / view.scale;
-  const imgY = (pt.y - view.offsetY) / view.scale;
-  return { x: imgX, y: imgY, canvasX: pt.x, canvasY: pt.y };
-}
-
-function hitTestHandle(x,y){
-  const { rHit } = getHandleRadii();
-  for (let i=0;i<4;i++){
-    const p = state.quad[i];
-    const dx=x-p.x, dy=y-p.y;
-    if (dx*dx+dy*dy <= (rHit)*(rHit)) return i;
-  }
-  return -1;
+  const canvasX = screenX - rect.left;
+  const canvasY = screenY - rect.top;
+  
+  // Account for canvas CSS size vs actual pixel size
+  const scaleX = els.canvas.width / rect.width;
+  const scaleY = els.canvas.height / rect.height;
+  
+  // Convert to canvas pixels
+  const x = canvasX * scaleX;
+  const y = canvasY * scaleY;
+  
+  // Account for view transform (zoom/pan)
+  const imgX = (x - view.offsetX) / view.scale;
+  const imgY = (y - view.offsetY) / view.scale;
+  
+  return { x: imgX, y: imgY };
 }
 
-let dragging=false;
-let panning=false;
-let lastTapTime=0;
+/* Pan & zoom handlers (touch and mouse) */
+let isPanning = false;
+let lastPanX = 0, lastPanY = 0;
 
-function handlePointerDown(ev){
-  if (!state.hasLicense || !state.overlayImg) return;
+els.canvas.addEventListener('pointerdown', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
 
-  const now = performance.now();
-  const timeSince = now - lastTapTime;
-  lastTapTime = now;
+  const coords = screenToCanvasCoords(e.clientX, e.clientY);
+  const imgX = coords.x;
+  const imgY = coords.y;
 
-  const { x, y, canvasX, canvasY } = clientToImage(ev);
-
-  if (timeSince < 300 && state.editMode){
-    if (view.scale === 1){
-      setView(3, canvasX, canvasY, true);
-    } else {
-      resetView();
+  // Check if clicking on a handle
+  if (state.activeScreenshotId) {
+    const screenshot = state.screenshots.find(s => s.id === state.activeScreenshotId);
+    if (screenshot && screenshot.quad) {
+      const { rHit } = getHandleRadii();
+      
+      for (let i = 0; i < screenshot.quad.length; i++) {
+        const pt = screenshot.quad[i];
+        const dx = imgX - pt.x;
+        const dy = imgY - pt.y;
+        if (Math.hypot(dx, dy) <= rHit) {
+          state.activeHandle = i;
+          meshDetail = MESH_DETAIL_DRAG;
+          els.canvas.style.cursor = 'grabbing';
+          return;
+        }
+      }
     }
-    ev.preventDefault();
-    return;
   }
 
-  if (state.editMode){
-    const idx = hitTestHandle(x, y);
-    if (idx !== -1) {
-      state.activeHandle = idx;
-      dragging = true;
-      meshDetail = MESH_DETAIL_DRAG;
+  // Start panning when zoomed
+  if (view.scale > 1) {
+    isPanning = true;
+    lastPanX = e.clientX;
+    lastPanY = e.clientY;
+    els.canvas.style.cursor = 'grabbing';
+  }
+});
+
+els.canvas.addEventListener('pointermove', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
+
+  const coords = screenToCanvasCoords(e.clientX, e.clientY);
+  const imgX = coords.x;
+  const imgY = coords.y;
+
+  if (state.activeHandle >= 0 && state.activeScreenshotId) {
+    const screenshot = state.screenshots.find(s => s.id === state.activeScreenshotId);
+    if (screenshot) {
+      screenshot.quad[state.activeHandle].x = imgX;
+      screenshot.quad[state.activeHandle].y = imgY;
       invalidateBaseComposite();
       doRender(true, true, true);
-      ev.preventDefault();
-      return;
     }
-
-    if (view.scale > 1){
-      panning = true;
-      panState.startX = canvasX;
-      panState.startY = canvasY;
-      panState.baseOffsetX = view.offsetX;
-      panState.baseOffsetY = view.offsetY;
-      ev.preventDefault();
-      return;
+  } else if (isPanning) {
+    const dx = e.clientX - lastPanX;
+    const dy = e.clientY - lastPanY;
+    view.offsetX += dx;
+    view.offsetY += dy;
+    lastPanX = e.clientX;
+    lastPanY = e.clientY;
+    doRender(true, false, true);
+  } else {
+    // Update cursor based on hover
+    if (state.activeScreenshotId) {
+      const screenshot = state.screenshots.find(s => s.id === state.activeScreenshotId);
+      if (screenshot && screenshot.quad) {
+        const { rHit } = getHandleRadii();
+        let onHandle = false;
+        
+        for (let i = 0; i < screenshot.quad.length; i++) {
+          const pt = screenshot.quad[i];
+          const dx = imgX - pt.x;
+          const dy = imgY - pt.y;
+          if (Math.hypot(dx, dy) <= rHit) {
+            onHandle = true;
+            break;
+          }
+        }
+        
+        els.canvas.style.cursor = onHandle ? 'pointer' : (view.scale > 1 ? 'grab' : 'default');
+      }
+    } else {
+      els.canvas.style.cursor = view.scale > 1 ? 'grab' : 'default';
     }
   }
-}
+});
 
-const panState = { startX:0, startY:0, baseOffsetX:0, baseOffsetY:0 };
-
-function handlePointerMove(ev){
-  if (state.editMode && dragging){
-    const { x } = clientToImage(ev);
-    const { y } = clientToImage(ev);
-    const i = state.activeHandle;
-    state.quad[i].x = Math.max(0, Math.min(state.overlayW, x.x ?? x));
-    state.quad[i].y = Math.max(0, Math.min(state.overlayH, y.y ?? y));
-    invalidateBaseComposite();
-    doRender(true, true, true);
-    ev.preventDefault();
-    return;
-  }
-
-  if (state.editMode && panning){
-    const pt = clientToCanvasXY(ev);
-    const dx = pt.x - panState.startX;
-    const dy = pt.y - panState.startY;
-    view.offsetX = panState.baseOffsetX + dx;
-    view.offsetY = panState.baseOffsetY + dy;
-    doRender(true, true, true);
-    ev.preventDefault();
-    return;
-  }
-}
-
-function handlePointerUp(ev){
-  if (state.editMode && dragging){
-    dragging = false;
+els.canvas.addEventListener('pointerup', ()=>{
+  if (state.activeHandle >= 0) {
     state.activeHandle = -1;
     meshDetail = MESH_DETAIL_IDLE;
     invalidateBaseComposite();
     doRender(true, false, true);
-    ev.preventDefault();
   }
-  if (state.editMode && panning){
-    panning = false;
-    ev.preventDefault();
+  isPanning = false;
+  els.canvas.style.cursor = (state.editMode && view.scale > 1) ? 'grab' : (state.editMode ? 'pointer' : 'default');
+});
+
+els.canvas.addEventListener('pointerleave', ()=>{
+  if (state.activeHandle >= 0) {
+    state.activeHandle = -1;
+    meshDetail = MESH_DETAIL_IDLE;
+    invalidateBaseComposite();
+    doRender(true, false, true);
   }
-}
+  isPanning = false;
+});
 
-els.canvas.addEventListener('mousedown', handlePointerDown);
-window.addEventListener('mousemove', handlePointerMove);
-window.addEventListener('mouseup', handlePointerUp);
-els.canvas.addEventListener('touchstart', handlePointerDown, {passive:false});
-window.addEventListener('touchmove', handlePointerMove, {passive:false});
-window.addEventListener('touchend', handlePointerUp);
-
-/* Zoom slider -> updates view */
+/* Zoom slider */
 els.zoomSlider.addEventListener('input', (e)=>{
-  const targetScale = parseFloat(e.target.value || '1');
+  const targetScale = parseFloat(e.target.value);
   setView(targetScale, 0, 0, false);
+});
+
+/* Double-click to toggle zoom/reset */
+els.canvas.addEventListener('dblclick', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
+  e.preventDefault();
+  
+  const rect = els.canvas.getBoundingClientRect();
+  const canvasX = e.clientX - rect.left;
+  const canvasY = e.clientY - rect.top;
+  
+  if (view.scale === 1) {
+    const targetScale = 2.5;
+    setView(targetScale, canvasX, canvasY, true);
+  } else {
+    resetView();
+  }
+});
+
+/* Wheel zoom */
+els.canvas.addEventListener('wheel', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
+  e.preventDefault();
+  
+  const rect = els.canvas.getBoundingClientRect();
+  const canvasX = e.clientX - rect.left;
+  const canvasY = e.clientY - rect.top;
+  
+  const delta = -e.deltaY;
+  const zoomFactor = delta > 0 ? 1.1 : 0.9;
+  const targetScale = view.scale * zoomFactor;
+  setView(targetScale, canvasX, canvasY, true);
+}, { passive: false });
+
+/* Pinch zoom support for touch devices */
+let lastDist = 0;
+els.canvas.addEventListener('touchstart', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastDist = Math.hypot(dx, dy);
+  }
+}, { passive: false });
+
+els.canvas.addEventListener('touchmove', (e)=>{
+  if (!state.editMode || !state.overlayImg) return;
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    
+    if (lastDist > 0) {
+      const zoomFactor = dist / lastDist;
+      const rect = els.canvas.getBoundingClientRect();
+      const centerX = ((e.touches[0].clientX + e.touches[1].clientX) / 2) - rect.left;
+      const centerY = ((e.touches[0].clientY + e.touches[1].clientY) / 2) - rect.top;
+      const targetScale = view.scale * zoomFactor;
+      setView(targetScale, centerX, centerY, true);
+    }
+    lastDist = dist;
+  }
+}, { passive: false });
+
+els.canvas.addEventListener('touchend', (e)=>{
+  if (e.touches.length < 2) {
+    lastDist = 0;
+  }
 });
 
 /* Edit toggle (includes reset on exit) */
 function toggleEdit(on){
   const next = (on===undefined) ? !state.editMode : !!on;
-  if (!state.hasLicense || !state.overlayImg || !state.quad) return;
+  if (!state.hasLicense || !state.overlayImg || state.screenshots.length === 0) return;
   if (next === state.editMode) return;
 
   const wasEditing = state.editMode;
   state.editMode = next;
   document.body.classList.toggle('editing', state.editMode);
 
-  els.canvas.style.cursor = (state.editMode && view.scale>1) ? 'grab' : (state.editMode ? 'pointer' : 'default');
+  els.canvas.style.cursor = (state.editMode && view.scale > 1) ? 'grab' : (state.editMode ? 'pointer' : 'default');
 
   meshDetail = state.editMode ? MESH_DETAIL_DRAG : MESH_DETAIL_IDLE;
   els.editIcon.innerHTML = state.editMode
@@ -860,20 +974,155 @@ function createDefaultScreenshotQuad() {
   ]);
 }
 
+/* Screenshot management */
+function addScreenshot(img) {
+  // First, check if there's an existing slot without an image
+  const emptySlot = state.screenshots.find(s => !s.img);
+  
+  if (emptySlot) {
+    // Fill the empty slot
+    emptySlot.img = img;
+    state.activeScreenshotId = emptySlot.id;
+  } else {
+    // Create a new screenshot if we haven't reached the limit
+    if (state.screenshots.length >= 4) {
+      setError('Maximum 4 screenshots allowed');
+      return;
+    }
+    
+    const colorIndex = state.screenshots.length;
+    const screenshot = {
+      id: Date.now() + Math.random(),
+      img: img,
+      quad: createDefaultScreenshotQuad(),
+      colorIndex: colorIndex
+    };
+    
+    state.screenshots.push(screenshot);
+    state.activeScreenshotId = screenshot.id;
+  }
+  
+  updateScreenshotList();
+  invalidateBaseComposite();
+  updateEmptyState();
+  updateActionStates();
+  updateDropZones();
+  doRender(true, false, true);
+}
+
+function removeScreenshot(id) {
+  const screenshot = state.screenshots.find(s => s.id === id);
+  if (!screenshot) return;
+  
+  // Just clear the image, keep the slot and coordinates
+  screenshot.img = null;
+  
+  // If this was the active screenshot, keep it active (so coordinates still show)
+  // Or switch to another one that has an image
+  if (state.activeScreenshotId === id) {
+    const withImage = state.screenshots.find(s => s.img);
+    if (withImage) {
+      state.activeScreenshotId = withImage.id;
+    }
+    // If no screenshots have images, keep this one active so we can still see/edit coordinates
+  }
+  
+  updateScreenshotList();
+  invalidateBaseComposite();
+  updateEmptyState();
+  updateActionStates();
+  updateDropZones();
+  doRender(true, false, true);
+}
+
+function setActiveScreenshot(id) {
+  state.activeScreenshotId = id;
+  updateScreenshotList();
+  doRender(true, false, true);
+}
+
+function updateScreenshotList() {
+  if (!els.screenshotList) return;
+  
+  els.screenshotList.innerHTML = '';
+  
+  state.screenshots.forEach(screenshot => {
+    const color = SCREENSHOT_COLORS[screenshot.colorIndex];
+    const item = document.createElement('div');
+    item.className = 'screenshot-item';
+    if (screenshot.id === state.activeScreenshotId) {
+      item.classList.add('active');
+    }
+    if (!screenshot.img) {
+      item.classList.add('empty');
+    }
+    
+    const btn = document.createElement('button');
+    btn.className = 'screenshot-btn';
+    btn.style.backgroundColor = color.hex;
+    btn.textContent = `Screenshot ${screenshot.colorIndex + 1}${!screenshot.img ? ' (Empty)' : ''}`;
+    
+    // If empty, clicking imports; if filled, clicking selects
+    btn.addEventListener('click', () => {
+      if (!screenshot.img) {
+        // Empty slot - trigger import for this specific slot
+        state.activeScreenshotId = screenshot.id;
+        updateScreenshotList();
+        els.shot.click();
+      } else {
+        // Has image - just select it
+        setActiveScreenshot(screenshot.id);
+      }
+    });
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'screenshot-delete';
+    deleteBtn.innerHTML = screenshot.img ? '×' : '🗑';
+    deleteBtn.title = screenshot.img ? 'Clear image' : 'Delete slot';
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (screenshot.img) {
+        // Clear the image but keep the slot
+        removeScreenshot(screenshot.id);
+      } else {
+        // Delete the entire slot
+        const index = state.screenshots.findIndex(s => s.id === screenshot.id);
+        if (index !== -1) {
+          state.screenshots.splice(index, 1);
+          // Reassign color indices
+          state.screenshots.forEach((shot, i) => {
+            shot.colorIndex = i;
+          });
+          if (state.activeScreenshotId === screenshot.id) {
+            state.activeScreenshotId = state.screenshots.length > 0 ? state.screenshots[0].id : null;
+          }
+          updateScreenshotList();
+          invalidateBaseComposite();
+          updateEmptyState();
+          updateActionStates();
+          updateDropZones();
+          doRender(true, false, true);
+        }
+      }
+    });
+    
+    item.appendChild(btn);
+    item.appendChild(deleteBtn);
+    els.screenshotList.appendChild(item);
+  });
+}
+
 /* Import handlers */
 function markImportSelected(btnEl, on){
   if (!btnEl) return;
   btnEl.classList.toggle('selected', !!on);
   
-  // Update button text
   const span = btnEl.querySelector('span');
   if (span) {
     const currentText = span.textContent;
     if (on) {
-      // Change "Import X" to "Remove X"
       span.textContent = currentText.replace(/^Import\s+/i, 'Remove ');
     } else {
-      // Change "Remove X" back to "Import X"
       span.textContent = currentText.replace(/^Remove\s+/i, 'Import ');
     }
   }
@@ -885,13 +1134,15 @@ function clearTemplateImport(){
   state.overlayImg = null;
   state.overlayW = 1024;
   state.overlayH = 1024;
-  state.quad = null;
+  state.screenshots = [];
+  state.activeScreenshotId = null;
   state.originalOverlayBase64 = null;
   state.sourceType = null;
   markImportSelected(els.btnImportTemplate, false);
   invalidateBaseComposite();
   updateEmptyState();
   updateActionStates();
+  updateScreenshotList();
   resetView();
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
@@ -903,28 +1154,19 @@ function clearMliteImport(){
   state.overlayImg = null;
   state.overlayW = 1024;
   state.overlayH = 1024;
-  state.quad = null;
+  state.screenshots = [];
+  state.activeScreenshotId = null;
   state.originalOverlayBase64 = null;
   state.sourceType = null;
   markImportSelected(els.btnImportMl, false);
   invalidateBaseComposite();
   updateEmptyState();
   updateActionStates();
+  updateScreenshotList();
   resetView();
   ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,els.canvas.width,els.canvas.height);
   setStatus('.mLite removed','idle');
-}
-
-function clearScreenshotImport(){
-  if (!state.screenshotImg) return;
-  state.screenshotImg = null;
-  markImportSelected(els.btnImportShot, false);
-  invalidateBaseComposite();
-  updateEmptyState();
-  updateActionStates();
-  doRender(true, false, true);
-  setStatus('Screenshot removed','idle');
 }
 
 function clearLogoImport(){
@@ -985,18 +1227,6 @@ els.btnImportMl.addEventListener('click', (e)=>{
   }
 }, true);
 
-els.btnImportShot.addEventListener('click', (e)=>{
-  if (state.screenshotImg){
-    const ok = confirm('Remove the imported Screenshot?');
-    if (ok){
-      e.preventDefault(); e.stopPropagation();
-      clearScreenshotImport();
-    } else {
-      e.preventDefault(); e.stopPropagation();
-    }
-  }
-}, true);
-
 els.btnImportLogo.addEventListener('click', (e)=>{
   if (state.logoImg){
     const ok = confirm('Remove the imported Logo?');
@@ -1008,10 +1238,6 @@ els.btnImportLogo.addEventListener('click', (e)=>{
     }
   }
 }, true);
-
-document.getElementById('btnImportShot').addEventListener('click', (e)=>{
-  // handled globally by disabled-click handler below
-});
 
 els.template.addEventListener('change', async (e)=>{
   if (!state.hasLicense) { setStatus('Please activate your license first.','error'); e.target.value=''; return; }
@@ -1035,12 +1261,7 @@ els.template.addEventListener('change', async (e)=>{
 
         const inset = Math.round(Math.min(state.overlayW, state.overlayH) * 0.08);
         const W = state.overlayW, H = state.overlayH;
-        state.quad = normalizeQuad([
-          { x: inset,     y: inset },
-          { x: W - inset, y: inset },
-          { x: W - inset, y: H - inset },
-          { x: inset,     y: H - inset }
-        ]);
+        // Don't auto-create screenshot quad, wait for screenshot import
         state.screenshotOnTop = false;
         state.cornerRadius = 0;
 
@@ -1089,26 +1310,66 @@ els.mlite.addEventListener('change', async (e)=>{
       els.canvas.width = state.overlayW;
       els.canvas.height = state.overlayH;
       
-      const pv = obj.projectionValues || {};
-      const H = state.overlayH, W = state.overlayW;
-      function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
-      const tl = toPxBottomLeftNorm(pv.topLeft);
-      const tr = toPxBottomLeftNorm(pv.topRight);
-      const bl = toPxBottomLeftNorm(pv.bottomLeft);
-      const br = toPxBottomLeftNorm(pv.bottomRight);
-      state.quad = normalizeQuad([tl,tr,bl,br]);
+      // Load screenshots if present
+      state.screenshots = [];
+      if (obj.screenshots && Array.isArray(obj.screenshots)) {
+        obj.screenshots.forEach((shotData, index) => {
+          if (shotData.quad) {
+            const pv = shotData.quad;
+            const H = state.overlayH, W = state.overlayW;
+            function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
+            const tl = toPxBottomLeftNorm(pv.topLeft);
+            const tr = toPxBottomLeftNorm(pv.topRight);
+            const bl = toPxBottomLeftNorm(pv.bottomLeft);
+            const br = toPxBottomLeftNorm(pv.bottomRight);
+            
+            // Create placeholder for screenshot (will be filled when imported)
+            state.screenshots.push({
+              id: Date.now() + Math.random() + index,
+              img: null,
+              quad: normalizeQuad([tl, tr, bl, br]),
+              colorIndex: index
+            });
+          }
+        });
+      } else {
+        // Legacy format - single screenshot
+        const pv = obj.projectionValues || {};
+        if (pv.topLeft) {
+          const H = state.overlayH, W = state.overlayW;
+          function toPxBottomLeftNorm([nx, ny]) { return { x: nx * W, y: (1 - ny) * H }; }
+          const tl = toPxBottomLeftNorm(pv.topLeft);
+          const tr = toPxBottomLeftNorm(pv.topRight);
+          const bl = toPxBottomLeftNorm(pv.bottomLeft);
+          const br = toPxBottomLeftNorm(pv.bottomRight);
+          
+          state.screenshots.push({
+            id: Date.now(),
+            img: null,
+            quad: normalizeQuad([tl, tr, bl, br]),
+            colorIndex: 0
+          });
+        }
+      }
+      
+      if (state.screenshots.length > 0) {
+        state.activeScreenshotId = state.screenshots[0].id;
+      }
+      
       state.screenshotOnTop = !!obj.screenshotOnTop;
-      state.cornerRadius = (pv.cornerRadius) || 0;
+      state.cornerRadius = (obj.projectionValues?.cornerRadius) || 0;
       
       markImportSelected(els.btnImportMl, true);
       markImportSelected(els.btnImportTemplate, false);
       invalidateBaseComposite();
       updateEmptyState();
       updateActionStates();
+      updateScreenshotList();
+      updateDropZones();
       resetView();
-      ctx.clearRect(0,0,state.overlayW,state.overlayH);
-      ctx.drawImage(state.overlayImg, 0, 0);
-      if (state.screenshotImg) doRender(true, false, true);
+      
+      // Always render the overlay, even if screenshots aren't loaded yet
+      doRender(false, false, false);
       setStatus('mlite loaded ✓','success');
     };
     overlayImg.onerror = ()=> setError('Failed to decode overlay image');
@@ -1127,18 +1388,23 @@ els.shot.addEventListener('change', (e)=>{
   if (ext==='heic'||ext==='heif'){ setError('HEIC/HEIF not supported.'); return; }
   const img = new Image();
   img.onload = ()=>{ 
-    state.screenshotImg = img;
-    if (!state.quad) state.quad = createDefaultScreenshotQuad();
-    markImportSelected(els.btnImportShot, true);
-    invalidateBaseComposite();
-    updateEmptyState(); 
-    updateActionStates(); 
-    if (state.overlayImg && state.quad) doRender(true, false, true); 
+    addScreenshot(img);
+    setStatus('Screenshot loaded ✓', 'success');
   };
   img.onerror = ()=> setError('Failed to load screenshot image.');
   img.src = URL.createObjectURL(f);
   e.target.value = '';
 });
+
+if (els.addScreenshotBtn) {
+  els.addScreenshotBtn.addEventListener('click', () => {
+    if (state.screenshots.length >= 4) {
+      setError('Maximum 4 screenshots allowed');
+      return;
+    }
+    els.shot.click();
+  });
+}
 
 els.logo.addEventListener('change', (e)=>{
   if (!state.hasLicense) { setStatus('Please activate your license first.','error'); e.target.value=''; return; }
@@ -1199,466 +1465,220 @@ document.querySelectorAll('.position-btn').forEach(btn => {
   });
 });
 
-/* ===== Drag and Drop Functionality ===== */
-let dragCounter = 0;
-let currentDraggedFile = null;
-let activeDropZone = null;
-
-// Get drop zone elements
-const dropZones = {
-  mlite: document.getElementById('dropZoneMlite'),
-  template: document.getElementById('dropZoneTemplate'),
-  screenshot: document.getElementById('dropZoneScreenshot')
-};
-
-// Process dropped file based on zone type
-async function processDroppedFile(file, zoneType) {
-  if (!state.hasLicense) {
-    setStatus('Please activate your license first.', 'error');
-    return;
-  }
-  
-  switch(zoneType) {
-    case 'mlite':
-      await handleMliteFileDrop(file);
-      break;
-      
-    case 'template':
-      await handleTemplateFileDrop(file);
-      break;
-      
-    case 'screenshot':
-      await handleScreenshotFileDrop(file);
-      break;
-      
-    default:
-      setError('Invalid drop zone type.');
-  }
-}
-
-// Handle .mlite file drop
-async function handleMliteFileDrop(file) {
-  // Validate file type
-  const fileName = file.name.toLowerCase();
-  if (!fileName.endsWith('.mlite') && !fileName.endsWith('.json')) {
-    setError('Please drop a .mlite file in the mLite zone.');
-    return;
-  }
-  
-  // Check if mlite already imported
-  if (state.sourceType === 'mlite' && state.overlayImg) {
-    const ok = confirm('An .mlite file is already imported. Do you want to replace it with this new file?');
-    if (!ok) return;
-    clearMliteImport();
-  } else if (state.sourceType === 'template' && state.overlayImg) {
-    // Clear template automatically when importing mlite (they're mutually exclusive)
-    clearTemplateImport();
-  }
-  
-  // Trigger the existing mlite import handler
-  const dataTransfer = new DataTransfer();
-  dataTransfer.items.add(file);
-  els.mlite.files = dataTransfer.files;
-  els.mlite.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// Handle template PNG file drop
-async function handleTemplateFileDrop(file) {
-  // Validate file type
-  const fileName = file.name.toLowerCase();
-  const fileType = file.type.toLowerCase();
-  if (!fileName.endsWith('.png') || fileType !== 'image/png') {
-    setError('Templates must be PNG files. Please drop a PNG file in the Template zone.');
-    return;
-  }
-  
-  // Check if template already imported
-  if (state.sourceType === 'template' && state.overlayImg) {
-    const ok = confirm('A template is already imported. Do you want to replace it with this new template?');
-    if (!ok) return;
-    clearTemplateImport();
-  } else if (state.sourceType === 'mlite' && state.overlayImg) {
-    // Clear mlite automatically when importing template (they're mutually exclusive)
-    clearMliteImport();
-  }
-  
-  // Trigger the existing template import handler
-  const dataTransfer = new DataTransfer();
-  dataTransfer.items.add(file);
-  els.template.files = dataTransfer.files;
-  els.template.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// Handle screenshot file drop
-async function handleScreenshotFileDrop(file) {
-  // First check if we have a template or mlite file
-  if (!state.overlayImg) {
-    setError('Please import a template or .mlite file first before adding a screenshot.');
-    return;
-  }
-  
-  // Validate file type
-  const fileType = file.type.toLowerCase();
-  if (!fileType.startsWith('image/')) {
-    setError('Please drop an image file in the Screenshot zone.');
-    return;
-  }
-  
-  // Check for HEIC/HEIF
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (ext === 'heic' || ext === 'heif') {
-    setError('HEIC/HEIF not supported.');
-    return;
-  }
-  
-  // Check if screenshot already exists
-  if (state.screenshotImg) {
-    const ok = confirm('A screenshot is already imported. Do you want to replace it with this new image?');
-    if (!ok) return;
-    clearScreenshotImport();
-  }
-  
-  // Trigger the existing screenshot import handler
-  const dataTransfer = new DataTransfer();
-  dataTransfer.items.add(file);
-  els.shot.files = dataTransfer.files;
-  els.shot.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// Main canvas drag and drop handlers
-els.canvasContainer.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.dataTransfer.dropEffect = 'copy';
-});
-
-els.canvasContainer.addEventListener('dragenter', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dragCounter++;
-  if (dragCounter === 1) {
-    els.canvasContainer.classList.add('drag-over');
-    // Update screenshot zone disabled state based on whether template/mlite exists
-    if (dropZones.screenshot) {
-      const shouldDisable = !state.overlayImg;
-      dropZones.screenshot.classList.toggle('disabled', shouldDisable);
-    }
-    // Store the file for later use
-    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
-      currentDraggedFile = e.dataTransfer.items[0];
-    }
-  }
-});
-
-els.canvasContainer.addEventListener('dragleave', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dragCounter--;
-  if (dragCounter === 0) {
-    els.canvasContainer.classList.remove('drag-over');
-    currentDraggedFile = null;
-    // Remove active state from all zones
-    Object.values(dropZones).forEach(zone => {
-      if (zone) zone.classList.remove('active');
-    });
-  }
-});
-
-els.canvasContainer.addEventListener('drop', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  dragCounter = 0;
-  els.canvasContainer.classList.remove('drag-over');
-  currentDraggedFile = null;
-  
-  // Remove active state from all zones
-  Object.values(dropZones).forEach(zone => {
-    if (zone) zone.classList.remove('active');
-  });
-  
-  // If dropped on main canvas (not a zone), do nothing
-  setStatus('Please drop files on one of the specific zones', 'error');
-});
-
-// Individual drop zone handlers
-Object.entries(dropZones).forEach(([type, zone]) => {
-  if (!zone) return;
-  
-  zone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Don't allow dragover on disabled zones
-    if (zone.classList.contains('disabled')) {
-      e.dataTransfer.dropEffect = 'none';
-      return;
-    }
-    
-    e.dataTransfer.dropEffect = 'copy';
-    
-    // Add active state to this zone
-    if (!zone.classList.contains('active')) {
-      // Remove active from other zones
-      Object.values(dropZones).forEach(z => {
-        if (z && z !== zone) z.classList.remove('active');
-      });
-      zone.classList.add('active');
-    }
-  });
-  
-  zone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Check if we're leaving to another element that's not a child
-    const rect = zone.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    
-    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
-      zone.classList.remove('active');
-    }
-  });
-  
-  zone.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    // Don't allow drop on disabled zones
-    if (zone.classList.contains('disabled')) {
-      if (type === 'screenshot') {
-        setError('Please import a template or .mlite file first before adding a screenshot.');
-      }
-      dragCounter = 0;
-      els.canvasContainer.classList.remove('drag-over');
-      return;
-    }
-    
-    const files = e.dataTransfer.files;
-    if (files.length === 0) return;
-    
-    // Process only the first file
-    const file = files[0];
-    await processDroppedFile(file, type);
-    
-    // Clean up
-    dragCounter = 0;
-    els.canvasContainer.classList.remove('drag-over');
-    zone.classList.remove('active');
-  });
-});
-
-// Prevent default drag behavior on the whole document
-document.addEventListener('dragover', (e) => {
-  e.preventDefault();
-});
-
-document.addEventListener('drop', (e) => {
-  e.preventDefault();
-});
-
-document.querySelector('.position-btn[data-position="bottom-left"]')?.classList.add('active');
-
-// OPTIMIZED: Logo scale slider - uses logoOnly flag
+// Logo settings sliders
 els.logoScaleSlider?.addEventListener('input', (e) => {
-  state.logoSettings.scale = parseFloat(e.target.value);
-  els.logoScaleValue.textContent = state.logoSettings.scale.toFixed(1);
-  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
+  const value = parseFloat(e.target.value);
+  state.logoSettings.scale = value;
+  els.logoScaleValue.textContent = value.toFixed(1);
+  if (state.overlayImg) doRender(true, false, true, true);
 });
 
-// OPTIMIZED: Logo opacity slider - uses logoOnly flag
-els.logoOpacitySlider?.addEventListener('input', (e) => {
-  state.logoSettings.opacity = parseFloat(e.target.value);
-  els.logoOpacityValue.textContent = Math.round(state.logoSettings.opacity * 100) + '%';
-  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
-});
+if (els.logoOpacitySlider) {
+  els.logoOpacitySlider.addEventListener('input', (e) => {
+    const value = parseFloat(e.target.value);
+    state.logoSettings.opacity = value;
+    els.logoOpacityValue.textContent = Math.round(value * 100) + '%';
+    if (state.overlayImg) doRender(true, false, true, true);
+  });
+}
 
-// OPTIMIZED: Logo radius slider - uses logoOnly flag
 els.logoRadiusSlider?.addEventListener('input', (e) => {
-  state.logoSettings.cornerRadius = parseInt(e.target.value);
-  els.logoRadiusValue.textContent = state.logoSettings.cornerRadius + 'px';
-  if (state.overlayImg && state.logoImg) doRender(true, false, true, true);
+  const value = parseInt(e.target.value);
+  state.logoSettings.cornerRadius = value;
+  els.logoRadiusValue.textContent = value + 'px';
+  if (state.overlayImg) doRender(true, false, true, true);
 });
 
-/* Save mockup */
-document.getElementById('saveBtn').addEventListener('click', async ()=>{
-  if (document.getElementById('saveBtn').disabled || !state.hasLicense) return;
-  try{
-    const off = document.createElement('canvas');
-    off.width = state.overlayW;
-    off.height = state.overlayH;
-    const octx = off.getContext('2d', {alpha:false});
-    octx.imageSmoothingEnabled = true;
-    octx.imageSmoothingQuality = 'high';
+/* Save/Export */
+function openNameModalLikePrompt(defaultName) {
+  const name = prompt('Save as:', defaultName);
+  if (!name || !name.trim()) return;
+  exportMlite(name.trim());
+}
 
-    const prevScale = view.scale, prevOX = view.offsetX, prevOY = view.offsetY;
-    view.scale = 1; view.offsetX = 0; view.offsetY = 0;
+function exportMlite(filename) {
+  if (!state.hasLicense || !state.overlayImg || state.screenshots.length === 0) {
+    setStatus('Cannot export: missing requirements', 'error');
+    return;
+  }
 
-    (function renderTo(ctxTarget){
-      const quadArr = [
-        [state.quad[0].x, state.quad[0].y],
-        [state.quad[1].x, state.quad[1].y],
-        [state.quad[2].x, state.quad[2].y],
-        [state.quad[3].x, state.quad[3].y],
-      ];
-      ctxTarget.setTransform(1,0,0,1,0,0);
-      ctxTarget.clearRect(0,0,off.width,off.height);
-      if (state.screenshotImg){
-        if (state.screenshotOnTop){
-          ctxTarget.drawImage(state.overlayImg, 0, 0);
-          warpImageToQuad(ctxTarget, state.screenshotImg, quadArr, MESH_DETAIL_IDLE);
-        } else {
-          warpImageToQuad(ctxTarget, state.screenshotImg, quadArr, MESH_DETAIL_IDLE);
-          ctxTarget.drawImage(state.overlayImg, 0, 0);
-        }
-      } else {
-        ctxTarget.drawImage(state.overlayImg, 0, 0);
-      }
-      
-      drawLogoLayer(ctxTarget);
-    })(octx);
+  try {
+    const W = state.overlayW;
+    const H = state.overlayH;
+    
+    function toNormBottomLeft(pt) {
+      return [pt.x / W, 1 - (pt.y / H)];
+    }
 
-    view.scale = prevScale; view.offsetX = prevOX; view.offsetY = prevOY;
+    const screenshots = state.screenshots.map(shot => ({
+      quad: {
+        topLeft: toNormBottomLeft(shot.quad[0]),
+        topRight: toNormBottomLeft(shot.quad[1]),
+        bottomRight: toNormBottomLeft(shot.quad[2]),
+        bottomLeft: toNormBottomLeft(shot.quad[3]),
+        cornerRadius: state.cornerRadius
+      },
+      colorIndex: shot.colorIndex
+    }));
 
-    const blob = await new Promise(res => off.toBlob(res,'image/png'));
+    const mliteData = {
+      customDeviceMockupBase64: state.originalOverlayBase64,
+      screenshots: screenshots,
+      screenshotOnTop: state.screenshotOnTop,
+      // Legacy support - keep first screenshot in old format
+      projectionValues: screenshots[0]?.quad || {},
+      version: 2
+    };
+
+    const json = JSON.stringify(mliteData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; 
-    a.download = 'mockup.png'; 
-    a.style.display='none';
-    document.body.appendChild(a); 
+    a.href = url;
+    a.download = filename.endsWith('.mlite') ? filename : `${filename}.mlite`;
     a.click();
-    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 50);
-    setStatus('Mockup image saved ✓','success');
-  }catch(err){ setError('Save failed: ' + err.message); }
+    URL.revokeObjectURL(url);
+    setStatus('.mlite exported ✓', 'success');
+  } catch (err) {
+    setError('Export failed: ' + err.message);
+  }
+}
+
+els.save?.addEventListener('click', async () => {
+  if (!state.hasLicense) { setStatus('Activate your license to save', 'error'); return; }
+  if (!state.overlayImg || state.screenshots.length === 0) { setStatus('Import a template and screenshot first', 'error'); return; }
+
+  setStatus('Rendering…', 'loading');
+  await new Promise(r => setTimeout(r, 50));
+
+  const wasEditing = state.editMode;
+  if (wasEditing) toggleEdit(false);
+
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = state.overlayW;
+  exportCanvas.height = state.overlayH;
+  const exportCtx = exportCanvas.getContext('2d', { alpha: false });
+  exportCtx.imageSmoothingEnabled = true;
+  exportCtx.imageSmoothingQuality = 'high';
+
+  // Build final composite
+  if (state.screenshots.some(s => s.img)) {
+    if (state.screenshotOnTop) {
+      exportCtx.drawImage(state.overlayImg, 0, 0);
+      state.screenshots.forEach(shot => {
+        if (shot.img) {
+          const quadArr = [
+            [shot.quad[0].x, shot.quad[0].y],
+            [shot.quad[1].x, shot.quad[1].y],
+            [shot.quad[2].x, shot.quad[2].y],
+            [shot.quad[3].x, shot.quad[3].y],
+          ];
+          warpImageToQuad(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE);
+        }
+      });
+    } else {
+      state.screenshots.forEach(shot => {
+        if (shot.img) {
+          const quadArr = [
+            [shot.quad[0].x, shot.quad[0].y],
+            [shot.quad[1].x, shot.quad[1].y],
+            [shot.quad[2].x, shot.quad[2].y],
+            [shot.quad[3].x, shot.quad[3].y],
+          ];
+          warpImageToQuad(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE);
+        }
+      });
+      exportCtx.drawImage(state.overlayImg, 0, 0);
+    }
+  } else {
+    exportCtx.drawImage(state.overlayImg, 0, 0);
+  }
+
+  // Draw logo if present
+  drawLogoLayer(exportCtx);
+
+  exportCanvas.toBlob(blob => {
+    if (wasEditing) toggleEdit(true);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mockup.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    setStatus('Mockup saved ✓', 'success');
+  }, 'image/png');
 });
 
-/* .mlite export */
-function toBottomLeftNorm(pxPt){
-  const nx = pxPt.x / state.overlayW;
-  const ny_from_top = pxPt.y / state.overlayH;
-  const ny_bottom_left = 1 - ny_from_top;
-  return [nx, ny_bottom_left];
-}
-function buildCurrentMlitedoc(name = 'iP17Industrial', index = 0){
-  if (!state.overlayImg || !state.quad) throw new Error('Nothing to export');
-  const [TL, TR, BR, BL] = state.quad;
-  function toBottomLeftNorm(pxPt){
-    const nx = pxPt.x / state.overlayW;
-    const ny_from_top = pxPt.y / state.overlayH;
-    const ny_bottom_left = 1 - ny_from_top;
-    return [nx, ny_bottom_left];
-  }
-  const uuid = (self.crypto && crypto.randomUUID) 
-    ? crypto.randomUUID() 
-    : (Date.now().toString(16) + Math.random().toString(16).slice(2, 10)).toUpperCase();
-
-  return {
-    id: uuid,
-    customDeviceMockupBase64: state.originalOverlayBase64,
-    index: index,
-    projectionValues: {
-      topLeft:      toBottomLeftNorm(TL),
-      topRight:     toBottomLeftNorm(TR),
-      bottomRight:  toBottomLeftNorm(BR),
-      bottomLeft:   toBottomLeftNorm(BL),
-       cornerRadius: Math.round(state.cornerRadius || 0)
-    },
-    name: name,
-    screenshotOnTop: !!state.screenshotOnTop,
-    isFavourite: false,
-    supportsBackgrounds: false
-  };
-}
-function openNameModalLikePrompt(defaultName='My Mockup.mlite'){
-  const name = prompt('Name your .mlite file', defaultName);
-  if (!name) return;
-  const finalName = name.endsWith('.mlite') ? name : name + '.mlite';
-  try{
-    const doc = buildCurrentMlitedoc();
-    const blob = new Blob([JSON.stringify(doc,null,2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = finalName;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(()=>{ document.body.removeChild(a); }, 50);
-    setStatus('.mlite exported ✓','success');
-  }catch(err){ setError('Export .mlite failed: ' + err.message); }
-}
-els.exportMlBtn.addEventListener('click', ()=>{
-  if (state.editMode){ setStatus('Finish editing before exporting .mlite','error'); return; }
-  if (!state.hasLicense){ setStatus('Activate your license to export .mlite','error'); return; }
-  if (!state.overlayImg || !state.quad){ setStatus('Load a Template PNG first to export .mlite','error'); return; }
-  if (state.sourceType !== 'template'){ setStatus('Only Templates can be exported as .mlite files. Import a Template to enable this option.','error'); return; }
+els.exportMlBtn?.addEventListener('click', () => {
+  if (!state.hasLicense) { setStatus('Activate your license to export .mlite', 'error'); return; }
+  if (!state.overlayImg || state.screenshots.length === 0) { setStatus('Load a Template PNG first to export .mlite', 'error'); return; }
+  if (state.sourceType !== 'template') { setStatus('Only Templates can be exported as .mlite files. Import a Template to enable this option.', 'error'); return; }
   openNameModalLikePrompt('My Mockup.mlite');
 });
 
 /* GLOBAL DISABLED CLICK HANDLER */
-function getDisabledMessageFor(el){
+function getDisabledMessageFor(el) {
   const id = el.id || '';
-  // If no overlay/template/mlite loaded
   const noImport = !state.overlayImg;
-  // For determining imported type
   const notTemplate = state.sourceType !== 'template';
 
-  if (id === 'btnImportShot' || el.closest('#btnImportShot')){
+  if (id === 'btnImportShot' || el.closest('#btnImportShot')) {
+    if (state.screenshots.length >= 4) return 'Maximum 4 screenshots allowed.';
     return 'Import a .mLite file or Template before importing a Screenshot.';
   }
-  if (id === 'exportMlBtn'){
+  if (id === 'addScreenshotBtn') {
+    if (state.screenshots.length >= 4) return 'Maximum 4 screenshots allowed.';
+    return 'Import a Template first to add screenshots.';
+  }
+  if (id === 'exportMlBtn') {
     if (noImport) return 'Import a .mLite file or Template before saving or exporting.';
     if (notTemplate) return 'Only Templates can be exported as .mLite files. Import a Template to enable this option.';
     if (state.editMode) return 'Finish editing before exporting .mLite.';
   }
-  if (id === 'saveBtn'){
+  if (id === 'saveBtn') {
     if (noImport) return 'Import a .mLite file or Template before saving or exporting.';
     if (!state.hasLicense) return 'Activate your license to enable saving.';
-    if (!state.screenshotImg) return 'Import a Screenshot to enable saving.';
+    if (state.screenshots.length === 0) return 'Import a Screenshot to enable saving.';
   }
-  if (id === 'editBtn'){
+  if (id === 'editBtn') {
     if (!state.hasLicense) return 'Activate your license to edit.';
-    if (!state.overlayImg || !state.quad) return 'Import a .mLite file or Template first to enable editing.';
+    if (!state.overlayImg || state.screenshots.length === 0) return 'Import a .mLite file or Template and Screenshot first to enable editing.';
   }
-  // Fallback
   return 'This action is currently unavailable.';
 }
 
-function handleDisabledButtonClick(){
-  document.addEventListener('click', (e)=>{
-    // Find nearest actionable root (button or label acting as button)
+function handleDisabledButtonClick() {
+  document.addEventListener('click', (e) => {
     const el = e.target.closest('button, label');
     if (!el) return;
 
     const isDisabled = el.disabled || el.classList.contains('disabled') || el.dataset.disabled === 'true';
 
-    if (isDisabled){
+    if (isDisabled) {
       e.preventDefault();
       e.stopPropagation();
       const msg = getDisabledMessageFor(el);
       setStatus(msg, 'error');
-      // Ensure visual dim state always applied
       el.classList.add('disabled');
       if ('disabled' in el) el.disabled = true;
     }
-  }, true); // capture phase to intercept early
+  }, true);
 }
 handleDisabledButtonClick();
 
-/* Robust disabled tap handler: works for true disabled buttons too */
-function isDisabledEl(el){
-  return !!(el && (el.disabled || el.classList.contains('disabled') || el.getAttribute('aria-disabled')==='true' || el.dataset.disabled === 'true'));
+function isDisabledEl(el) {
+  return !!(el && (el.disabled || el.classList.contains('disabled') || el.getAttribute('aria-disabled') === 'true' || el.dataset.disabled === 'true'));
 }
-document.addEventListener('pointerdown', (e)=>{
+document.addEventListener('pointerdown', (e) => {
   const el = e.target.closest('button, label');
   if (!el) return;
-  if (isDisabledEl(el)){
+  if (isDisabledEl(el)) {
     const msg = getDisabledMessageFor(el);
     setStatus(msg, 'error');
     e.preventDefault();
     e.stopPropagation();
   }
 }, true);
-
 
 /* Community link */
 els.browse?.addEventListener("click", () => {
@@ -1668,52 +1688,49 @@ els.browse?.addEventListener("click", () => {
 
 els.currentYear.textContent = new Date().getFullYear();
 
-
-/* --- iOS/iPadOS detection & .mlite accept fix --- */
-function isIOSLike(){
+/* iOS/iPadOS detection & .mlite accept fix */
+function isIOSLike() {
   const ua = navigator.userAgent || navigator.vendor || window.opera || '';
   const iOS = /iPad|iPhone|iPod/.test(ua);
-  // iPadOS 13+ can report as Mac; detect via touch points
   const iPadOS = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   return iOS || iPadOS;
 }
-function relaxMliteAcceptOnIOS(){
-  try{
+
+function relaxMliteAcceptOnIOS() {
+  try {
     if (!els.mlite) return;
-    if (isIOSLike()){
-      // Remove accept filter so iOS Files app won't grey out .mlite JSON with odd MIME/UTI
+    if (isIOSLike()) {
       els.mlite.removeAttribute('accept');
       els.mlite.setAttribute('data-allfiles', 'true');
-      // Nudge the user the first time
-      if (!localStorage.getItem('mlite_ios_accept_relaxed')){
+      if (!localStorage.getItem('mlite_ios_accept_relaxed')) {
         setStatus('iOS Files: All files enabled for .mLite import. Select your .mlite and we\'ll validate it.', 'idle');
         localStorage.setItem('mlite_ios_accept_relaxed', '1');
       }
-      // Optional: update label text subtly
       const span = els.btnImportMl?.querySelector('span');
-      if (span && !span.textContent.includes('(iOS All Files)')){
+      if (span && !span.textContent.includes('(iOS All Files)')) {
         span.textContent = span.textContent + ' (iOS All Files)';
       }
     }
-  }catch(e){ /* no-op */ }
+  } catch (e) { }
 }
 
 /* Boot */
-function boot(){
+function boot() {
   relaxMliteAcceptOnIOS();
   checkExistingLicense();
   updateLicenseUI();
   updateActionStates();
   initMockupShowcase();
-  setStatus('Ready to import files','idle');
+  setStatus('Ready to import files', 'idle');
   updateEmptyState();
   updateZoomUI();
+  updateScreenshotList();
+  updateDropZones();
   window.addEventListener('resize', positionZoomUI, { passive: true });
 }
 boot();
 
-
-// === Showcase visibility control ===
+// Showcase visibility control
 let _mliteLoaded = false;
 let _templateLoaded = false;
 
@@ -1723,73 +1740,65 @@ function updateShowcaseVisibility() {
   if (!showcase) return;
   showcase.style.display = hasAny ? 'none' : 'flex';
 }
-// Call once on load
+
 document.addEventListener('DOMContentLoaded', updateShowcaseVisibility);
 
-
-// Bind import flag listeners (non-invasive)
 const _mlInput = document.getElementById('mliteFile');
 if (_mlInput && !_mlInput.__skFlagBound) {
-  _mlInput.addEventListener('change', ()=>{ _mliteLoaded = _mlInput.files && _mlInput.files.length>0; updateShowcaseVisibility(); });
+  _mlInput.addEventListener('change', () => { _mliteLoaded = _mlInput.files && _mlInput.files.length > 0; updateShowcaseVisibility(); });
   _mlInput.__skFlagBound = true;
 }
 const _tplInput = document.getElementById('templateFile');
 if (_tplInput && !_tplInput.__skFlagBound) {
-  _tplInput.addEventListener('change', ()=>{ _templateLoaded = _tplInput.files && _tplInput.files.length>0; updateShowcaseVisibility(); });
+  _tplInput.addEventListener('change', () => { _templateLoaded = _tplInput.files && _tplInput.files.length > 0; updateShowcaseVisibility(); });
   _tplInput.__skFlagBound = true;
 }
 
-// Optional: when user clears/reset state, expose a window hook to update flags then call updateShowcaseVisibility()
-window.__mliteSetShowcaseState = function({mlite=false, template=false}={}){
+window.__mliteSetShowcaseState = function ({ mlite = false, template = false } = {}) {
   _mliteLoaded = !!mlite; _templateLoaded = !!template; updateShowcaseVisibility();
 };
 
-
-// == Auto-close Menu Enhancements (non-breaking) ==
-(function(){
+// Auto-close Menu Enhancements
+(function () {
   if (window.__mliteAutoCloseInit__) return;
   window.__mliteAutoCloseInit__ = true;
 
-  function qs(id){ return document.getElementById(id); }
+  function qs(id) { return document.getElementById(id); }
   const menuToggle = qs('menuToggle');
-  const menuItems  = qs('menuItems');
-  // Mark likely cleanup actions to keep menu open
-  ['removeTemplateBtn','removeScreenshotBtn','refreshBtn','clearAllBtn'].forEach(id=>{
+  const menuItems = qs('menuItems');
+  ['removeTemplateBtn', 'removeScreenshotBtn', 'refreshBtn', 'clearAllBtn'].forEach(id => {
     const el = qs(id);
     if (el) el.dataset.keepopen = 'true';
   });
 
-
-  function closeMenu(){
+  function closeMenu() {
     if (!menuItems) return;
     menuItems.classList.remove('active');
     menuToggle && menuToggle.classList.remove('active');
   }
 
-  function isRemovalOrMultiStepModeActive(){
-    // Keep the menu open only if there are explicit keep-open elements (e.g., remove/cleanup buttons)
+  function isRemovalOrMultiStepModeActive() {
     return !!document.querySelector('#menuItems [data-keepopen="true"]');
   }
 
-  function maybeAutoCloseMenu(evt){
+  function maybeAutoCloseMenu(evt) {
     try {
       if (evt?.currentTarget?.dataset?.keepopen === 'true') return;
-    } catch(e){}
+    } catch (e) { }
     if (isRemovalOrMultiStepModeActive()) return;
     closeMenu();
   }
 
-  // Wire up "one-and-done" actions to auto-close after they fire
   const fileIds = ['mliteFile', 'shotFile', 'templateFile'];
   fileIds.forEach(id => {
     const el = qs(id);
     if (el && !el.__ac_bound__) {
-      el.addEventListener('change', (e)=>{ maybeAutoCloseMenu(e); }, { passive: true });
+      el.addEventListener('change', (e) => { maybeAutoCloseMenu(e); }, { passive: true });
       el.__ac_bound__ = true;
     }
   });
 
-  ['saveBtn','exportMlBtn','websiteBtn'].forEach(id => {
+  ['saveBtn', 'exportMlBtn', 'websiteBtn'].forEach(id => {
     const el = qs(id);
     if (el && !el.__ac_bound__) {
       el.addEventListener('click', maybeAutoCloseMenu, { passive: true });
@@ -1797,7 +1806,229 @@ window.__mliteSetShowcaseState = function({mlite=false, template=false}={}){
     }
   });
 
-  // Optional: if the hamburger toggles via JS elsewhere, keep this safe no-op.
   window.__mliteCloseMenu = closeMenu;
 })();
 
+// Drag and drop support
+let dragTargetSlot = null;
+let dragTargetType = null;
+
+// Update drop zone states based on current screenshots
+function updateDropZones() {
+  const slots = [
+    document.getElementById('dropZoneScreenshot1'),
+    document.getElementById('dropZoneScreenshot2'),
+    document.getElementById('dropZoneScreenshot3'),
+    document.getElementById('dropZoneScreenshot4')
+  ];
+  
+  // Update each slot based on screenshot state
+  state.screenshots.forEach((screenshot, index) => {
+    if (slots[index]) {
+      slots[index].classList.remove('disabled');
+      if (screenshot.img) {
+        slots[index].classList.add('filled');
+        slots[index].querySelector('.slot-status').textContent = 'Filled';
+      } else {
+        slots[index].classList.remove('filled');
+        slots[index].querySelector('.slot-status').textContent = 'Empty';
+      }
+    }
+  });
+  
+  // Disable slots beyond available screenshots
+  for (let i = state.screenshots.length; i < 4; i++) {
+    if (slots[i]) {
+      slots[i].classList.add('disabled');
+      slots[i].classList.remove('filled');
+      slots[i].querySelector('.slot-status').textContent = 'N/A';
+    }
+  }
+}
+
+// Setup drop zone tracking
+function setupDropZoneTracking() {
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragenter', (e) => {
+      e.stopPropagation();
+      const type = zone.dataset.type;
+      dragTargetType = type;
+      
+      if (type === 'screenshot' && !zone.classList.contains('disabled')) {
+        dragTargetSlot = parseInt(zone.dataset.slot);
+        zone.classList.add('active');
+      } else {
+        dragTargetSlot = null;
+        zone.classList.add('active');
+      }
+    });
+    
+    zone.addEventListener('dragleave', (e) => {
+      if (e.target === zone || zone.contains(e.relatedTarget)) {
+        return;
+      }
+      zone.classList.remove('active');
+      if (zone.dataset.type === 'screenshot') {
+        dragTargetSlot = null;
+      }
+      dragTargetType = null;
+    });
+  });
+}
+
+els.canvasContainer.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  els.canvasContainer.classList.add('drag-over');
+  updateDropZones();
+  
+  // Also check which element we're over
+  const dropZone = e.target.closest('.drop-zone');
+  if (dropZone) {
+    dragTargetType = dropZone.dataset.type;
+    if (dragTargetType === 'screenshot' && dropZone.dataset.slot !== undefined) {
+      dragTargetSlot = parseInt(dropZone.dataset.slot);
+    }
+  }
+});
+
+els.canvasContainer.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.target === els.canvasContainer) {
+    els.canvasContainer.classList.remove('drag-over');
+    dragTargetSlot = null;
+    dragTargetType = null;
+  }
+});
+
+els.canvasContainer.addEventListener('drop', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  els.canvasContainer.classList.remove('drag-over');
+  
+  // Check which zone we dropped on
+  const dropZone = e.target.closest('.drop-zone');
+  if (dropZone) {
+    dragTargetType = dropZone.dataset.type;
+    if (dragTargetType === 'screenshot' && dropZone.dataset.slot !== undefined) {
+      dragTargetSlot = parseInt(dropZone.dataset.slot);
+    }
+  }
+  
+  // Clear all active states
+  document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('active'));
+
+  const files = Array.from(e.dataTransfer.files);
+  if (files.length === 0) {
+    dragTargetSlot = null;
+    dragTargetType = null;
+    return;
+  }
+
+  const file = files[0];
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  console.log('Drop detected:', { type: dragTargetType, slot: dragTargetSlot, ext: ext });
+
+  // Check what type of zone was targeted
+  if (dragTargetType === 'mlite' && (ext === 'mlite' || ext === 'json')) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    els.mlite.files = dt.files;
+    els.mlite.dispatchEvent(new Event('change', { bubbles: true }));
+  } else if (dragTargetType === 'template' && ext === 'png') {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    els.template.files = dt.files;
+    els.template.dispatchEvent(new Event('change', { bubbles: true }));
+  } else if (dragTargetType === 'screenshot' && ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+    if (!state.overlayImg) {
+      setError('Import a Template or .mlite file first');
+      dragTargetSlot = null;
+      dragTargetType = null;
+      return;
+    }
+    
+    console.log('Screenshot drop detected');
+    console.log('Target slot:', dragTargetSlot);
+    console.log('Available screenshots:', state.screenshots.length);
+    console.log('Screenshots array:', state.screenshots);
+    
+    // Handle screenshot drop to specific slot
+    if (dragTargetSlot !== null && dragTargetSlot >= 0 && dragTargetSlot < state.screenshots.length) {
+      const targetScreenshot = state.screenshots[dragTargetSlot];
+      console.log('Target screenshot object:', targetScreenshot);
+      
+      if (!targetScreenshot) {
+        console.error('Screenshot slot exists but is undefined');
+        setError('Screenshot slot error');
+        dragTargetSlot = null;
+        dragTargetType = null;
+        return;
+      }
+      
+      const img = new Image();
+      img.onload = () => {
+        console.log('Screenshot loaded successfully, filling slot', dragTargetSlot);
+        // Set this slot as active and fill it
+        state.activeScreenshotId = targetScreenshot.id;
+        targetScreenshot.img = img;
+        updateScreenshotList();
+        updateDropZones();
+        invalidateBaseComposite();
+        updateEmptyState();
+        updateActionStates();
+        doRender(true, false, true);
+        setStatus(`Screenshot ${dragTargetSlot + 1} loaded ✓`, 'success');
+        dragTargetSlot = null;
+        dragTargetType = null;
+      };
+      img.onerror = () => {
+        console.error('Failed to load screenshot image');
+        setError('Failed to load screenshot image.');
+        dragTargetSlot = null;
+        dragTargetType = null;
+      };
+      img.src = URL.createObjectURL(file);
+    } else {
+      console.log('Invalid slot or no slot targeted. Slot:', dragTargetSlot, 'Available:', state.screenshots.length);
+      console.log('Using fallback - filling first empty slot');
+      // No specific slot targeted or invalid slot, use the old behavior (fill first empty)
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      els.shot.files = dt.files;
+      els.shot.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  } else if (!dragTargetType) {
+    // No specific zone targeted, use file extension to determine action
+    if (ext === 'mlite' || ext === 'json') {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      els.mlite.files = dt.files;
+      els.mlite.dispatchEvent(new Event('change', { bubbles: true }));
+    } else if (ext === 'png') {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      els.template.files = dt.files;
+      els.template.dispatchEvent(new Event('change', { bubbles: true }));
+    } else if (['jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+      if (!state.overlayImg) {
+        setError('Import a Template or .mlite file first');
+        dragTargetSlot = null;
+        dragTargetType = null;
+        return;
+      }
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      els.shot.files = dt.files;
+      els.shot.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+  
+  dragTargetSlot = null;
+  dragTargetType = null;
+});
+
+// Initialize drop zone tracking
+setupDropZoneTracking();

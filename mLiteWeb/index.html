@@ -31,6 +31,16 @@
           <span>Import Screenshot</span>
         </label>
 
+        <div class="screenshot-manager" id="screenshotManager">
+          <div class="screenshot-header">
+            <span>Screenshots</span>
+            <button class="add-screenshot-btn disabled" disabled id="addScreenshotBtn">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+            </button>
+          </div>
+          <div class="screenshot-list" id="screenshotList"></div>
+        </div>
+
         <div class="menu-btn-group disabled" data-disabled="true" id="logoButtonGroup">
           <label class="menu-btn-main" for="logoFile" id="btnImportLogo">
             <svg viewBox="0 0 24 24"><path d="M18 21v-2a4 4 0 0 0-4-4H10a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><path d="M16 3h5v5"></path></svg>
@@ -133,17 +143,33 @@
         <span class="drop-zone-title">Template</span>
         <span class="drop-zone-hint">PNG image</span>
       </div>
-      <div class="drop-zone" data-type="screenshot" id="dropZoneScreenshot">
-        <svg viewBox="0 0 24 24"><path d="M4 7h4l2-3h4l2 3h4v12H4z"></path><path d="M12 10v6M9 13h6"></path></svg>
-        <span class="drop-zone-title">Screenshot</span>
-        <span class="drop-zone-hint">Any image</span>
+      <div class="drop-zone-group" id="dropZoneScreenshotGroup">
+        <div class="drop-zone-group-title">Screenshots</div>
+        <div class="drop-zone-grid">
+          <div class="drop-zone screenshot-slot disabled" data-type="screenshot" data-slot="0" id="dropZoneScreenshot1">
+            <span class="slot-number">1</span>
+            <span class="slot-status">Empty</span>
+          </div>
+          <div class="drop-zone screenshot-slot disabled" data-type="screenshot" data-slot="1" id="dropZoneScreenshot2">
+            <span class="slot-number">2</span>
+            <span class="slot-status">Empty</span>
+          </div>
+          <div class="drop-zone screenshot-slot disabled" data-type="screenshot" data-slot="2" id="dropZoneScreenshot3">
+            <span class="slot-number">3</span>
+            <span class="slot-status">Empty</span>
+          </div>
+          <div class="drop-zone screenshot-slot disabled" data-type="screenshot" data-slot="3" id="dropZoneScreenshot4">
+            <span class="slot-number">4</span>
+            <span class="slot-status">Empty</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Zoom UI (positioned over the canvas) -->
     <div class="zoom-ui" id="zoomUI" aria-label="Zoom controls">
       <span class="zoom-glyph" aria-hidden="true">🔍</span>
-      <input id="zoomSlider" type="range" min="1" max="10" step="0.01" value="1" aria-label="Zoom level"/>
+      <input id="zoomSlider" type="range" min="1" max="4" step="0.01" value="1" aria-label="Zoom level"/>
       <span class="zoom-value" id="zoomValue" aria-live="polite">1.00×</span>
     </div>
 

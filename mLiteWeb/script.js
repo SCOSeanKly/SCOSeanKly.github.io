@@ -1879,8 +1879,11 @@ function setupDropZoneTracking() {
 els.canvasContainer.addEventListener('dragover', (e) => {
   e.preventDefault();
   e.stopPropagation();
-  els.canvasContainer.classList.add('drag-over');
-  updateDropZones();
+  
+  if (!els.canvasContainer.classList.contains('drag-over')) {
+    els.canvasContainer.classList.add('drag-over');
+    updateDropZones();
+  }
   
   // Also check which element we're over
   const dropZone = e.target.closest('.drop-zone');
@@ -1895,10 +1898,19 @@ els.canvasContainer.addEventListener('dragover', (e) => {
 els.canvasContainer.addEventListener('dragleave', (e) => {
   e.preventDefault();
   e.stopPropagation();
-  if (e.target === els.canvasContainer) {
+  
+  // Only remove drag-over if we're actually leaving the container, not just entering a child
+  const rect = els.canvasContainer.getBoundingClientRect();
+  const x = e.clientX;
+  const y = e.clientY;
+  
+  if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
     els.canvasContainer.classList.remove('drag-over');
     dragTargetSlot = null;
     dragTargetType = null;
+    
+    // Clear all active zone states
+    document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('active'));
   }
 });
 
@@ -2032,3 +2044,12 @@ els.canvasContainer.addEventListener('drop', (e) => {
 
 // Initialize drop zone tracking
 setupDropZoneTracking();
+
+// Prevent browser from opening files when dropped outside drop zones
+document.addEventListener('dragover', (e) => {
+  e.preventDefault();
+}, false);
+
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+}, false);

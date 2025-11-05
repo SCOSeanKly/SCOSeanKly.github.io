@@ -619,6 +619,126 @@ canvas { touch-action: none; }
   .logo-setting-row { grid-template-columns: 50px 1fr 40px; gap: 8px; }
 }
 
+/* === Screenshot Settings Panel === */
+.screenshot-settings-panel {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 280px;
+  background: rgba(26, 32, 44, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  z-index: 101;
+}
+
+.screenshot-settings-panel.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.screenshot-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.screenshot-settings-header span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.screenshot-settings-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  transition: all .2s ease;
+}
+
+.screenshot-settings-close:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+
+.screenshot-settings-close svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.screenshot-setting-row {
+  display: grid;
+  grid-template-columns: 85px 1fr 45px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.screenshot-setting-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Settings button for each screenshot item */
+.screenshot-settings-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(91, 156, 245, 0.15);
+  border: 1px solid rgba(91, 156, 245, 0.3);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .3s ease;
+}
+
+.screenshot-settings-btn:hover {
+  background: var(--accent);
+  color: white;
+  transform: scale(1.1);
+}
+
+.screenshot-settings-btn.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 0 3px rgba(91, 156, 245, 0.2);
+}
+
+.screenshot-settings-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Mobile adjustments for screenshot settings */
+@media (max-width: 768px) {
+  .screenshot-settings-panel { width: 240px; padding: 14px; }
+  .screenshot-setting-row { grid-template-columns: 75px 1fr 40px; gap: 8px; }
+}
+
+
 /* Screenshot Manager Styles */
 .screenshot-manager {
   background: rgba(0, 0, 0, 0.2);
@@ -723,6 +843,33 @@ canvas { touch-action: none; }
   transition: all .3s ease;
   text-align: left;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.screenshot-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.screenshot-number {
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.screenshot-status {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.8;
+  margin-left: auto;
 }
 
 .screenshot-btn:hover {

@@ -71,6 +71,10 @@ const els = {
   zoomValue: document.getElementById('zoomValue'),
   screenshotList: document.getElementById('screenshotList'),
   addScreenshotBtn: document.getElementById('addScreenshotBtn'),
+  screenshotSettingsPanel: document.getElementById('screenshotSettingsPanel'),
+  btnCloseScreenshotSettings: document.getElementById('btnCloseScreenshotSettings'),
+  screenshotRadiusSlider: document.getElementById('screenshotRadiusSlider'),
+  screenshotRadiusValue: document.getElementById('screenshotRadiusValue'),
 };
 
 
@@ -504,6 +508,86 @@ function warpImageToQuad(ctx, img, dstQuad, steps) {
   }
 }
 
+// Helper function to draw screenshot with optional corner radius
+function drawScreenshotWithRadius(ctx, img, quadArr, steps, cornerRadius = 0) {
+  if (!cornerRadius || cornerRadius <= 0) {
+    // No corner radius, just draw normally
+    warpImageToQuad(ctx, img, quadArr, steps);
+    return;
+  }
+  
+  // Create clipping path with rounded corners
+  ctx.save();
+  
+  // Get quad points: [topLeft, topRight, bottomRight, bottomLeft]
+  const [tl, tr, br, bl] = quadArr;
+  
+  // Calculate safe radius (prevent radius from being too large)
+  const width = Math.hypot(tr[0] - tl[0], tr[1] - tl[1]);
+  const height = Math.hypot(bl[0] - tl[0], bl[1] - tl[1]);
+  const maxRadius = Math.min(width, height) / 2;
+  const radius = Math.min(cornerRadius, maxRadius);
+  
+  // Create rounded quad path
+  ctx.beginPath();
+  
+  // Calculate normalized direction vectors for each edge
+  // Top edge (TL -> TR)
+  const topLen = Math.hypot(tr[0] - tl[0], tr[1] - tl[1]);
+  const topDx = (tr[0] - tl[0]) / topLen;
+  const topDy = (tr[1] - tl[1]) / topLen;
+  
+  // Right edge (TR -> BR)
+  const rightLen = Math.hypot(br[0] - tr[0], br[1] - tr[1]);
+  const rightDx = (br[0] - tr[0]) / rightLen;
+  const rightDy = (br[1] - tr[1]) / rightLen;
+  
+  // Bottom edge (BR -> BL)
+  const bottomLen = Math.hypot(bl[0] - br[0], bl[1] - br[1]);
+  const bottomDx = (bl[0] - br[0]) / bottomLen;
+  const bottomDy = (bl[1] - br[1]) / bottomLen;
+  
+  // Left edge (BL -> TL)
+  const leftLen = Math.hypot(tl[0] - bl[0], tl[1] - bl[1]);
+  const leftDx = (tl[0] - bl[0]) / leftLen;
+  const leftDy = (tl[1] - bl[1]) / leftLen;
+  
+  // Start at top edge, after the top-left corner radius
+  ctx.moveTo(tl[0] + topDx * radius, tl[1] + topDy * radius);
+  
+  // Draw to near top-right corner
+  ctx.lineTo(tr[0] - topDx * radius, tr[1] - topDy * radius);
+  
+  // Top-right corner arc
+  ctx.arcTo(tr[0], tr[1], tr[0] + rightDx * radius, tr[1] + rightDy * radius, radius);
+  
+  // Draw down right edge to near bottom-right corner
+  ctx.lineTo(br[0] - rightDx * radius, br[1] - rightDy * radius);
+  
+  // Bottom-right corner arc
+  ctx.arcTo(br[0], br[1], br[0] + bottomDx * radius, br[1] + bottomDy * radius, radius);
+  
+  // Draw across bottom edge to near bottom-left corner
+  ctx.lineTo(bl[0] - bottomDx * radius, bl[1] - bottomDy * radius);
+  
+  // Bottom-left corner arc
+  ctx.arcTo(bl[0], bl[1], bl[0] + leftDx * radius, bl[1] + leftDy * radius, radius);
+  
+  // Draw up left edge to near top-left corner
+  ctx.lineTo(tl[0] - leftDx * radius, tl[1] - leftDy * radius);
+  
+  // Top-left corner arc (back to start)
+  ctx.arcTo(tl[0], tl[1], tl[0] + topDx * radius, tl[1] + topDy * radius, radius);
+  
+  ctx.closePath();
+  ctx.clip();
+  
+  // Now draw the warped image
+  warpImageToQuad(ctx, img, quadArr, steps);
+  
+  ctx.restore();
+}
+
 /* ===== OPTIMIZED: Build base composite (screenshots + overlay) ===== */
 function buildBaseComposite() {
   if (!state.hasLicense || !state.overlayImg) return;
@@ -514,7 +598,13 @@ function buildBaseComposite() {
   baseCompositeCtx.clearRect(0, 0, baseCompositeCanvas.width, baseCompositeCanvas.height);
   
   // Filter out screenshots that don't have images loaded
-  const loadedScreenshots = state.screenshots.filter(shot => shot.img);
+  // AND filter out the screenshot being adjusted (for performance)
+  const loadedScreenshots = state.screenshots.filter(shot => {
+    if (!shot.img) return false;
+    // Skip the screenshot being adjusted during radius slider drag
+    if (screenshotRadiusAdjusting && shot.id === currentScreenshotSettingsId) return false;
+    return true;
+  });
   
   if (loadedScreenshots.length > 0) {
     if (state.screenshotOnTop) {
@@ -527,7 +617,7 @@ function buildBaseComposite() {
           [shot.quad[2].x, shot.quad[2].y],
           [shot.quad[3].x, shot.quad[3].y],
         ];
-        warpImageToQuad(baseCompositeCtx, shot.img, quadArr, meshDetail);
+        drawScreenshotWithRadius(baseCompositeCtx, shot.img, quadArr, meshDetail, shot.cornerRadius || 0);
       });
     } else {
       // Draw all loaded screenshots
@@ -538,7 +628,7 @@ function buildBaseComposite() {
           [shot.quad[2].x, shot.quad[2].y],
           [shot.quad[3].x, shot.quad[3].y],
         ];
-        warpImageToQuad(baseCompositeCtx, shot.img, quadArr, meshDetail);
+        drawScreenshotWithRadius(baseCompositeCtx, shot.img, quadArr, meshDetail, shot.cornerRadius || 0);
       });
       baseCompositeCtx.drawImage(state.overlayImg, 0, 0);
     }
@@ -995,7 +1085,8 @@ function addScreenshot(img) {
       id: Date.now() + Math.random(),
       img: img,
       quad: createDefaultScreenshotQuad(),
-      colorIndex: colorIndex
+      colorIndex: colorIndex,
+      cornerRadius: 0
     };
     
     state.screenshots.push(screenshot);
@@ -1060,7 +1151,8 @@ function updateScreenshotList() {
     const btn = document.createElement('button');
     btn.className = 'screenshot-btn';
     btn.style.backgroundColor = color.hex;
-    btn.textContent = `Screenshot ${screenshot.colorIndex + 1}${!screenshot.img ? ' (Empty)' : ''}`;
+    // Use camera icon + number instead of "Screenshot N"
+    btn.innerHTML = `<svg class="screenshot-icon" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="screenshot-number">${screenshot.colorIndex + 1}</span>${!screenshot.img ? '<span class="screenshot-status">(Empty)</span>' : ''}`;
     
     // If empty, clicking imports; if filled, clicking selects
     btn.addEventListener('click', () => {
@@ -1073,6 +1165,19 @@ function updateScreenshotList() {
         // Has image - just select it
         setActiveScreenshot(screenshot.id);
       }
+    });
+    
+    // Settings button
+    const settingsBtn = document.createElement('button');
+    settingsBtn.className = 'screenshot-settings-btn';
+    settingsBtn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M1 12h6m6 0h6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M19.78 4.22l-4.24 4.24m-5.08 5.08l-4.24 4.24"></path></svg>';
+    settingsBtn.title = 'Screenshot settings';
+    if (screenshot.id === state.activeScreenshotId) {
+      settingsBtn.classList.add('active');
+    }
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openScreenshotSettings(screenshot.id);
     });
     
     const deleteBtn = document.createElement('button');
@@ -1107,6 +1212,7 @@ function updateScreenshotList() {
     });
     
     item.appendChild(btn);
+    item.appendChild(settingsBtn);
     item.appendChild(deleteBtn);
     els.screenshotList.appendChild(item);
   });
@@ -1328,7 +1434,8 @@ els.mlite.addEventListener('change', async (e)=>{
               id: Date.now() + Math.random() + index,
               img: null,
               quad: normalizeQuad([tl, tr, bl, br]),
-              colorIndex: index
+              colorIndex: index,
+              cornerRadius: pv.cornerRadius || 0
             });
           }
         });
@@ -1347,7 +1454,8 @@ els.mlite.addEventListener('change', async (e)=>{
             id: Date.now(),
             img: null,
             quad: normalizeQuad([tl, tr, bl, br]),
-            colorIndex: 0
+            colorIndex: 0,
+            cornerRadius: pv.cornerRadius || 0
           });
         }
       }
@@ -1489,6 +1597,102 @@ els.logoRadiusSlider?.addEventListener('input', (e) => {
   if (state.overlayImg) doRender(true, false, true, true);
 });
 
+/* === Screenshot Settings Panel === */
+let currentScreenshotSettingsId = null;
+let screenshotRadiusAdjusting = false;
+let screenshotRadiusTimeout = null;
+
+function openScreenshotSettings(screenshotId) {
+  currentScreenshotSettingsId = screenshotId;
+  const screenshot = state.screenshots.find(s => s.id === screenshotId);
+  
+  if (!screenshot) return;
+  
+  // Update slider to current values
+  els.screenshotRadiusSlider.value = screenshot.cornerRadius || 0;
+  els.screenshotRadiusValue.textContent = (screenshot.cornerRadius || 0) + 'px';
+  
+  // Show panel, hide menu
+  els.screenshotSettingsPanel.classList.add('active');
+  els.menuItems.classList.remove('active');
+  els.menuToggle.classList.remove('active');
+  
+  // Update active state in screenshot list
+  updateScreenshotList();
+}
+
+els.btnCloseScreenshotSettings?.addEventListener('click', () => {
+  els.screenshotSettingsPanel.classList.remove('active');
+  els.menuItems.classList.add('active');
+  els.menuToggle.classList.add('active');
+  currentScreenshotSettingsId = null;
+  screenshotRadiusAdjusting = false;
+  updateScreenshotList();
+  // Force final render
+  invalidateBaseComposite();
+  doRender(true, false, true);
+});
+
+document.addEventListener('click', (e) => {
+  if (els.screenshotSettingsPanel?.classList.contains('active')) {
+    if (!els.screenshotSettingsPanel.contains(e.target) && 
+        !e.target.closest('.screenshot-settings-btn')) {
+      els.screenshotSettingsPanel.classList.remove('active');
+      els.menuItems.classList.add('active');
+      els.menuToggle.classList.add('active');
+      currentScreenshotSettingsId = null;
+      screenshotRadiusAdjusting = false;
+      updateScreenshotList();
+      // Force final render
+      invalidateBaseComposite();
+      doRender(true, false, true);
+    }
+  }
+});
+
+// Screenshot corner radius slider - optimized with debouncing
+els.screenshotRadiusSlider?.addEventListener('input', (e) => {
+  const value = parseInt(e.target.value);
+  els.screenshotRadiusValue.textContent = value + 'px';
+  
+  if (currentScreenshotSettingsId) {
+    const screenshot = state.screenshots.find(s => s.id === currentScreenshotSettingsId);
+    if (screenshot) {
+      screenshot.cornerRadius = value;
+      
+      // Mark as adjusting (hides screenshot during drag)
+      if (!screenshotRadiusAdjusting) {
+        screenshotRadiusAdjusting = true;
+        doRender(true, false, true); // Render once to hide screenshot
+      }
+      
+      // Clear existing timeout
+      if (screenshotRadiusTimeout) {
+        clearTimeout(screenshotRadiusTimeout);
+      }
+      
+      // Set timeout to show final result
+      screenshotRadiusTimeout = setTimeout(() => {
+        screenshotRadiusAdjusting = false;
+        invalidateBaseComposite();
+        doRender(true, false, true);
+        screenshotRadiusTimeout = null;
+      }, 150); // Wait 150ms after user stops moving slider
+    }
+  }
+});
+
+// Also handle the 'change' event for when user releases the slider
+els.screenshotRadiusSlider?.addEventListener('change', (e) => {
+  if (screenshotRadiusTimeout) {
+    clearTimeout(screenshotRadiusTimeout);
+    screenshotRadiusTimeout = null;
+  }
+  screenshotRadiusAdjusting = false;
+  invalidateBaseComposite();
+  doRender(true, false, true);
+});
+
 /* Save/Export */
 function openNameModalLikePrompt(defaultName) {
   const name = prompt('Save as:', defaultName);
@@ -1516,7 +1720,7 @@ function exportMlite(filename) {
         topRight: toNormBottomLeft(shot.quad[1]),
         bottomRight: toNormBottomLeft(shot.quad[2]),
         bottomLeft: toNormBottomLeft(shot.quad[3]),
-        cornerRadius: state.cornerRadius
+        cornerRadius: shot.cornerRadius || 0
       },
       colorIndex: shot.colorIndex
     }));
@@ -1573,7 +1777,7 @@ els.save?.addEventListener('click', async () => {
             [shot.quad[2].x, shot.quad[2].y],
             [shot.quad[3].x, shot.quad[3].y],
           ];
-          warpImageToQuad(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE);
+          drawScreenshotWithRadius(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE, shot.cornerRadius || 0);
         }
       });
     } else {
@@ -1585,7 +1789,7 @@ els.save?.addEventListener('click', async () => {
             [shot.quad[2].x, shot.quad[2].y],
             [shot.quad[3].x, shot.quad[3].y],
           ];
-          warpImageToQuad(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE);
+          drawScreenshotWithRadius(exportCtx, shot.img, quadArr, MESH_DETAIL_IDLE, shot.cornerRadius || 0);
         }
       });
       exportCtx.drawImage(state.overlayImg, 0, 0);

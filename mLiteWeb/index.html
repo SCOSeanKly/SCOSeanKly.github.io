@@ -48,7 +48,7 @@
             <span>Import Logo</span>
           </label>
           <button class="menu-btn-settings" id="btnLogoSettings" style="display:none;">
-            <svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"></path><circle cx="12" cy="12" r="10"></circle></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6M1 12h6m6 0h6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M19.78 4.22l-4.24 4.24m-5.08 5.08l-4.24 4.24"></path></svg>
           </button>
         </div>
 
@@ -73,6 +73,23 @@
           <span>showcreative.co.uk</span>
         </button>
       </div>
+
+      <!-- Screenshot Settings Panel -->
+      <div class="screenshot-settings-panel" id="screenshotSettingsPanel">
+        <div class="screenshot-settings-header">
+          <span>Screenshot Settings</span>
+          <button class="screenshot-settings-close" id="btnCloseScreenshotSettings">
+            <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        
+        <div class="screenshot-setting-row">
+          <span class="settings-label">Corner Radius</span>
+          <input type="range" id="screenshotRadiusSlider" min="0" max="300" step="1" value="0" class="settings-slider"/>
+          <span class="slider-value" id="screenshotRadiusValue">0px</span>
+        </div>
+      </div>
+      <!-- end screenshot-settings-panel -->
 
       <!-- Logo Settings Panel -->
       <div class="logo-settings-panel" id="logoSettingsPanel">

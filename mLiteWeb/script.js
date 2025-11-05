@@ -269,15 +269,15 @@ let state = {
 };
 
 function updateEmptyState() {
-  const hasContent = state.overlayImg || state.screenshots.length > 0;
+  const hasContent = state.overlayImg || getLoadedScreenshotCount() > 0;
   els.emptyState.classList.toggle('hidden', !!hasContent);
   els.canvas.style.display = hasContent ? 'block' : 'none';
   els.zoomUI.classList.toggle('show', !!state.overlayImg && !!state.editMode);
   if (hasContent) positionZoomUI();
 }
 
-function readyForEdit(){ return !!(state.overlayImg && state.screenshots.length > 0) && state.hasLicense; }
-function readyForExport(){ return !!(state.overlayImg && state.screenshots.length > 0) && state.hasLicense; }
+function readyForEdit(){ return !!(state.overlayImg && getLoadedScreenshotCount() > 0) && state.hasLicense; }
+function readyForExport(){ return !!(state.overlayImg && getLoadedScreenshotCount() > 0) && state.hasLicense; }
 
 let antsOffset = 0;
 let antsRAF = null;
@@ -294,14 +294,19 @@ function startAntsIfNeeded(){
 }
 function stopAnts(){ if (antsRAF){ cancelAnimationFrame(antsRAF); antsRAF = null; } }
 
+// Helper function to count only screenshots that have actual images loaded
+function getLoadedScreenshotCount() {
+  return state.screenshots.filter(shot => shot.img !== null).length;
+}
+
 function updateActionStates(){
   els.editBtn.disabled = !readyForEdit();
 
-  const canSave = state.hasLicense && state.overlayImg && state.screenshots.length > 0;
+  const canSave = state.hasLicense && state.overlayImg && getLoadedScreenshotCount() > 0;
   els.save.disabled = !canSave;
   els.save.classList.toggle('disabled', !canSave);
 
-  const shotReady = !!state.overlayImg && state.hasLicense && state.screenshots.length < 4;
+  const shotReady = !!state.overlayImg && state.hasLicense && getLoadedScreenshotCount() < 4;
   els.shot.disabled = !shotReady;
   els.btnImportShot.dataset.disabled = shotReady ? '' : 'true';
   els.btnImportShot.classList.toggle('disabled', !shotReady);
@@ -322,7 +327,7 @@ function updateActionStates(){
 
   const canExportMl = state.sourceType === 'template' &&
                       state.overlayImg && 
-                      state.screenshots.length > 0 && 
+                      getLoadedScreenshotCount() > 0 && 
                       state.hasLicense && 
                       !state.editMode;
   els.exportMlBtn.disabled = !canExportMl;
@@ -330,7 +335,7 @@ function updateActionStates(){
 
   // Update add screenshot button
   if (els.addScreenshotBtn) {
-    const canAdd = state.screenshots.length < 4 && state.overlayImg && state.hasLicense;
+    const canAdd = getLoadedScreenshotCount() < 4 && state.overlayImg && state.hasLicense;
     els.addScreenshotBtn.disabled = !canAdd;
     els.addScreenshotBtn.classList.toggle('disabled', !canAdd);
   }
@@ -1007,7 +1012,7 @@ els.canvas.addEventListener('touchend', (e)=>{
 /* Edit toggle (includes reset on exit) */
 function toggleEdit(on){
   const next = (on===undefined) ? !state.editMode : !!on;
-  if (!state.hasLicense || !state.overlayImg || state.screenshots.length === 0) return;
+  if (!state.hasLicense || !state.overlayImg || getLoadedScreenshotCount() === 0) return;
   if (next === state.editMode) return;
 
   const wasEditing = state.editMode;
@@ -1075,7 +1080,7 @@ function addScreenshot(img) {
     state.activeScreenshotId = emptySlot.id;
   } else {
     // Create a new screenshot if we haven't reached the limit
-    if (state.screenshots.length >= 4) {
+    if (getLoadedScreenshotCount() >= 4) {
       setError('Maximum 4 screenshots allowed');
       return;
     }
@@ -1506,7 +1511,7 @@ els.shot.addEventListener('change', (e)=>{
 
 if (els.addScreenshotBtn) {
   els.addScreenshotBtn.addEventListener('click', () => {
-    if (state.screenshots.length >= 4) {
+    if (getLoadedScreenshotCount() >= 4) {
       setError('Maximum 4 screenshots allowed');
       return;
     }
@@ -1701,7 +1706,7 @@ function openNameModalLikePrompt(defaultName) {
 }
 
 function exportMlite(filename) {
-  if (!state.hasLicense || !state.overlayImg || state.screenshots.length === 0) {
+  if (!state.hasLicense || !state.overlayImg || getLoadedScreenshotCount() === 0) {
     setStatus('Cannot export: missing requirements', 'error');
     return;
   }
@@ -1750,7 +1755,7 @@ function exportMlite(filename) {
 
 els.save?.addEventListener('click', async () => {
   if (!state.hasLicense) { setStatus('Activate your license to save', 'error'); return; }
-  if (!state.overlayImg || state.screenshots.length === 0) { setStatus('Import a template and screenshot first', 'error'); return; }
+  if (!state.overlayImg || getLoadedScreenshotCount() === 0) { setStatus('Import a template and screenshot first', 'error'); return; }
 
   setStatus('Rendering…', 'loading');
   await new Promise(r => setTimeout(r, 50));
@@ -1815,7 +1820,7 @@ els.save?.addEventListener('click', async () => {
 
 els.exportMlBtn?.addEventListener('click', () => {
   if (!state.hasLicense) { setStatus('Activate your license to export .mlite', 'error'); return; }
-  if (!state.overlayImg || state.screenshots.length === 0) { setStatus('Load a Template PNG first to export .mlite', 'error'); return; }
+  if (!state.overlayImg || getLoadedScreenshotCount() === 0) { setStatus('Load a Template PNG first to export .mlite', 'error'); return; }
   if (state.sourceType !== 'template') { setStatus('Only Templates can be exported as .mlite files. Import a Template to enable this option.', 'error'); return; }
   openNameModalLikePrompt('My Mockup.mlite');
 });
@@ -1827,11 +1832,11 @@ function getDisabledMessageFor(el) {
   const notTemplate = state.sourceType !== 'template';
 
   if (id === 'btnImportShot' || el.closest('#btnImportShot')) {
-    if (state.screenshots.length >= 4) return 'Maximum 4 screenshots allowed.';
+    if (getLoadedScreenshotCount() >= 4) return 'Maximum 4 screenshots allowed.';
     return 'Import a .mLite file or Template before importing a Screenshot.';
   }
   if (id === 'addScreenshotBtn') {
-    if (state.screenshots.length >= 4) return 'Maximum 4 screenshots allowed.';
+    if (getLoadedScreenshotCount() >= 4) return 'Maximum 4 screenshots allowed.';
     return 'Import a Template first to add screenshots.';
   }
   if (id === 'exportMlBtn') {
@@ -1842,11 +1847,11 @@ function getDisabledMessageFor(el) {
   if (id === 'saveBtn') {
     if (noImport) return 'Import a .mLite file or Template before saving or exporting.';
     if (!state.hasLicense) return 'Activate your license to enable saving.';
-    if (state.screenshots.length === 0) return 'Import a Screenshot to enable saving.';
+    if (getLoadedScreenshotCount() === 0) return 'Import a Screenshot to enable saving.';
   }
   if (id === 'editBtn') {
     if (!state.hasLicense) return 'Activate your license to edit.';
-    if (!state.overlayImg || state.screenshots.length === 0) return 'Import a .mLite file or Template and Screenshot first to enable editing.';
+    if (!state.overlayImg || getLoadedScreenshotCount() === 0) return 'Import a .mLite file or Template and Screenshot first to enable editing.';
   }
   return 'This action is currently unavailable.';
 }

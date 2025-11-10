@@ -1,8 +1,8 @@
-// script.js
+// script.js - Modern LMS advisor with star ratings & win probabilities
 
 const apiBase = "https://lms-advisor.ske-d03.workers.dev/api";
 
-// Premier League teams with badges (2024-25 season)
+// ---- Team data ----
 const PREMIER_LEAGUE_TEAMS = [
   { name: "Arsenal", badge: "https://crests.football-data.org/57.png" },
   { name: "Aston Villa", badge: "https://crests.football-data.org/58.png" },
@@ -20,15 +20,15 @@ const PREMIER_LEAGUE_TEAMS = [
   { name: "Manchester United", badge: "https://crests.football-data.org/66.png" },
   { name: "Newcastle United", badge: "https://crests.football-data.org/67.png" },
   { name: "Nottingham Forest", badge: "https://crests.football-data.org/351.png" },
+  { name: "Southampton", badge: "https://crests.football-data.org/340.png" },
   { name: "Tottenham Hotspur", badge: "https://crests.football-data.org/73.png" },
   { name: "West Ham United", badge: "https://crests.football-data.org/563.png" },
   { name: "Wolverhampton Wanderers", badge: "https://crests.football-data.org/76.png" },
-  { name: "Southampton", badge: "https://crests.football-data.org/340.png" }
 ];
 
-const getBtn = document.getElementById("getRecommendations");
+// ---- DOM ----
 const teamGrid = document.getElementById("teamGrid");
-
+const teamCounter = document.getElementById("teamCounter");
 const statusEl = document.getElementById("status");
 const strategicAdviceCard = document.getElementById("strategicAdviceCard");
 const strategicAdviceEl = document.getElementById("strategicAdvice");
@@ -36,282 +36,197 @@ const topPicksCard = document.getElementById("topPicksCard");
 const topPicksList = document.getElementById("topPicksList");
 const fixturesCard = document.getElementById("fixturesCard");
 const fixturesListEl = document.getElementById("fixturesList");
-
 const seasonSelect = document.getElementById("season");
 const gameweekInput = document.getElementById("gameweek");
-const strategySelect = document.getElementById("strategy");
+const legacyStrategySelect = document.getElementById("strategy");
+const strategyButtons = document.querySelectorAll("[data-strategy-option]");
+const strategySummary = document.getElementById("strategySummary");
+const getBtn = document.getElementById("getRecommendations");
+const modalEl = document.getElementById("teamModal");
+const modalTitleEl = document.getElementById("teamModalTitle");
+const modalBodyEl = document.getElementById("teamModalBody");
 
+// ---- State ----
 let selectedTeams = new Set();
+let currentFixtures = [];
+let currentRecommendations = null;
+let pickMap = new Map();
+let isLoading = false;
+let refreshTimeout = null;
 
-// Initialise the team grid based on fixtures for the current season/round
-async function initTeamGrid() {
-  teamGrid.innerHTML =
-    '<div style="grid-column: 1/-1; text-align: center; opacity: 0.7;">Loading teams from fixtures...</div>';
-
-  const savedSeason = localStorage.getItem("lms_season");
-  const savedGameweek = localStorage.getItem("lms_gameweek");
-
-  const season = savedSeason || seasonSelect.value || "2025";
-  const gw = parseInt(savedGameweek || gameweekInput.value || "1", 10);
-
-  try {
-    const fixtures = await fetchFixtures(season, gw);
-
-    if (!fixtures || fixtures.length === 0) {
-      teamGrid.innerHTML =
-        '<div style="grid-column: 1/-1; text-align: center; opacity: 0.7;">No fixtures found for this round. Choose a round and click "Get Recommendations" to load teams.</div>';
-      return;
-    }
-
-    const teams = buildTeamsFromFixtures(fixtures);
-    renderTeamGrid(teams);
-  } catch (err) {
-    console.error("Failed to load teams from fixtures:", err);
-    teamGrid.innerHTML =
-      '<div style="grid-column: 1/-1; text-align: center; opacity: 0.7;">Select a season & round, then press "Get Recommendations" to load teams.</div>';
-  }
+// ---- Utilities ----
+function getGenericBadge(teamName) {
+  const encoded = encodeURIComponent(teamName || "Team");
+  return `https://ui-avatars.com/api/?name=${encoded}&background=1e2433&color=f9fafb&rounded=true&size=64`;
 }
 
-// Build a unique, sorted team list from a fixtures array
-function buildTeamsFromFixtures(fixtures) {
-  const teamMap = new Map();
+function normaliseTeamName(name) {
+  return (name || "")
+    .replace(/\s+(FC|AFC|United|City|Town)$/i, "")
+    .trim()
+    .toLowerCase();
+}
 
-  fixtures.forEach((match) => {
-    [match.homeTeam, match.awayTeam].forEach((teamName) => {
-      if (!teamName || teamMap.has(teamName)) return;
+function getTeamConfigByName(teamName) {
+  if (!teamName) return null;
+  const target = normaliseTeamName(teamName);
 
-      const matchedTeam = PREMIER_LEAGUE_TEAMS.find((t) => {
-        const cleanT = t.name
-          .replace(/\s+(FC|AFC|United)$/i, "")
-          .trim()
-          .toLowerCase();
-        const cleanMatch = teamName
-          .replace(/\s+(FC|AFC|United)$/i, "")
-          .trim()
-          .toLowerCase();
-
-        return (
-          cleanT === cleanMatch ||
-          t.name.toLowerCase() === teamName.toLowerCase() ||
-          cleanMatch.includes(cleanT) ||
-          cleanT.includes(cleanMatch)
-        );
-      });
-
-      teamMap.set(teamName, {
-        name: teamName,
-        badge: matchedTeam ? matchedTeam.badge : getGenericBadge(teamName),
-      });
-    });
-  });
-
-  return Array.from(teamMap.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
+  return (
+    PREMIER_LEAGUE_TEAMS.find((t) => normaliseTeamName(t.name) === target) ||
+    PREMIER_LEAGUE_TEAMS.find((t) =>
+      normaliseTeamName(t.name).includes(target)
+    ) ||
+    PREMIER_LEAGUE_TEAMS.find((t) =>
+      target.includes(normaliseTeamName(t.name))
+    ) ||
+    null
   );
 }
 
-function renderTeamGrid(teams) {
-  teamGrid.innerHTML = "";
+function inferTier(teamName, existingTier) {
+  if (existingTier) return existingTier;
 
-  teams.forEach((team) => {
-    const teamItem = document.createElement("div");
-    teamItem.className = "team-item";
-    teamItem.dataset.teamName = team.name;
+  const eliteNames = [
+    "Arsenal",
+    "Liverpool",
+    "Manchester City",
+  ];
+  const strongNames = [
+    "Manchester United",
+    "Chelsea",
+    "Tottenham Hotspur",
+    "Newcastle United",
+    "Aston Villa",
+  ];
+  const safeMidNames = [
+    "Brighton & Hove Albion",
+    "Brentford",
+    "Fulham",
+    "West Ham United",
+  ];
+  const riskyMidNames = [
+    "Wolverhampton Wanderers",
+    "Crystal Palace",
+    "Bournemouth",
+    "Nottingham Forest",
+  ];
 
-    const badge = document.createElement("img");
-    badge.src = team.badge;
-    badge.alt = team.name;
-    badge.className = "team-badge";
-    badge.onerror = () => {
-      badge.style.display = "none";
-    };
+  const norm = normaliseTeamName(teamName);
+  if (eliteNames.some((n) => normaliseTeamName(n) === norm)) return "elite";
+  if (strongNames.some((n) => normaliseTeamName(n) === norm)) return "strong";
+  if (safeMidNames.some((n) => normaliseTeamName(n) === norm)) return "safe-mid";
+  if (riskyMidNames.some((n) => normaliseTeamName(n) === norm)) return "risky-mid";
+  return "weak";
+}
 
-    const name = document.createElement("div");
-    name.className = "team-name";
-    name.textContent = team.name;
+function tierBaseStrength(tier) {
+  switch (tier) {
+    case "elite":
+      return 0.80;
+    case "strong":
+      return 0.70;
+    case "safe-mid":
+      return 0.58;
+    case "risky-mid":
+      return 0.48;
+    case "weak":
+    default:
+      return 0.35;
+  }
+}
 
-    teamItem.appendChild(badge);
-    teamItem.appendChild(name);
+// Approximate win probabilities for a fixture using tiers + home advantage.
+function estimateFixtureProb(homeTeam, awayTeam) {
+  const homeTier = inferTier(homeTeam);
+  const awayTier = inferTier(awayTeam);
 
-    teamItem.addEventListener("click", () => toggleTeam(team.name, teamItem));
+  const baseHome = tierBaseStrength(homeTier);
+  const baseAway = tierBaseStrength(awayTier);
 
-    teamGrid.appendChild(teamItem);
+  // Home advantage
+  const homeAdj = baseHome + 0.08;
+  const diff = homeAdj - baseAway;
+
+  let homeProb = 0.5 + diff * 0.65;
+  homeProb = Math.min(0.92, Math.max(0.08, homeProb));
+  const awayProb = 1 - homeProb;
+
+  return { homeProb, awayProb };
+}
+
+function createStarRating(probability) {
+  const container = document.createElement("div");
+  container.className = "star-rating";
+
+  const value = typeof probability === "number" ? probability : 0.5;
+  const rounded = Math.round(value * 5);
+
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement("span");
+    star.className = "star" + (i <= rounded ? " filled" : "");
+    star.textContent = "★";
+    container.appendChild(star);
+  }
+
+  const label = document.createElement("span");
+  label.className = "star-label";
+  label.textContent = `${Math.round(value * 100)}%`;
+  container.appendChild(label);
+
+  return container;
+}
+
+function makeFixtureKey(homeTeam, awayTeam) {
+  return `${normaliseTeamName(homeTeam)}__${normaliseTeamName(awayTeam)}`;
+}
+
+function buildPickMap(rec) {
+  const map = new Map();
+  if (!rec || !Array.isArray(rec.topPicks)) return map;
+
+  rec.topPicks.forEach((pick) => {
+    const homeTeam = pick.home ? pick.teamName : pick.opponent;
+    const awayTeam = pick.home ? pick.opponent : pick.teamName;
+    const key = makeFixtureKey(homeTeam, awayTeam);
+    map.set(key, pick);
   });
 
-  loadSelectedTeams();
+  return map;
 }
 
-function toggleTeam(teamName, element) {
-  if (selectedTeams.has(teamName)) {
-    selectedTeams.delete(teamName);
-    element.classList.remove("selected");
-  } else {
-    selectedTeams.add(teamName);
-    element.classList.add("selected");
+function setStatus(message, pulse = false) {
+  statusEl.textContent = message || "";
+  statusEl.classList.toggle("status-pulse", !!pulse);
+}
+
+function setLoading(loading) {
+  isLoading = loading;
+  if (getBtn) {
+    getBtn.disabled = loading;
   }
-
-  localStorage.setItem("lms_selectedTeams", JSON.stringify([...selectedTeams]));
+  document.body.classList.toggle("is-loading", loading);
 }
 
-function loadSelectedTeams() {
-  const saved = localStorage.getItem("lms_selectedTeams");
-  if (saved) {
-    try {
-      const teams = JSON.parse(saved);
-      teams.forEach((teamName) => {
-        selectedTeams.add(teamName);
-        const element = teamGrid.querySelector(
-          `[data-team-name="${teamName}"]`
-        );
-        if (element) {
-          element.classList.add("selected");
-        }
-      });
-    } catch (err) {
-      console.warn("Failed to load saved selected teams:", err);
-    }
+function updateTeamCounter() {
+  if (teamCounter) {
+    const count = selectedTeams.size;
+    const total = PREMIER_LEAGUE_TEAMS.length;
+    teamCounter.textContent = `${count}/${total} used`;
   }
 }
 
-function getGenericBadge(teamName) {
-  // Neutral Premier League crest instead of Arsenal for unknown teams
-  return "https://crests.football-data.org/PL.png";
-}
-
-getBtn.addEventListener("click", async () => {
-  const season = seasonSelect.value;
-  const gw = parseInt(gameweekInput.value || "1", 10);
-  const strategy = strategySelect.value;
-  const usedTeams = [...selectedTeams];
-
-  localStorage.setItem("lms_season", season);
-  localStorage.setItem("lms_gameweek", gw);
-  localStorage.setItem("lms_strategy", strategy);
-
-  clearDisplay();
-  setStatus("Loading fixtures and recommendations…");
-  setButtonDisabled(true);
-
-  try {
-    const fixtures = await fetchFixtures(season, gw);
-
-    const teams = buildTeamsFromFixtures(fixtures);
-    renderTeamGrid(teams);
-
-    renderFixtures(fixtures);
-
-    const rec = await fetchRecommendations(season, gw, usedTeams, strategy);
-    renderRecommendations(rec);
-
-    setStatus("");
-  } catch (err) {
-    console.error(err);
-    setStatus("Error: " + err.message);
-  } finally {
-    setButtonDisabled(false);
-  }
-});
-
+// ---- Fetch helpers ----
 async function fetchFixtures(season, gameweek) {
-  const url = `${apiBase}/fixtures?year=${season}&gameweek=${encodeURIComponent(
-    gameweek
-  )}`;
+  const url = `${apiBase}/fixtures?year=${season}&gameweek=${gameweek}`;
   const res = await fetch(url);
   if (!res.ok) {
     const text = await res.text();
-    throw new Error("Failed to fetch fixtures: " + text);
+    throw new Error(`Failed to fetch fixtures: ${res.status} ${text}`);
   }
   const data = await res.json();
-
-  if (data.error) {
-    throw new Error(data.error + (data.details ? ": " + data.details : ""));
-  }
-
-  return data.fixtures || [];
-}
-
-function renderFixtures(fixtures) {
-  if (!fixtures || fixtures.length === 0) {
-    fixturesCard.classList.add("hidden");
-    fixturesListEl.innerHTML = "";
-    return;
-  }
-
-  fixturesCard.classList.remove("hidden");
-  fixturesListEl.innerHTML = "";
-
-  const fixturesByDate = {};
-  fixtures.forEach((f) => {
-    const dateKey = new Date(f.kickoff).toDateString();
-    if (!fixturesByDate[dateKey]) {
-      fixturesByDate[dateKey] = [];
-    }
-    fixturesByDate[dateKey].push(f);
-  });
-
-  const sortedDates = Object.keys(fixturesByDate).sort((a, b) => {
-    const dateA = new Date(
-      fixturesByDate[a][0] ? fixturesByDate[a][0].kickoff : a
-    );
-    const dateB = new Date(
-      fixturesByDate[b][0] ? fixturesByDate[b][0].kickoff : b
-    );
-    return dateA - dateB;
-  });
-
-  sortedDates.forEach((dateKey) => {
-    const dateHeader = document.createElement("div");
-    dateHeader.className = "date-header";
-    dateHeader.textContent = dateKey;
-    fixturesListEl.appendChild(dateHeader);
-
-    fixturesByDate[dateKey].forEach((f) => {
-      const row = document.createElement("div");
-      row.className = "fixture-row";
-
-      const teamsDiv = document.createElement("div");
-      teamsDiv.className = "fixture-teams";
-
-      const badgesDiv = document.createElement("div");
-      badgesDiv.className = "fixture-badges";
-
-      const homeBadge = document.createElement("img");
-      homeBadge.src = f.homeCrest || getTeamBadgeByName(f.homeTeam);
-      homeBadge.alt = f.homeTeam;
-
-      const awayBadge = document.createElement("img");
-      awayBadge.src = f.awayCrest || getTeamBadgeByName(f.awayTeam);
-      awayBadge.alt = f.awayTeam;
-
-      badgesDiv.appendChild(homeBadge);
-      badgesDiv.appendChild(awayBadge);
-
-      const textSpan = document.createElement("span");
-      textSpan.textContent = `${f.homeTeam} vs ${f.awayTeam}`;
-
-      teamsDiv.appendChild(badgesDiv);
-      teamsDiv.appendChild(textSpan);
-
-      const metaDiv = document.createElement("div");
-      metaDiv.className = "fixture-meta";
-      metaDiv.textContent = `${new Date(f.kickoff).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })} · ${f.venue || ""}`;
-
-      row.appendChild(teamsDiv);
-      row.appendChild(metaDiv);
-
-      fixturesListEl.appendChild(row);
-    });
-  });
-}
-
-function getTeamBadgeByName(name) {
-  const match = PREMIER_LEAGUE_TEAMS.find(
-    (t) => t.name.toLowerCase() === name.toLowerCase()
-  );
-  return match ? match.badge : getGenericBadge(name);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.fixtures)) return data.fixtures;
+  return [];
 }
 
 async function fetchRecommendations(season, gameweek, usedTeams, strategy) {
@@ -333,141 +248,641 @@ async function fetchRecommendations(season, gameweek, usedTeams, strategy) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error("Failed to fetch recommendations: " + text);
+    throw new Error(`Failed to fetch recommendations: ${res.status} ${text}`);
   }
 
-  const data = await res.json();
+  return await res.json();
+}
 
-  if (data.error) {
-    throw new Error(data.error + (data.details ? ": " + data.details : ""));
+// ---- Rendering ----
+
+function renderTeamGrid(teams) {
+  if (!teams || teams.length === 0) {
+    teamGrid.innerHTML =
+      '<div class="team-grid-empty">No teams found for this round.</div>';
+    return;
   }
 
-  return data;
+  const sorted = [...teams].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  teamGrid.innerHTML = "";
+  sorted.forEach((team, index) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "team-item";
+    item.style.animationDelay = `${index * 0.02}s`;
+    
+    if (selectedTeams.has(team.name)) {
+      item.classList.add("selected");
+    }
+
+    const badge = document.createElement("img");
+    badge.className = "team-badge";
+    badge.src = team.badge || getGenericBadge(team.name);
+    badge.alt = team.name;
+
+    const name = document.createElement("div");
+    name.className = "team-name";
+    name.textContent = team.name;
+
+    const chip = document.createElement("div");
+    chip.className = "team-used-chip";
+    chip.textContent = "USED";
+
+    item.appendChild(chip);
+    item.appendChild(badge);
+    item.appendChild(name);
+
+    item.addEventListener("click", () => {
+      if (selectedTeams.has(team.name)) {
+        selectedTeams.delete(team.name);
+        item.classList.remove("selected");
+      } else {
+        selectedTeams.add(team.name);
+        item.classList.add("selected");
+      }
+      persistUsedTeams();
+      updateTeamCounter();
+      scheduleRefresh();
+    });
+
+    teamGrid.appendChild(item);
+  });
+
+  updateTeamCounter();
+}
+
+function renderFixtures(fixtures) {
+  if (!fixtures || fixtures.length === 0) {
+    fixturesListEl.innerHTML = '<p>No fixtures available for this round.</p>';
+    fixturesCard.classList.remove("hidden");
+    return;
+  }
+
+  // Group by date
+  const byDate = new Map();
+  fixtures.forEach((match) => {
+    const kickoffDate = match.kickoff
+      ? new Date(match.kickoff).toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        })
+      : "TBC";
+
+    if (!byDate.has(kickoffDate)) {
+      byDate.set(kickoffDate, []);
+    }
+    byDate.get(kickoffDate).push(match);
+  });
+
+  fixturesListEl.innerHTML = "";
+
+  byDate.forEach((matches, dateLabel) => {
+    const dateHeader = document.createElement("div");
+    dateHeader.className = "date-header";
+    dateHeader.textContent = dateLabel;
+    fixturesListEl.appendChild(dateHeader);
+
+    matches.forEach((match) => {
+      const row = document.createElement("div");
+      row.className = "fixture-row";
+
+      const homeTeam = match.homeTeam;
+      const awayTeam = match.awayTeam;
+      const probabilities = estimateFixtureProb(homeTeam, awayTeam);
+
+      const homeConfig = getTeamConfigByName(homeTeam);
+      const awayConfig = getTeamConfigByName(awayTeam);
+
+      const btn = document.createElement("button");
+      btn.className = "fixture-row-clickable";
+      btn.type = "button";
+
+      const content = document.createElement("div");
+      content.className = "fixture-content";
+
+      const teamsContainer = document.createElement("div");
+      teamsContainer.className = "fixture-teams-extended";
+
+      // Home team block
+      const homeBlock = document.createElement("div");
+      homeBlock.className = "fixture-team-block home";
+
+      const homeBadge = document.createElement("img");
+      homeBadge.className = "fixture-badge";
+      homeBadge.src = homeConfig ? homeConfig.badge : getGenericBadge(homeTeam);
+      homeBadge.alt = homeTeam;
+
+      const homeName = document.createElement("div");
+      homeName.className = "fixture-team-name";
+      homeName.textContent = homeTeam;
+
+      const homeStars = createStarRating(probabilities.homeProb);
+
+      homeBlock.appendChild(homeBadge);
+      homeBlock.appendChild(homeName);
+      homeBlock.appendChild(homeStars);
+
+      // VS
+      const vs = document.createElement("div");
+      vs.className = "fixture-vs";
+      vs.textContent = "VS";
+
+      // Away team block
+      const awayBlock = document.createElement("div");
+      awayBlock.className = "fixture-team-block away";
+
+      const awayBadge = document.createElement("img");
+      awayBadge.className = "fixture-badge";
+      awayBadge.src = awayConfig ? awayConfig.badge : getGenericBadge(awayTeam);
+      awayBadge.alt = awayTeam;
+
+      const awayName = document.createElement("div");
+      awayName.className = "fixture-team-name";
+      awayName.textContent = awayTeam;
+
+      const awayStars = createStarRating(probabilities.awayProb);
+
+      awayBlock.appendChild(awayBadge);
+      awayBlock.appendChild(awayName);
+      awayBlock.appendChild(awayStars);
+
+      teamsContainer.appendChild(homeBlock);
+      teamsContainer.appendChild(vs);
+      teamsContainer.appendChild(awayBlock);
+
+      const meta = document.createElement("div");
+      meta.className = "fixture-meta";
+      const timeText = match.kickoff
+        ? new Date(match.kickoff).toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "TBC";
+      meta.textContent = timeText;
+
+      content.appendChild(teamsContainer);
+      content.appendChild(meta);
+
+      btn.appendChild(content);
+
+      btn.addEventListener("click", () => {
+        openTeamModal({
+          title: `${homeTeam} vs ${awayTeam}`,
+          fromFixture: match,
+          fromPick: null,
+        });
+      });
+
+      row.appendChild(btn);
+      fixturesListEl.appendChild(row);
+    });
+  });
+
+  fixturesCard.classList.remove("hidden");
 }
 
 function renderRecommendations(rec) {
-  if (!rec || !rec.topPicks || rec.topPicks.length === 0) {
+  if (!rec || !Array.isArray(rec.topPicks) || rec.topPicks.length === 0) {
     topPicksCard.classList.add("hidden");
     strategicAdviceCard.classList.add("hidden");
     return;
   }
 
+  currentRecommendations = rec;
+
+  // Strategic advice
   if (rec.strategicAdvice) {
-    strategicAdviceCard.classList.remove("hidden");
     strategicAdviceEl.textContent = rec.strategicAdvice;
+    strategicAdviceCard.classList.remove("hidden");
   } else {
     strategicAdviceCard.classList.add("hidden");
   }
 
-  topPicksCard.classList.remove("hidden");
+  // Top picks
   topPicksList.innerHTML = "";
-
-  rec.topPicks.slice(0, 3).forEach((pick, index) => {
-    const pickDiv = document.createElement("div");
-    pickDiv.className = "pick-item";
+  rec.topPicks.forEach((pick, index) => {
+    const item = document.createElement("div");
+    item.className = "pick-item";
+    item.style.animationDelay = `${index * 0.1}s`;
 
     const header = document.createElement("div");
     header.className = "pick-header";
 
-    const rankSpan = document.createElement("div");
-    rankSpan.className = `pick-rank rank-${index + 1}`;
-    rankSpan.textContent = index + 1;
+    const headerMain = document.createElement("div");
+    headerMain.className = "pick-header-main";
 
-    const teamsDiv = document.createElement("div");
-    teamsDiv.className = "pick-teams";
+    const rank = document.createElement("div");
+    rank.className = `pick-rank rank-${index + 1}`;
+    rank.textContent = `${index + 1}`;
 
-    const badgesInline = document.createElement("div");
-    badgesInline.className = "team-badges-inline";
+    const teams = document.createElement("div");
+    teams.className = "pick-teams";
 
-    const teamBadge = document.createElement("img");
-    teamBadge.src = getTeamBadgeByName(pick.teamName);
-    teamBadge.alt = pick.teamName;
+    const homeTeam = pick.home ? pick.teamName : pick.opponent;
+    const awayTeam = pick.home ? pick.opponent : pick.teamName;
 
-    const oppBadge = document.createElement("img");
-    oppBadge.src = getTeamBadgeByName(pick.opponent);
-    oppBadge.alt = pick.opponent;
+    const homeConfig = getTeamConfigByName(homeTeam);
+    const awayConfig = getTeamConfigByName(awayTeam);
 
-    badgesInline.appendChild(teamBadge);
-    badgesInline.appendChild(oppBadge);
+    // Home team block
+    const homeBlock = document.createElement("div");
+    homeBlock.className = "pick-team-block";
 
-    const teamsText = document.createElement("span");
-    const homeLabel = pick.home ? "(H)" : "(A)";
-    teamsText.textContent = `${pick.teamName} ${homeLabel} vs ${pick.opponent}`;
+    const homeBadge = document.createElement("img");
+    homeBadge.className = "pick-team-badge";
+    homeBadge.src = homeConfig ? homeConfig.badge : getGenericBadge(homeTeam);
+    homeBadge.alt = homeTeam;
 
-    teamsDiv.appendChild(badgesInline);
-    teamsDiv.appendChild(teamsText);
+    const homeName = document.createElement("div");
+    homeName.className = "pick-team-name";
+    homeName.textContent = homeTeam;
 
-    header.appendChild(rankSpan);
-    header.appendChild(teamsDiv);
+    homeBlock.appendChild(homeBadge);
+    homeBlock.appendChild(homeName);
+
+    // VS
+    const vs = document.createElement("div");
+    vs.className = "pick-vs";
+    vs.textContent = "VS";
+
+    // Away team block
+    const awayBlock = document.createElement("div");
+    awayBlock.className = "pick-team-block";
+
+    const awayBadge = document.createElement("img");
+    awayBadge.className = "pick-team-badge";
+    awayBadge.src = awayConfig ? awayConfig.badge : getGenericBadge(awayTeam);
+    awayBadge.alt = awayTeam;
+
+    const awayName = document.createElement("div");
+    awayName.className = "pick-team-name";
+    awayName.textContent = awayTeam;
+
+    awayBlock.appendChild(awayBadge);
+    awayBlock.appendChild(awayName);
+
+    teams.appendChild(homeBlock);
+    teams.appendChild(vs);
+    teams.appendChild(awayBlock);
+
+    headerMain.appendChild(rank);
+    headerMain.appendChild(teams);
+    header.appendChild(headerMain);
 
     const metaDiv = document.createElement("div");
     metaDiv.className = "pick-meta";
 
-    const winProb = document.createElement("div");
-    winProb.className = "meta-item";
-    const probBadge = document.createElement("span");
-    probBadge.className = `badge ${pick.riskLevel || "medium"}`;
-    const winPercent = Math.round((pick.winProbability || 0) * 100);
-    probBadge.textContent = `${winPercent}% win chance`;
-    winProb.appendChild(probBadge);
+    // Win probability with icon
+    const probDiv = document.createElement("div");
+    probDiv.className = "win-probability";
+    const probPercentage = document.createElement("span");
+    probPercentage.className = "win-percentage";
+    const prob = typeof pick.winProbability === "number"
+      ? pick.winProbability
+      : 0.5;
+    probPercentage.textContent = `${Math.round(prob * 100)}%`;
+    probDiv.appendChild(document.createTextNode("⚡ "));
+    probDiv.appendChild(probPercentage);
+    metaDiv.appendChild(probDiv);
 
-    const scoreSpan = document.createElement("div");
-    scoreSpan.className = "predicted-score";
-    scoreSpan.textContent = pick.predictedScore || "";
+    // Star rating
+    const stars = createStarRating(prob);
+    metaDiv.appendChild(stars);
 
+    const score = document.createElement("span");
+    score.className = "predicted-score";
+    score.textContent = pick.predictedScore || "2-0";
+    metaDiv.appendChild(score);
+
+    const risk = document.createElement("span");
+    risk.className = `badge ${pick.riskLevel || "medium"}`;
+    risk.textContent = (pick.riskLevel || "medium").toUpperCase();
+    metaDiv.appendChild(risk);
+
+    const tier = inferTier(pick.teamName, pick.teamTier);
     const tierSpan = document.createElement("span");
-    const tierClass = pick.teamTier || "safe-mid";
-    tierSpan.className = `team-tier-badge ${tierClass}`;
-    tierSpan.textContent = (tierClass || "").replace("-", " ").toUpperCase();
-
-    metaDiv.appendChild(winProb);
-    metaDiv.appendChild(scoreSpan);
+    tierSpan.className = `team-tier-badge ${tier}`;
+    tierSpan.textContent = tier.replace("-", " ").toUpperCase();
     metaDiv.appendChild(tierSpan);
 
     const reasoningDiv = document.createElement("div");
     reasoningDiv.className = "reasoning";
-    reasoningDiv.textContent = pick.reasoning || "";
+    reasoningDiv.textContent =
+      pick.reasoning ||
+      "Strong tactical pick for this gameweek based on current form and fixture difficulty.";
 
-    pickDiv.appendChild(header);
-    pickDiv.appendChild(metaDiv);
-    pickDiv.appendChild(reasoningDiv);
+    item.appendChild(header);
+    item.appendChild(metaDiv);
+    item.appendChild(reasoningDiv);
 
-    topPicksList.appendChild(pickDiv);
+    // Toggle expansion on click
+    item.addEventListener("click", () => {
+      item.classList.toggle("expanded");
+    });
+
+    topPicksList.appendChild(item);
+  });
+
+  topPicksCard.classList.remove("hidden");
+}
+
+// ---- Modal ----
+function openTeamModal({ title, fromFixture, fromPick }) {
+  if (!modalEl) return;
+
+  modalTitleEl.textContent = title || "Team Details";
+  modalBodyEl.innerHTML = "";
+
+  if (fromPick) {
+    const tier = fromPick.teamTier || inferTier(fromPick.teamName);
+    const prob = typeof fromPick.winProbability === "number"
+      ? fromPick.winProbability
+      : 0.5;
+
+    const block = document.createElement("div");
+    block.className = "modal-section";
+
+    const chipRow = document.createElement("div");
+    chipRow.className = "modal-chip-row";
+
+    const riskBadge = document.createElement("span");
+    riskBadge.className = `badge ${fromPick.riskLevel || "medium"}`;
+    riskBadge.textContent = (fromPick.riskLevel || "medium").toUpperCase() + " RISK";
+
+    const tierBadge = document.createElement("span");
+    tierBadge.className = `team-tier-badge ${tier}`;
+    tierBadge.textContent = tier.replace("-", " ").toUpperCase();
+
+    chipRow.appendChild(riskBadge);
+    chipRow.appendChild(tierBadge);
+    block.appendChild(chipRow);
+
+    // Win probability with stars
+    const probSection = document.createElement("div");
+    probSection.className = "modal-section";
+    probSection.style.display = "flex";
+    probSection.style.alignItems = "center";
+    probSection.style.gap = "12px";
+    probSection.style.marginTop = "12px";
+
+    const probLabel = document.createElement("strong");
+    probLabel.textContent = "Win probability:";
+    probSection.appendChild(probLabel);
+
+    const stars = createStarRating(prob);
+    probSection.appendChild(stars);
+
+    block.appendChild(probSection);
+
+    const fixtureText = document.createElement("p");
+    fixtureText.className = "modal-text";
+    fixtureText.innerHTML = `<strong>Fixture:</strong> ${fromPick.teamName} vs ${fromPick.opponent} ${
+      fromPick.home ? "(home)" : "(away)"
+    }`;
+    block.appendChild(fixtureText);
+
+    modalBodyEl.appendChild(block);
+
+    if (fromPick.reasoning) {
+      const reason = document.createElement("p");
+      reason.className = "modal-text";
+      reason.textContent = fromPick.reasoning;
+      modalBodyEl.appendChild(reason);
+    }
+  }
+
+  if (fromFixture) {
+    const { homeTeam, awayTeam, kickoff } = fromFixture;
+    const approx = estimateFixtureProb(homeTeam, awayTeam);
+
+    const block = document.createElement("div");
+    block.className = "modal-section";
+    
+    const dt =
+      kickoff &&
+      new Date(kickoff).toLocaleString([], {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "numeric",
+        month: "short",
+      });
+
+    const homeText = document.createElement("p");
+    homeText.className = "modal-text";
+    homeText.innerHTML = `<strong>Home:</strong> ${homeTeam}`;
+    block.appendChild(homeText);
+
+    const homeStarsSection = document.createElement("div");
+    homeStarsSection.style.display = "flex";
+    homeStarsSection.style.alignItems = "center";
+    homeStarsSection.style.gap = "8px";
+    homeStarsSection.style.marginLeft = "12px";
+    homeStarsSection.style.marginTop = "4px";
+    const homeStars = createStarRating(approx.homeProb);
+    homeStarsSection.appendChild(homeStars);
+    block.appendChild(homeStarsSection);
+
+    const awayText = document.createElement("p");
+    awayText.className = "modal-text";
+    awayText.style.marginTop = "12px";
+    awayText.innerHTML = `<strong>Away:</strong> ${awayTeam}`;
+    block.appendChild(awayText);
+
+    const awayStarsSection = document.createElement("div");
+    awayStarsSection.style.display = "flex";
+    awayStarsSection.style.alignItems = "center";
+    awayStarsSection.style.gap = "8px";
+    awayStarsSection.style.marginLeft = "12px";
+    awayStarsSection.style.marginTop = "4px";
+    const awayStars = createStarRating(approx.awayProb);
+    awayStarsSection.appendChild(awayStars);
+    block.appendChild(awayStarsSection);
+
+    const kickoffText = document.createElement("p");
+    kickoffText.className = "modal-text";
+    kickoffText.style.marginTop = "12px";
+    kickoffText.innerHTML = `<strong>Kick-off:</strong> ${dt || "TBC"}`;
+    block.appendChild(kickoffText);
+
+    modalBodyEl.appendChild(block);
+  }
+
+  modalEl.classList.add("open");
+}
+
+function closeTeamModal() {
+  if (!modalEl) return;
+  modalEl.classList.remove("open");
+}
+
+if (modalEl) {
+  const overlay = modalEl.querySelector(".modal-overlay");
+  if (overlay) {
+    overlay.addEventListener("click", closeTeamModal);
+  }
+
+  const closeBtns = modalEl.querySelectorAll("[data-close-modal]");
+  closeBtns.forEach(btn => {
+    btn.addEventListener("click", closeTeamModal);
   });
 }
 
-function clearDisplay() {
-  topPicksCard.classList.add("hidden");
-  strategicAdviceCard.classList.add("hidden");
-  fixturesCard.classList.add("hidden");
-  topPicksList.innerHTML = "";
-  strategicAdviceEl.textContent = "";
-  fixturesListEl.innerHTML = "";
+// ---- Strategy UI ----
+function setStrategy(strategy) {
+  if (!legacyStrategySelect) return;
+  legacyStrategySelect.value = strategy;
+
+  strategyButtons.forEach((btn) => {
+    if (btn.dataset.strategyOption === strategy) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  let summaryText = "";
+  switch (strategy) {
+    case "conservative":
+      summaryText = "Backs strong favourites for maximum safety";
+      break;
+    case "balanced":
+      summaryText = "Mixes safety with smart team preservation";
+      break;
+    case "aggressive":
+      summaryText = "Takes calculated risks to save elite teams";
+      break;
+  }
+  if (strategySummary) {
+    strategySummary.textContent = summaryText;
+  }
+
+  scheduleRefresh();
 }
 
-function setStatus(text) {
-  statusEl.textContent = text;
+strategyButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const strategy = btn.dataset.strategyOption;
+    setStrategy(strategy);
+    localStorage.setItem("lms_strategy", strategy);
+  });
+});
+
+// ---- Persistence ----
+function persistUsedTeams() {
+  try {
+    const arr = Array.from(selectedTeams);
+    localStorage.setItem("lms_usedTeams", JSON.stringify(arr));
+  } catch (_) {}
 }
 
-function setButtonDisabled(disabled) {
-  getBtn.disabled = disabled;
+function restoreUsedTeams() {
+  try {
+    const raw = localStorage.getItem("lms_usedTeams");
+    if (!raw) return;
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) {
+      selectedTeams = new Set(arr);
+    }
+  } catch (_) {}
 }
 
-// Load saved values on first load
-window.addEventListener("DOMContentLoaded", async () => {
+// ---- Refresh orchestration ----
+function scheduleRefresh() {
+  if (refreshTimeout) {
+    clearTimeout(refreshTimeout);
+  }
+  refreshTimeout = setTimeout(() => {
+    refreshTimeout = null;
+    refreshData();
+  }, 300);
+}
+
+async function refreshData() {
+  if (isLoading) return;
+
+  const season = seasonSelect.value;
+  const gw = parseInt(gameweekInput.value, 10) || 1;
+  const strategy = legacyStrategySelect.value;
+
+  localStorage.setItem("lms_season", season);
+  localStorage.setItem("lms_gameweek", gw.toString());
+
+  setLoading(true);
+  setStatus("Analyzing fixtures and generating AI recommendations…", true);
+
+  try {
+    const [fixtures, rec] = await Promise.all([
+      fetchFixtures(season, gw),
+      fetchRecommendations(season, gw, Array.from(selectedTeams), strategy),
+    ]);
+
+    currentFixtures = fixtures;
+    pickMap = buildPickMap(rec);
+
+    renderTeamGrid(buildTeamsFromFixtures(fixtures));
+    renderFixtures(fixtures);
+    renderRecommendations(rec);
+    setStatus("");
+  } catch (err) {
+    console.error(err);
+    setStatus("Failed to load data. Please check your connection and try again.", false);
+  } finally {
+    setLoading(false);
+  }
+}
+
+// Build unique sorted team list from fixtures
+function buildTeamsFromFixtures(fixtures) {
+  const teamMap = new Map();
+
+  fixtures.forEach((match) => {
+    [match.homeTeam, match.awayTeam].forEach((teamName) => {
+      if (!teamName || teamMap.has(teamName)) return;
+
+      const matchedTeam = getTeamConfigByName(teamName);
+
+      teamMap.set(teamName, {
+        name: teamName,
+        badge: matchedTeam ? matchedTeam.badge : getGenericBadge(teamName),
+      });
+    });
+  });
+
+  return Array.from(teamMap.values());
+}
+
+// ---- Boot ----
+document.addEventListener("DOMContentLoaded", async () => {
+  // Restore saved controls
   const savedSeason = localStorage.getItem("lms_season");
   const savedGameweek = localStorage.getItem("lms_gameweek");
   const savedStrategy = localStorage.getItem("lms_strategy");
 
-  if (savedSeason) {
-    seasonSelect.value = savedSeason;
-  }
-  if (savedGameweek) {
-    gameweekInput.value = savedGameweek;
-  }
+  if (savedSeason) seasonSelect.value = savedSeason;
+  if (savedGameweek) gameweekInput.value = savedGameweek;
   if (savedStrategy) {
-    strategySelect.value = savedStrategy;
+    legacyStrategySelect.value = savedStrategy;
   }
 
-  await initTeamGrid();
+  restoreUsedTeams();
+
+  // Wire core control changes
+  seasonSelect.addEventListener("change", scheduleRefresh);
+  gameweekInput.addEventListener("change", scheduleRefresh);
+  gameweekInput.addEventListener("blur", scheduleRefresh);
+
+  if (getBtn) {
+    getBtn.addEventListener("click", refreshData);
+  }
+
+  // Initial strategy UI state
+  setStrategy(legacyStrategySelect.value || "balanced");
+
+  // First load
+  scheduleRefresh();
 });

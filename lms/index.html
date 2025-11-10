@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Last Man Standing Advisor</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>⚽ Last Man Standing Advisor</h1>
+      <p>Smart AI recommendations with automatic season & gameweek detection</p>
+    </header>
+
+    <section class="controls">
+      <label>
+        Season
+        <select id="season">
+          <option value="2025">2025-26 (Current)</option>
+          <option value="2024">2024-25</option>
+          <option value="2023">2023-24</option>
+          <option value="2022">2022-23</option>
+          <option value="2021">2021-22</option>
+        </select>
+      </label>
+
+      <label>
+        Round
+        <input type="number" id="gameweek" min="1" max="38" value="12" />
+      </label>
+
+      <label>
+        Strategy
+        <select id="strategy">
+          <option value="conservative">🛡️ Conservative - Save Elite Teams</option>
+          <option value="balanced" selected>⚖️ Balanced - Mix Safety & Preservation</option>
+          <option value="aggressive">⚡ Aggressive - Maximum Team Preservation</option>
+        </select>
+      </label>
+
+      <button id="getRecommendations">Get Recommendations</button>
+    </section>
+
+    <section class="team-selection card">
+      <h2>Teams Already Used</h2>
+      <p class="subtitle">Select the teams you've already picked this season</p>
+      <div id="teamGrid" class="team-grid">
+        <!-- Teams will be populated here -->
+      </div>
+    </section>
+
+    <section class="results">
+      <div id="status"></div>
+
+      <div id="strategicAdviceCard" class="card hidden">
+        <h2>💡 Strategic Advice</h2>
+        <p id="strategicAdvice" class="advice-text"></p>
+      </div>
+
+      <div id="topPicksCard" class="card hidden">
+        <h2>🎯 Top 3 Recommendations</h2>
+        <div id="topPicksList"></div>
+      </div>
+
+      <div id="fixturesCard" class="card hidden">
+        <h2>📋 All Fixtures This Round</h2>
+        <div id="fixturesList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -45,6 +45,7 @@ const getBtn = document.getElementById("getRecommendations");
 const modalEl = document.getElementById("teamModal");
 const modalTitleEl = document.getElementById("teamModalTitle");
 const modalBodyEl = document.getElementById("teamModalBody");
+const loadingOverlay = document.getElementById("loadingOverlay");
 
 // ---- State ----
 let selectedTeams = new Set();
@@ -204,7 +205,13 @@ function setLoading(loading) {
   if (getBtn) {
     getBtn.disabled = loading;
   }
-  document.body.classList.toggle("is-loading", loading);
+  if (loadingOverlay) {
+    if (loading) {
+      loadingOverlay.classList.add("active");
+    } else {
+      loadingOverlay.classList.remove("active");
+    }
+  }
 }
 
 function updateTeamCounter() {

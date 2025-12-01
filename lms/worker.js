@@ -1,9 +1,19 @@
-// worker.js - Updated to use football-data.org API and match frontend JSON
+// worker.js - Updated to support multiple leagues and competitions
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+// Competition codes for football-data.org
+const COMPETITIONS = {
+  PL: { name: "Premier League", code: "PL" },
+  PD: { name: "La Liga", code: "PD" },
+  BL1: { name: "Bundesliga", code: "BL1" },
+  SA: { name: "Serie A", code: "SA" },
+  FL1: { name: "Ligue 1", code: "FL1" },
+  CL: { name: "Champions League", code: "CL" },
 };
 
 const SYSTEM_PROMPT = `
@@ -13,19 +23,19 @@ GAME RULES:
 - Each gameweek the user chooses ONE team that must WIN
 - If the team draws or loses, they are eliminated
 - They cannot pick the same team twice all season
-- The season has 38 gameweeks total
+- The season length varies by competition
 
 CRITICAL STRATEGIC PRINCIPLES:
-1. EARLY SEASON (Gameweeks 1-15): Avoid using "Big 6" teams (Arsenal, Liverpool, Man City, Chelsea, Tottenham, Man United) unless absolutely necessary. Save them for difficult later gameweeks.
-2. MID SEASON (Gameweeks 16-28): Use mid-tier strong teams. Only use Big 6 if fixtures are extremely favorable.
-3. LATE SEASON (Gameweeks 29-38): Now deploy your saved top teams strategically as options narrow.
+1. EARLY SEASON (First third of season): Avoid using elite/top teams unless absolutely necessary. Save them for difficult later gameweeks.
+2. MID SEASON (Middle third): Use mid-tier strong teams. Only use top teams if fixtures are extremely favorable.
+3. LATE SEASON (Final third): Now deploy your saved top teams strategically as options narrow.
 
-TEAM TIER SYSTEM:
-- Elite Tier: Arsenal, Liverpool, Man City (save for GW 25+)
-- Strong Tier: Chelsea, Tottenham, Man United, Newcastle, Aston Villa (save for GW 20+)
-- Safe Mid Tier: Brighton, Brentford, Fulham, West Ham (good for GW 1-25)
-- Risky Mid Tier: Wolves, Crystal Palace, Bournemouth, Nottm Forest (use when home vs weak opposition)
-- Weak Tier: Everton, Leicester, Southampton, Ipswich (only use if home vs another weak team)
+TEAM TIER SYSTEM (applies to all leagues):
+- Elite Tier: Top 2-3 teams in the league (save for late season)
+- Strong Tier: Teams typically in top 6-8 (save for mid-late season)
+- Safe Mid Tier: Solid mid-table teams (good for early-mid season)
+- Risky Mid Tier: Lower mid-table teams (use when home vs weak opposition)
+- Weak Tier: Bottom teams (only use if home vs another weak team)
 
 USER STRATEGY INPUT:
 The user will specify their risk tolerance:
@@ -96,11 +106,13 @@ async function handleFixtures(request, env) {
   const url = new URL(request.url);
   const gameweek = url.searchParams.get("gameweek") || "1";
   const year = url.searchParams.get("year") || "2025";
+  const competition = url.searchParams.get("competition") || "PL";
 
   try {
     const fixtures = await fetchFixturesFromFootballData({
       matchday: parseInt(gameweek),
       year: year,
+      competition: competition,
       apiKey: env.FOOTBALL_DATA_API_KEY,
     });
 
@@ -114,12 +126,13 @@ async function handlePreview(request, env) {
   try {
     const url = new URL(request.url);
     const year = url.searchParams.get("year") || "2025";
+    const competition = url.searchParams.get("competition") || "PL";
     
     const headers = {
       "X-Auth-Token": env.FOOTBALL_DATA_API_KEY,
     };
 
-    const apiUrl = `https://api.football-data.org/v4/competitions/PL/matches?season=${year}`;
+    const apiUrl = `https://api.football-data.org/v4/competitions/${competition}/matches?season=${year}`;
     const res = await fetch(apiUrl, { headers });
 
     if (!res.ok) {
@@ -150,11 +163,13 @@ async function handlePreview(request, env) {
     });
 
     const gameweeks = Object.keys(matchesByGameweek).sort((a, b) => parseInt(a) - parseInt(b));
+    const competitionInfo = COMPETITIONS[competition] || { name: competition };
 
     return jsonResponse({
       season: `${year}-${parseInt(year) + 1}`,
       year: year,
-      competition: "Premier League",
+      competition: competitionInfo.name,
+      competitionCode: competition,
       totalMatches: matches.length,
       gameweeks: gameweeks,
       matchesByGameweek,
@@ -171,12 +186,24 @@ async function handleRecommendations(request, env) {
     const year = String(body.year || "2025");
     const usedTeams = Array.isArray(body.usedTeams) ? body.usedTeams : [];
     const strategy = body.strategy || "balanced";
+    const competition = body.competition || "PL";
 
     const fixtures = await fetchFixturesFromFootballData({
       matchday: parseInt(gameweek),
       year: year,
+      competition: competition,
       apiKey: env.FOOTBALL_DATA_API_KEY,
     });
+
+    const competitionInfo = COMPETITIONS[competition] || { name: competition };
+    
+    // Determine season length based on competition
+    let totalGameweeks = 38;
+    if (competition === "BL1" || competition === "FL1") {
+      totalGameweeks = 34;
+    } else if (competition === "CL") {
+      totalGameweeks = 8;
+    }
 
     const payload = {
       gameweek: parseInt(gameweek),
@@ -184,7 +211,9 @@ async function handleRecommendations(request, env) {
       usedTeams,
       fixtures,
       strategy,
-      totalGameweeks: 38,
+      competition: competitionInfo.name,
+      competitionCode: competition,
+      totalGameweeks: totalGameweeks,
     };
 
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -235,12 +264,12 @@ async function handleRecommendations(request, env) {
   }
 }
 
-async function fetchFixturesFromFootballData({ matchday, year, apiKey }) {
+async function fetchFixturesFromFootballData({ matchday, year, competition, apiKey }) {
   const headers = {
     "X-Auth-Token": apiKey,
   };
 
-  const url = `https://api.football-data.org/v4/competitions/PL/matches?season=${year}&matchday=${matchday}`;
+  const url = `https://api.football-data.org/v4/competitions/${competition}/matches?season=${year}&matchday=${matchday}`;
 
   const res = await fetch(url, { headers });
 

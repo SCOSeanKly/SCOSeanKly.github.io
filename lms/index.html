@@ -3,142 +3,297 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Last Man Standing Advisor</title>
+  <title>Last Man Standing • AI Advisor</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Animated background -->
+  <div class="bg-gradient"></div>
+  <div class="bg-grid"></div>
+  <div class="floating-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <main class="container">
-    <header>
-      <div class="header-badge">⚽</div>
-      <h1>Last Man Standing</h1>
-      <p>AI-powered picks with smart risk analysis</p>
+    <!-- Header -->
+    <header class="hero">
+      <div class="hero-badge">
+        <span class="badge-icon">⚽</span>
+        <div class="badge-glow"></div>
+      </div>
+      <h1 class="hero-title">
+        <span class="title-word">Last</span>
+        <span class="title-word">Man</span>
+        <span class="title-word accent">Standing</span>
+      </h1>
+      <p class="hero-subtitle">AI-powered predictions with smart risk analysis</p>
+      
+      <!-- Quick Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-value" id="statRound">-</span>
+          <span class="stat-label">Round</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="statUsed">0</span>
+          <span class="stat-label">Teams Used</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value" id="statRemaining">20</span>
+          <span class="stat-label">Available</span>
+        </div>
+      </div>
     </header>
 
-    <section class="controls card">
-      <div class="controls-header">
-        <h2>Season Setup</h2>
-      </div>
-      
-      <div class="controls-row">
-        <label class="input-group">
-          <span class="input-label">Season</span>
-          <select id="season" class="modern-select">
-            <option value="2025">2025-26 (Current)</option>
-            <option value="2024">2024-25</option>
-            <option value="2023">2023-24</option>
-            <option value="2022">2022-23</option>
-            <option value="2021">2021-22</option>
-          </select>
-        </label>
+    <!-- Season Controls -->
+    <section class="glass-card controls-card">
+      <div class="card-shine"></div>
+      <div class="controls-grid">
+        <div class="control-group full-width">
+          <label class="control-label">
+            <span class="label-icon">🌍</span>
+            Competition
+          </label>
+          <div class="select-wrapper">
+            <select id="competition" class="glass-select">
+              <option value="PL">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+              <option value="PD">🇪🇸 La Liga</option>
+              <option value="BL1">🇩🇪 Bundesliga</option>
+              <option value="SA">🇮🇹 Serie A</option>
+              <option value="FL1">🇫🇷 Ligue 1</option>
+              <option value="CL">🇪🇺 Champions League</option>
+            </select>
+            <div class="select-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
 
-        <label class="input-group">
-          <span class="input-label">Round</span>
-          <input type="number" id="gameweek" class="modern-input" min="1" max="38" value="12" />
-        </label>
+        <div class="control-group">
+          <label class="control-label">
+            <span class="label-icon">📅</span>
+            Season
+          </label>
+          <div class="select-wrapper">
+            <select id="season" class="glass-select">
+              <option value="2025">2025-26 (Current)</option>
+              <option value="2024">2024-25</option>
+              <option value="2023">2023-24</option>
+              <option value="2022">2022-23</option>
+            </select>
+            <div class="select-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">
+            <span class="label-icon">🎯</span>
+            Gameweek
+            <span class="auto-badge" id="autoRoundBadge">AUTO</span>
+          </label>
+          <div class="number-input-wrapper">
+            <button type="button" class="num-btn minus" data-action="decrement">−</button>
+            <input type="number" id="gameweek" class="glass-input number-input" min="1" max="38" value="1" />
+            <button type="button" class="num-btn plus" data-action="increment">+</button>
+          </div>
+        </div>
       </div>
 
+      <!-- Strategy Selection -->
       <div class="strategy-section">
-        <span class="input-label">Risk Strategy</span>
+        <label class="control-label">
+          <span class="label-icon">🎲</span>
+          Risk Strategy
+        </label>
         
-        <!-- Hidden legacy select for script compatibility -->
-        <select id="strategy" class="legacy-strategy-select" aria-hidden="true" tabindex="-1">
-          <option value="conservative">Low risk - save elites</option>
-          <option value="balanced" selected>Medium risk - balanced</option>
-          <option value="aggressive">High risk - preserve big teams</option>
-        </select>
-
-        <div class="strategy-pills">
-          <button type="button" class="strategy-pill" data-strategy-option="conservative">
-            <div class="pill-icon">🛡️</div>
-            <div class="pill-content">
-              <span class="pill-label">Low Risk</span>
-              <span class="pill-caption">Strong favourites now</span>
+        <div class="strategy-cards">
+          <button type="button" class="strategy-card" data-strategy="conservative">
+            <div class="strategy-icon">🛡️</div>
+            <div class="strategy-content">
+              <span class="strategy-name">Conservative</span>
+              <span class="strategy-desc">Pick safe favourites</span>
+            </div>
+            <div class="strategy-indicator">
+              <span class="risk-dot safe"></span>
+              <span class="risk-dot safe"></span>
+              <span class="risk-dot"></span>
             </div>
           </button>
-          <button type="button" class="strategy-pill" data-strategy-option="balanced">
-            <div class="pill-icon">⚖️</div>
-            <div class="pill-content">
-              <span class="pill-label">Balanced</span>
-              <span class="pill-caption">Mix safety & strategy</span>
+          
+          <button type="button" class="strategy-card active" data-strategy="balanced">
+            <div class="strategy-icon">⚖️</div>
+            <div class="strategy-content">
+              <span class="strategy-name">Balanced</span>
+              <span class="strategy-desc">Mix safety & strategy</span>
+            </div>
+            <div class="strategy-indicator">
+              <span class="risk-dot safe"></span>
+              <span class="risk-dot medium"></span>
+              <span class="risk-dot"></span>
             </div>
           </button>
-          <button type="button" class="strategy-pill" data-strategy-option="aggressive">
-            <div class="pill-icon">🎯</div>
-            <div class="pill-content">
-              <span class="pill-label">High Risk</span>
-              <span class="pill-caption">Save big guns</span>
+          
+          <button type="button" class="strategy-card" data-strategy="aggressive">
+            <div class="strategy-icon">🎯</div>
+            <div class="strategy-content">
+              <span class="strategy-name">Aggressive</span>
+              <span class="strategy-desc">Save big teams</span>
+            </div>
+            <div class="strategy-indicator">
+              <span class="risk-dot medium"></span>
+              <span class="risk-dot high"></span>
+              <span class="risk-dot high"></span>
             </div>
           </button>
         </div>
-        <p id="strategySummary" class="strategy-summary"></p>
       </div>
 
-      <button id="getRecommendations" class="primary-btn" type="button">
-        <span class="btn-icon">🔄</span>
-        <span>Get Recommendations</span>
+      <!-- Get Recommendations Button -->
+      <button id="getRecommendations" class="cta-button" type="button">
+        <span class="cta-bg"></span>
+        <span class="cta-content">
+          <svg class="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          <span>Get AI Recommendations</span>
+        </span>
       </button>
     </section>
 
-    <section class="team-selection card">
-      <div class="section-header">
-        <h2>Teams Used</h2>
-        <div class="team-counter" id="teamCounter">0/20 used</div>
+    <!-- Teams Used Section -->
+    <section class="glass-card teams-card">
+      <div class="card-shine"></div>
+      <div class="card-header">
+        <div class="header-left">
+          <h2 class="card-title">
+            <span class="title-icon">👥</span>
+            Teams Used
+          </h2>
+          <p class="card-subtitle">Tap to mark teams you've already picked</p>
+        </div>
+        <div class="team-progress">
+          <div class="progress-ring">
+            <svg viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="15.915" class="progress-bg"/>
+              <circle cx="18" cy="18" r="15.915" class="progress-fill" id="progressRing"/>
+            </svg>
+            <span class="progress-text" id="progressText">0%</span>
+          </div>
+        </div>
       </div>
-      <p class="subtitle">Tap to mark teams you've already picked</p>
+      
+      <div class="team-actions">
+        <button type="button" class="action-btn" id="clearTeams">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Clear All
+        </button>
+        <button type="button" class="action-btn" id="selectElites">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+          </svg>
+          Mark Big 6
+        </button>
+      </div>
+
       <div id="teamGrid" class="team-grid">
         <!-- Teams populated by script -->
       </div>
     </section>
 
-    <section class="results">
+    <!-- Results Area -->
+    <section class="results-section">
+      <!-- Status Message -->
       <div id="status" class="status-message"></div>
 
-      <div id="strategicAdviceCard" class="card advice-card hidden">
-        <div class="card-header">
-          <div class="header-icon">💡</div>
-          <h2>Strategic Advice</h2>
+      <!-- Strategic Advice -->
+      <div id="strategicAdviceCard" class="glass-card advice-card hidden">
+        <div class="card-shine"></div>
+        <div class="advice-header">
+          <div class="advice-icon">💡</div>
+          <h2>Strategic Insight</h2>
         </div>
         <p id="strategicAdvice" class="advice-text"></p>
       </div>
 
-      <div id="topPicksCard" class="card picks-card hidden">
+      <!-- Top Picks -->
+      <div id="topPicksCard" class="glass-card picks-card hidden">
+        <div class="card-shine"></div>
         <div class="card-header">
-          <div class="header-icon">🎯</div>
-          <h2>Top 3 Picks</h2>
+          <h2 class="card-title">
+            <span class="title-icon">🏆</span>
+            Top 3 Recommendations
+          </h2>
         </div>
-        <div id="topPicksList"></div>
+        <div id="topPicksList" class="picks-list"></div>
       </div>
 
-      <div id="fixturesCard" class="card fixtures-card hidden">
-        <div class="card-header">
-          <div class="header-icon">📋</div>
-          <h2>All Fixtures</h2>
+      <!-- All Fixtures -->
+      <div id="fixturesCard" class="glass-card fixtures-card hidden">
+        <div class="card-shine"></div>
+        <div class="card-header collapsible" id="fixturesHeader">
+          <h2 class="card-title">
+            <span class="title-icon">📋</span>
+            All Fixtures
+          </h2>
+          <button type="button" class="collapse-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
         </div>
-        <div id="fixturesList"></div>
+        <div id="fixturesList" class="fixtures-list"></div>
       </div>
     </section>
   </main>
 
-  <!-- Team detail modal -->
+  <!-- Team Detail Modal -->
   <div id="teamModal" class="modal">
-    <div class="modal-overlay" data-close-modal></div>
-    <div class="modal-content">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="teamModalTitle" class="modal-title"></h3>
         <button type="button" class="modal-close" data-close-modal>
-          <span>×</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </button>
       </div>
       <div id="teamModalBody" class="modal-body"></div>
     </div>
   </div>
 
-  <!-- Loading overlay -->
+  <!-- Loading Overlay -->
   <div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Analyzing fixtures...</div>
-    <div class="loading-subtext">Generating AI-powered recommendations</div>
+    <div class="loading-content">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ball"></div>
+      </div>
+      <div class="loading-text">Analyzing fixtures...</div>
+      <div class="loading-subtext">AI is evaluating win probabilities</div>
+    </div>
   </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <script src="script.js"></script>
 </body>

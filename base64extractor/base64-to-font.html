@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base64 Extractor</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e14;
+            --bg-card: #151b23;
+            --accent: #00d9ff;
+            --accent-dim: #00a8cc;
+            --text-primary: #e6f1ff;
+            --text-secondary: #7d8ca3;
+            --border: #1f2937;
+            --success: #00ff88;
+            --error: #ff3366;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 217, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--success) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeIn 0.6s ease 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 300;
+            animation: fadeIn 0.6s ease 0.4s both;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.6s ease 0.6s both;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            color: var(--accent);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        textarea::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"] {
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--accent);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            margin-right: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2300d9ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 3rem;
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+            color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            border-radius: 8px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.05);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Base64 Extractor</h1>
+            <p class="subtitle">Extract and convert fonts and images from JSON files or paste base64 data directly</p>
+        </div>
+
+        <div class="card">
+            <div class="info-box">
+                💡 Upload a JSON file or paste base64-encoded font/image data. Supports TTF, OTF, WOFF, WOFF2 fonts and PNG images.
+            </div>
+
+            <!-- JSON Upload Section -->
+            <div class="form-group">
+                <label for="jsonFile">Upload JSON File (Optional)</label>
+                <input type="file" id="jsonFile" accept=".json" style="display: block; margin-bottom: 1rem;">
+                <button class="btn" id="scanBtn" style="margin-bottom: 1.5rem;">Scan & Extract All</button>
+            </div>
+
+            <div style="text-align: center; margin: 1.5rem 0; color: var(--text-secondary); font-size: 0.875rem;">
+                — OR —
+            </div>
+
+            <!-- Manual Base64 Section -->
+            <div class="form-group">
+                <label for="base64Input">Base64 Data (Manual)</label>
+                <textarea 
+                    id="base64Input" 
+                    placeholder="Paste your base64-encoded font or image data here...&#10;Example: AAEAAAALAIAAAwAwT1MvMg8SBfAAAAC8AAAAYGNtYXAA..."
+                ></textarea>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="filename">Filename</label>
+                    <input type="text" id="filename" value="output" placeholder="Enter filename">
+                </div>
+
+                <div class="form-group">
+                    <label for="format">File Format</label>
+                    <select id="format">
+                        <option value="ttf">TTF (TrueType Font)</option>
+                        <option value="otf">OTF (OpenType Font)</option>
+                        <option value="woff">WOFF (Web Open Font)</option>
+                        <option value="woff2">WOFF2 (Web Open Font 2)</option>
+                        <option value="png">PNG (Image)</option>
+                        <option value="jpg">JPG (Image)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" id="convertBtn">Convert & Download</button>
+
+            <div class="status" id="status"></div>
+
+            <!-- Results Section -->
+            <div id="results" style="margin-top: 2rem; display: none;">
+                <h3 style="color: var(--accent); margin-bottom: 1rem;">Extracted Files</h3>
+                <div id="fileList" style="display: grid; gap: 0.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const base64Input = document.getElementById('base64Input');
+        const filenameInput = document.getElementById('filename');
+        const formatSelect = document.getElementById('format');
+        const convertBtn = document.getElementById('convertBtn');
+        const statusDiv = document.getElementById('status');
+        const jsonFileInput = document.getElementById('jsonFile');
+        const scanBtn = document.getElementById('scanBtn');
+        const resultsDiv = document.getElementById('results');
+        const fileListDiv = document.getElementById('fileList');
+
+        let extractedFiles = [];
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status show ${type}`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            // Remove any whitespace and newlines
+            base64 = base64.replace(/\s/g, '');
+            
+            // Remove data URL prefix if present
+            if (base64.includes(',')) {
+                base64 = base64.split(',')[1];
+            }
+            
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            
+            return bytes.buffer;
+        }
+
+        function getMimeType(format) {
+            const mimeTypes = {
+                'ttf': 'font/ttf',
+                'otf': 'font/otf',
+                'woff': 'font/woff',
+                'woff2': 'font/woff2',
+                'png': 'image/png',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg'
+            };
+            return mimeTypes[format] || 'application/octet-stream';
+        }
+
+        function downloadFile(base64Data, filename, format) {
+            try {
+                const arrayBuffer = base64ToArrayBuffer(base64Data);
+                const blob = new Blob([arrayBuffer], { type: getMimeType(format) });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${filename}.${format}`;
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                URL.revokeObjectURL(url);
+                return true;
+            } catch (error) {
+                console.error('Download error:', error);
+                return false;
+            }
+        }
+
+        // Scan JSON file for fonts and images
+        scanBtn.addEventListener('click', async () => {
+            const file = jsonFileInput.files[0];
+            if (!file) {
+                showStatus('⚠️ Please select a JSON file first', 'error');
+                return;
+            }
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                extractedFiles = [];
+                
+                // Extract fonts from base64font section
+                if (data.base64font) {
+                    const fontSection = data.base64font;
+                    
+                    // Look for keys ending with 'code' (like font1code, font2code)
+                    Object.keys(fontSection).forEach(key => {
+                        if (key.includes('code') && typeof fontSection[key] === 'string') {
+                            // Try to get the font name
+                            const fontNum = key.replace('code', '');
+                            const fontName = fontSection[`#${fontNum}`] || key;
+                            
+                            extractedFiles.push({
+                                name: fontName.replace(/\s+/g, '_'),
+                                base64: fontSection[key],
+                                type: 'font',
+                                format: 'ttf' // default format
+                            });
+                        }
+                    });
+                }
+                
+                // Extract theme image from base64theme section
+                if (data.base64theme && data.base64theme.code) {
+                    extractedFiles.push({
+                        name: 'theme',
+                        base64: data.base64theme.code,
+                        type: 'image',
+                        format: 'png'
+                    });
+                }
+                
+                if (extractedFiles.length === 0) {
+                    showStatus('⚠️ No fonts or images found in JSON', 'error');
+                    return;
+                }
+                
+                // Display results
+                displayExtractedFiles();
+                showStatus(`✓ Found ${extractedFiles.length} file(s) in JSON`, 'success');
+                
+            } catch (error) {
+                showStatus(`✗ Error reading JSON: ${error.message}`, 'error');
+                console.error('JSON parsing error:', error);
+            }
+        });
+
+        function displayExtractedFiles() {
+            fileListDiv.innerHTML = '';
+            resultsDiv.style.display = 'block';
+            
+            extractedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.style.cssText = `
+                    background: var(--bg-dark);
+                    border: 1px solid var(--border);
+                    border-radius: 8px;
+                    padding: 1rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                `;
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.innerHTML = `
+                    <div style="font-family: 'JetBrains Mono', monospace; font-weight: 600; margin-bottom: 0.25rem;">
+                        ${file.name}.${file.format}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                        ${file.type.toUpperCase()} • ${(file.base64.length * 0.75 / 1024).toFixed(2)} KB
+                    </div>
+                `;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.className = 'btn';
+                downloadBtn.style.cssText = 'width: auto; padding: 0.75rem 1.5rem; margin: 0;';
+                downloadBtn.addEventListener('click', () => {
+                    if (downloadFile(file.base64, file.name, file.format)) {
+                        showStatus(`✓ Downloaded ${file.name}.${file.format}`, 'success');
+                    } else {
+                        showStatus(`✗ Failed to download ${file.name}.${file.format}`, 'error');
+                    }
+                });
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(downloadBtn);
+                fileListDiv.appendChild(fileItem);
+            });
+            
+            // Add download all button
+            const downloadAllBtn = document.createElement('button');
+            downloadAllBtn.textContent = 'Download All';
+            downloadAllBtn.className = 'btn';
+            downloadAllBtn.style.cssText = 'width: 100%; margin-top: 1rem;';
+            downloadAllBtn.addEventListener('click', () => {
+                let successCount = 0;
+                extractedFiles.forEach(file => {
+                    if (downloadFile(file.base64, file.name, file.format)) {
+                        successCount++;
+                    }
+                });
+                showStatus(`✓ Downloaded ${successCount} of ${extractedFiles.length} file(s)`, 'success');
+            });
+            
+            fileListDiv.appendChild(downloadAllBtn);
+        }
+
+        // Manual conversion button
+        convertBtn.addEventListener('click', () => {
+            const base64Data = base64Input.value.trim();
+            const filename = filenameInput.value.trim() || 'output';
+            const format = formatSelect.value;
+
+            if (!base64Data) {
+                showStatus('⚠️ Please enter base64 data', 'error');
+                return;
+            }
+
+            if (downloadFile(base64Data, filename, format)) {
+                showStatus(`✓ Font file downloaded: ${filename}.${format}`, 'success');
+            } else {
+                showStatus(`✗ Conversion failed`, 'error');
+            }
+        });
+
+        // Allow keyboard shortcut (Cmd/Ctrl + Enter) to convert
+        base64Input.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                convertBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

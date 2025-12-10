@@ -552,7 +552,7 @@
                     Object.keys(weatherSection).forEach(key => {
                         if (typeof weatherSection[key] === 'string' && weatherSection[key].length > 100) {
                             extractedFiles.push({
-                                name: `weather_${key}`,
+                                name: key,
                                 base64: weatherSection[key],
                                 type: 'weather-icon',
                                 format: 'png',

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WallComposer Gallery Manager</title>
+    <script src="https://unpkg.com/aws4fetch@1.0.18/dist/aws4fetch.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: white;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .file-input-label.has-file {
+            border-style: solid;
+            background: #e7f3ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .preview {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview.show {
+            display: block;
+        }
+
+        .preview img {
+            max-width: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .preview-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e1e1e;
+            border-radius: 8px;
+            color: #d4d4d4;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .output.show {
+            display: block;
+        }
+
+        .output .success {
+            color: #4ade80;
+        }
+
+        .output .error {
+            color: #f87171;
+        }
+
+        .output .info {
+            color: #60a5fa;
+        }
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .instructions code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: #dc3545;
+        }
+
+        .json-preview {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .filename-preview {
+            background: #e7f3ff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .filename-preview strong {
+            color: #667eea;
+        }
+
+        .success-links {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+        }
+
+        .success-links h4 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .success-links a {
+            color: #155724;
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .success-links a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 WallComposer Gallery Manager</h1>
+            <p>Upload and process themes for WallBoard</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h3>⚠️ IMPORTANT: Run from Local Server</h3>
+                <p style="margin-bottom: 15px; color: #d32f2f; font-weight: bold;">
+                    This tool must be run from a local web server (e.g., <code>http://localhost:8000</code>), NOT by opening the file directly!
+                </p>
+                <p style="margin-bottom: 10px; color: #856404;">
+                    <strong>Quick setup:</strong> Open Terminal in the folder with this file and run:
+                </p>
+                <p style="margin-bottom: 15px; background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace;">
+                    python3 -m http.server 8000
+                </p>
+                <p style="margin-bottom: 15px; color: #856404;">
+                    Then open <code>http://localhost:8000/WallBoardUploader.html</code> in your browser.
+                </p>
+                <h3 style="margin-top: 20px;">📋 Usage Instructions</h3>
+                <ol>
+                    <li>Enter the theme name and author name</li>
+                    <li>Upload your <code>.walltheme</code> file</li>
+                    <li>Upload a preview image (will be resized to 828×1792px)</li>
+                    <li>Click "Upload to Cloudflare" to automatically upload everything</li>
+                    <li>Your files will be uploaded to R2 and the JSON will be updated automatically!</li>
+                </ol>
+            </div>
+
+            <div class="section">
+                <h2>1️⃣ Theme Details</h2>
+                
+                <div class="form-group">
+                    <label for="themeName">Theme Name *</label>
+                    <input type="text" id="themeName" placeholder="e.g. Ocean Sunset" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="authorName">Author Name *</label>
+                    <input type="text" id="authorName" placeholder="e.g. John Doe" required>
+                </div>
+
+                <div id="filenamePreview" class="filename-preview" style="display: none;">
+                    <strong>Generated filename:</strong> <span id="filenameDisplay"></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>2️⃣ Upload Files</h2>
+                
+                <div class="form-group">
+                    <label>WallTheme File * (.walltheme)</label>
+                    <div class="file-input-wrapper">
+                        <label for="themeFile" class="file-input-label" id="themeFileLabel">
+                            📦 Choose .walltheme file
+                        </label>
+                        <input type="file" id="themeFile" accept=".walltheme" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Preview Image * (PNG, JPG)</label>
+                    <div class="file-input-wrapper">
+                        <label for="imageFile" class="file-input-label" id="imageFileLabel">
+                            🖼️ Choose image file
+                        </label>
+                        <input type="file" id="imageFile" accept="image/*" required>
+                    </div>
+                    
+                    <div class="preview" id="imagePreview">
+                        <img id="previewImg" alt="Preview">
+                        <div class="preview-info" id="previewInfo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>3️⃣ Upload to Cloudflare</h2>
+                <button class="btn btn-primary" id="uploadBtn" onclick="uploadToCloudflare()">
+                    ☁️ Upload to Cloudflare R2
+                </button>
+
+                <div class="progress" id="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="output" id="output"></div>
+
+                <div id="successLinks" class="success-links" style="display: none;">
+                    <h4>✅ Successfully Uploaded!</h4>
+                    <div id="linksList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables and utility functions
+        let processedImage = null;
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            output.classList.add('show');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += `<span class="${className}">${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateProgress(percent) {
+            const progress = document.getElementById('progress');
+            const bar = document.getElementById('progressBar');
+            progress.classList.add('show');
+            bar.style.width = percent + '%';
+        }
+
+        function resizeImage(file, targetWidth, targetHeight) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        // Create canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = targetWidth;
+                        canvas.height = targetHeight;
+                        const ctx = canvas.getContext('2d');
+
+                        // Calculate dimensions to fill canvas (cover mode)
+                        const imgRatio = img.width / img.height;
+                        const targetRatio = targetWidth / targetHeight;
+                        
+                        let drawWidth, drawHeight, offsetX, offsetY;
+                        
+                        if (imgRatio > targetRatio) {
+                            // Image is wider - fit height
+                            drawHeight = targetHeight;
+                            drawWidth = img.width * (targetHeight / img.height);
+                            offsetX = (targetWidth - drawWidth) / 2;
+                            offsetY = 0;
+                        } else {
+                            // Image is taller - fit width
+                            drawWidth = targetWidth;
+                            drawHeight = img.height * (targetWidth / img.width);
+                            offsetX = 0;
+                            offsetY = (targetHeight - drawHeight) / 2;
+                        }
+
+                        // Draw image
+                        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+                        // Convert to blob
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    resolve(blob);
+                                } else {
+                                    reject(new Error('Failed to create image blob'));
+                                }
+                            },
+                            'image/png',
+                            0.9
+                        );
+                    };
+
+                    img.onerror = () => reject(new Error('Failed to load image'));
+                    img.src = e.target.result;
+                };
+
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Set up event listeners when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if running from file:// protocol
+            if (window.location.protocol === 'file:') {
+                const warning = document.createElement('div');
+                warning.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #d32f2f; color: white; padding: 20px; border-radius: 8px; z-index: 10000; max-width: 600px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
+                warning.innerHTML = `
+                    <strong style="font-size: 18px; display: block; margin-bottom: 10px;">⚠️ CANNOT RUN FROM FILE://</strong>
+                    <p style="margin: 10px 0;">This tool requires a local web server due to CORS restrictions.</p>
+                    <p style="margin: 10px 0; font-family: monospace; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                        python3 -m http.server 8000
+                    </p>
+                    <p style="margin: 10px 0;">Then open: <strong>http://localhost:8000/WallBoardUploader.html</strong></p>
+                `;
+                document.body.appendChild(warning);
+            }
+
+            // Update filename preview when theme name changes
+            document.getElementById('themeName').addEventListener('input', function() {
+                const themeName = this.value.trim();
+                if (themeName) {
+                    const fileName = themeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                    document.getElementById('filenameDisplay').textContent = fileName;
+                    document.getElementById('filenamePreview').style.display = 'block';
+                } else {
+                    document.getElementById('filenamePreview').style.display = 'none';
+                }
+            });
+
+            // File input handlers
+            document.getElementById('themeFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('themeFileLabel').textContent = `✅ ${file.name}`;
+                    document.getElementById('themeFileLabel').classList.add('has-file');
+                }
+            });
+
+            document.getElementById('imageFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('imageFileLabel').textContent = `✅ ${file.name}`;
+                    document.getElementById('imageFileLabel').classList.add('has-file');
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.getElementById('previewImg');
+                        img.src = event.target.result;
+                        document.getElementById('imagePreview').classList.add('show');
+                        
+                        // Show original dimensions
+                        const tempImg = new Image();
+                        tempImg.onload = function() {
+                            document.getElementById('previewInfo').textContent = 
+                                `Original: ${tempImg.width}×${tempImg.height}px • Will be resized to 828×1792px`;
+                        };
+                        tempImg.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // R2 Configuration
+        const R2_ENDPOINT = 'https://d030355118641a7dd9d7205bd27f54cc.r2.cloudflarestorage.com';
+        const BUCKET_NAME = 'wallboard-themes';
+        const PUBLIC_URL = 'https://pub-85cc5573fcfb4bbd82c88dc9c03cea02.r2.dev';
+        const ACCESS_KEY = 'c39e72c04d401157382000503f0f8a3d';
+        const SECRET_KEY = '147582f21b4e7149dfb4fa38da5f455bdf9c5bb60ff9057897bcaaea6e47cd50';
+
+        // Wait for library to load
+        function waitForAwsClient() {
+            return new Promise((resolve, reject) => {
+                // Check all possible locations
+                if (typeof AwsClient !== 'undefined') {
+                    resolve(AwsClient);
+                    return;
+                }
+                if (typeof window.AwsClient !== 'undefined') {
+                    resolve(window.AwsClient);
+                    return;
+                }
+                if (typeof aws4fetch !== 'undefined') {
+                    if (typeof aws4fetch.AwsClient !== 'undefined') {
+                        resolve(aws4fetch.AwsClient);
+                        return;
+                    }
+                    if (typeof aws4fetch === 'function') {
+                        resolve(aws4fetch);
+                        return;
+                    }
+                }
+                
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max
+                const interval = setInterval(() => {
+                    attempts++;
+                    console.log('Checking for AwsClient...', attempts);
+                    
+                    let client = null;
+                    if (typeof AwsClient !== 'undefined') {
+                        client = AwsClient;
+                    } else if (typeof window.AwsClient !== 'undefined') {
+                        client = window.AwsClient;
+                    } else if (typeof aws4fetch !== 'undefined') {
+                        if (typeof aws4fetch.AwsClient !== 'undefined') {
+                            client = aws4fetch.AwsClient;
+                        } else if (typeof aws4fetch === 'function') {
+                            client = aws4fetch;
+                        }
+                    }
+                    
+                    if (client) {
+                        clearInterval(interval);
+                        resolve(client);
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(interval);
+                        reject(new Error('AWS library failed to load. Make sure you are running this from a web server (http://localhost), not opening the file directly (file://).'));
+                    }
+                }, 100);
+            });
+        }
+
+        async function uploadToCloudflare() {
+            console.log('Upload function called');
+            
+            // Clear previous output
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('output').classList.remove('show');
+            document.getElementById('progress').classList.remove('show');
+            document.getElementById('successLinks').style.display = 'none';
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+
+            try {
+                // Wait for library to load
+                log('⏳ Initializing...', 'info');
+                const AwsClientClass = await waitForAwsClient();
+                console.log('AwsClient loaded:', AwsClientClass);
+
+                // Create AWS4 signer
+                const aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                // Validate inputs
+                const themeName = document.getElementById('themeName').value.trim();
+                const authorName = document.getElementById('authorName').value.trim();
+                const themeFile = document.getElementById('themeFile').files[0];
+                const imageFile = document.getElementById('imageFile').files[0];
+
+                console.log('Inputs:', { themeName, authorName, themeFile: !!themeFile, imageFile: !!imageFile });
+
+                if (!themeName || !authorName || !themeFile || !imageFile) {
+                    alert('Please fill in all required fields!');
+                    uploadBtn.disabled = false;
+                    return;
+                }
+
+                log('🚀 Starting upload to Cloudflare R2...', 'info');
+                updateProgress(5);
+
+                // Generate filename (lowercase, hyphens)
+                const fileName = themeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                log(`📝 Generated filename: ${fileName}`, 'info');
+                updateProgress(10);
+
+                // Process and resize image
+                log('🖼️ Resizing and compressing image...', 'info');
+                processedImage = await resizeImage(imageFile, 828, 1792);
+                log('✅ Image processed: 828×1792px', 'success');
+                updateProgress(20);
+
+                // Fetch current wallthemes.json
+                log('📥 Fetching current wallthemes.json...', 'info');
+                let currentThemes = [];
+                try {
+                    // Fetch from public URL (no auth needed)
+                    const jsonUrl = `${PUBLIC_URL}/json/wallthemes.json`;
+                    console.log('Fetching JSON from:', jsonUrl);
+                    const response = await fetch(jsonUrl);
+                    
+                    console.log('JSON fetch response:', response.status, response.statusText);
+                    
+                    if (response.ok) {
+                        const jsonText = await response.text();
+                        currentThemes = JSON.parse(jsonText);
+                        log(`✅ Found ${currentThemes.length} existing themes`, 'success');
+                    } else {
+                        log(`⚠️ JSON fetch returned ${response.status}, creating new one`, 'info');
+                    }
+                } catch (error) {
+                    console.error('Error fetching JSON:', error);
+                    log('⚠️ Error fetching JSON, creating new one', 'info');
+                }
+                updateProgress(30);
+
+                // Upload theme file
+                log(`📤 Uploading ${fileName}.walltheme...`, 'info');
+                const themeUrl = `${R2_ENDPOINT}/${BUCKET_NAME}/content/${fileName}.walltheme`;
+                const themeResponse = await aws.fetch(themeUrl, {
+                    method: 'PUT',
+                    body: themeFile,
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                
+                if (!themeResponse.ok) {
+                    throw new Error(`Failed to upload theme: ${themeResponse.statusText}`);
+                }
+                log('✅ Theme file uploaded!', 'success');
+                updateProgress(50);
+
+                // Upload image
+                log(`📤 Uploading ${fileName}.png...`, 'info');
+                const imageUrl = `${R2_ENDPOINT}/${BUCKET_NAME}/content/${fileName}.png`;
+                const imageResponse = await aws.fetch(imageUrl, {
+                    method: 'PUT',
+                    body: processedImage,
+                    headers: {
+                        'Content-Type': 'image/png'
+                    }
+                });
+                
+                if (!imageResponse.ok) {
+                    throw new Error(`Failed to upload image: ${imageResponse.statusText}`);
+                }
+                log('✅ Image uploaded!', 'success');
+                updateProgress(70);
+
+                // Create new theme entry
+                const newTheme = {
+                    name: themeName,
+                    author: authorName,
+                    thumbnail_url: `${PUBLIC_URL}/content/${fileName}.png`,
+                    theme_url: `${PUBLIC_URL}/content/${fileName}.walltheme`,
+                    created_date: new Date().toISOString(),
+                    downloads: 0
+                };
+
+                // Add to themes array
+                currentThemes.push(newTheme);
+                log('📝 Updated themes list', 'info');
+                updateProgress(80);
+
+                // Upload updated JSON
+                log('📤 Uploading updated wallthemes.json...', 'info');
+                const jsonUploadUrl = `${R2_ENDPOINT}/${BUCKET_NAME}/json/wallthemes.json`;
+                const jsonResponse = await aws.fetch(jsonUploadUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify(currentThemes, null, 2),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!jsonResponse.ok) {
+                    throw new Error(`Failed to upload JSON: ${jsonResponse.statusText}`);
+                }
+                log('✅ JSON updated!', 'success');
+                updateProgress(100);
+
+                log('', 'info');
+                log('✨ All done! Your theme is now live!', 'success');
+
+                // Show success links
+                const linksDiv = document.getElementById('linksList');
+                linksDiv.innerHTML = `
+                    <a href="${PUBLIC_URL}/content/${fileName}.walltheme" target="_blank">🔗 Theme File</a>
+                    <a href="${PUBLIC_URL}/content/${fileName}.png" target="_blank">🔗 Preview Image</a>
+                    <a href="${PUBLIC_URL}/json/wallthemes.json" target="_blank">🔗 Updated JSON</a>
+                `;
+                document.getElementById('successLinks').style.display = 'block';
+
+            } catch (error) {
+                log('❌ Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        }
+
+        // Make function available globally
+        window.uploadToCloudflare = uploadToCloudflare;
+    </script>
+</body>
+</html>

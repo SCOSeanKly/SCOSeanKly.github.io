@@ -697,7 +697,12 @@
 
                 // Fetch current wallthemes.json
                 log('📥 Fetching current wallthemes.json...', 'info');
-                let currentThemes = [];
+                let jsonData = {
+                    version: "1.0",
+                    last_updated: new Date().toISOString(),
+                    themes: []
+                };
+                
                 try {
                     // Fetch from public URL (no auth needed)
                     const jsonUrl = `${PUBLIC_URL}/json/wallthemes.json`;
@@ -708,8 +713,16 @@
                     
                     if (response.ok) {
                         const jsonText = await response.text();
-                        currentThemes = JSON.parse(jsonText);
-                        log(`✅ Found ${currentThemes.length} existing themes`, 'success');
+                        const parsedJson = JSON.parse(jsonText);
+                        console.log('Parsed JSON:', parsedJson);
+                        
+                        // Use the existing structure
+                        if (parsedJson && parsedJson.themes && Array.isArray(parsedJson.themes)) {
+                            jsonData = parsedJson;
+                            log(`✅ Found ${jsonData.themes.length} existing themes`, 'success');
+                        } else {
+                            log('⚠️ Unexpected JSON structure, creating new one', 'info');
+                        }
                     } else {
                         log(`⚠️ JSON fetch returned ${response.status}, creating new one`, 'info');
                     }
@@ -764,8 +777,12 @@
                 };
 
                 // Add to themes array
-                currentThemes.push(newTheme);
-                log('📝 Updated themes list', 'info');
+                jsonData.themes.push(newTheme);
+                
+                // Update last_updated timestamp
+                jsonData.last_updated = new Date().toISOString();
+                
+                log(`📝 Updated themes list (now ${jsonData.themes.length} themes)`, 'info');
                 updateProgress(80);
 
                 // Upload updated JSON
@@ -773,7 +790,7 @@
                 const jsonUploadUrl = `${R2_ENDPOINT}/${BUCKET_NAME}/json/wallthemes.json`;
                 const jsonResponse = await aws.fetch(jsonUploadUrl, {
                     method: 'PUT',
-                    body: JSON.stringify(currentThemes, null, 2),
+                    body: JSON.stringify(jsonData, null, 2),
                     headers: {
                         'Content-Type': 'application/json'
                     }

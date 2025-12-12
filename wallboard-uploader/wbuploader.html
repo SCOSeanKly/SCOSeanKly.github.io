@@ -833,11 +833,21 @@
                 };
                 
                 try {
-                    const jsonUrl = PUBLIC_URL + '/json/wallthemes.json';
-                    const response = await fetch(jsonUrl);
+                    // Add cache busting to ensure we get the latest JSON
+                    const jsonUrl = PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime();
+                    const response = await fetch(jsonUrl, {
+                        cache: 'no-store',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
                     
                     if (response.ok) {
                         const parsedJson = await response.json();
+                        
+                        console.log('Fetched JSON:', parsedJson);
+                        console.log('Number of themes in JSON:', parsedJson.themes ? parsedJson.themes.length : 0);
                         
                         if (parsedJson && parsedJson.themes && Array.isArray(parsedJson.themes)) {
                             jsonData = parsedJson;
@@ -845,6 +855,7 @@
                         }
                     }
                 } catch (error) {
+                    console.error('Error fetching JSON:', error);
                     log('⚠️ Error fetching JSON, creating new one', 'info');
                 }
                 updateProgress(30);
@@ -882,7 +893,14 @@
                     downloads: 0
                 };
 
+                console.log('Adding new theme:', newTheme);
+                console.log('Current themes count before push:', jsonData.themes.length);
+                
                 jsonData.themes.push(newTheme);
+                
+                console.log('Current themes count after push:', jsonData.themes.length);
+                console.log('All themes:', jsonData.themes.map(function(t) { return t.name; }));
+                
                 jsonData.last_updated = new Date().toISOString();
                 
                 log('📝 Updated themes list (now ' + jsonData.themes.length + ' themes)', 'info');
@@ -899,6 +917,9 @@
                 if (!jsonResponse.ok) throw new Error('Failed to upload JSON: ' + jsonResponse.statusText);
                 log('✅ JSON updated!', 'success');
                 updateProgress(100);
+                
+                // Wait a moment for Cloudflare to propagate the changes
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
 
                 log('', 'info');
                 log('✨ All done! Your theme is now live!', 'success');
@@ -933,7 +954,14 @@
             gallery.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading themes...</p></div>';
 
             try {
-                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json');
+                // Add cache busting to get latest JSON
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 
                 if (!response.ok) {
                     throw new Error('Failed to load themes');
@@ -941,6 +969,9 @@
 
                 const data = await response.json();
                 const themes = data.themes || [];
+                
+                console.log('Loaded themes:', themes.length);
+                console.log('Theme names:', themes.map(function(t) { return t.name; }));
 
                 document.getElementById('totalThemes').textContent = themes.length;
                 const totalDownloads = themes.reduce(function(sum, theme) { return sum + (theme.downloads || 0); }, 0);
@@ -1014,8 +1045,18 @@
                     region: 'auto'
                 });
 
-                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json');
+                // Fetch with cache busting
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 const jsonData = await response.json();
+                
+                console.log('Deleting theme at index:', currentThemeToDelete);
+                console.log('Total themes before delete:', jsonData.themes.length);
                 
                 const themeToDelete = jsonData.themes[currentThemeToDelete];
                 const fileName = themeToDelete.theme_url.split('/').pop().replace('.walltheme', '');
@@ -1030,12 +1071,18 @@
 
                 jsonData.themes.splice(currentThemeToDelete, 1);
                 jsonData.last_updated = new Date().toISOString();
+                
+                console.log('Total themes after delete:', jsonData.themes.length);
+                console.log('Remaining themes:', jsonData.themes.map(function(t) { return t.name; }));
 
                 await aws.fetch(R2_ENDPOINT + '/' + BUCKET_NAME + '/json/wallthemes.json', {
                     method: 'PUT',
                     body: JSON.stringify(jsonData, null, 2),
                     headers: { 'Content-Type': 'application/json' }
                 });
+                
+                // Wait for Cloudflare to propagate
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
 
                 closeDeleteModal();
                 loadThemes();

@@ -327,7 +327,6 @@
             text-decoration: underline;
         }
 
-        /* Theme Gallery */
         .theme-gallery {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -526,7 +525,6 @@
             <button class="tab" onclick="switchTab('manage')">🗂️ Manage Themes</button>
         </div>
 
-        <!-- Upload Tab -->
         <div id="upload-tab" class="tab-content active">
             <div class="section">
                 <h2>Theme Details</h2>
@@ -594,7 +592,6 @@
             </div>
         </div>
 
-        <!-- Manage Tab -->
         <div id="manage-tab" class="tab-content">
             <div class="stats">
                 <div class="stat-card">
@@ -625,7 +622,6 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -640,11 +636,9 @@
     </div>
 
     <script>
-        // Global variables and utility functions
         let processedImage = null;
         let currentThemeToDelete = null;
 
-        // R2 Configuration
         const R2_ENDPOINT = 'https://d030355118641a7dd9d7205bd27f54cc.r2.cloudflarestorage.com';
         const BUCKET_NAME = 'wallboard-themes';
         const PUBLIC_URL = 'https://pub-85cc5573fcfb4bbd82c88dc9c03cea02.r2.dev';
@@ -652,26 +646,27 @@
         const SECRET_KEY = '147582f21b4e7149dfb4fa38da5f455bdf9c5bb60ff9057897bcaaea6e47cd50';
 
         function switchTab(tab) {
-            // Update tab buttons
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab').forEach(t => {
+                if (t.onclick.toString().includes("'" + tab + "'")) {
+                    t.classList.add('active');
+                }
+            });
 
-            // Update tab content
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab + '-tab').classList.add('active');
 
-            // Load themes when switching to manage tab
             if (tab === 'manage') {
                 loadThemes();
             }
         }
 
-        function log(message, type = 'info') {
+        function log(message, type) {
+            type = type || 'info';
             const output = document.getElementById('output');
             output.classList.add('show');
             const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-            output.innerHTML += \`<span class="\${className}">\${message}</span>
-\`;
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
             output.scrollTop = output.scrollHeight;
         }
 
@@ -683,7 +678,7 @@
         }
 
         function resizeImage(file, targetWidth, targetHeight) {
-            return new Promise((resolve, reject) => {
+            return new Promise(function(resolve, reject) {
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
@@ -715,7 +710,7 @@
                         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
                         canvas.toBlob(
-                            (blob) => {
+                            function(blob) {
                                 if (blob) {
                                     resolve(blob);
                                 } else {
@@ -727,18 +722,17 @@
                         );
                     };
 
-                    img.onerror = () => reject(new Error('Failed to load image'));
+                    img.onerror = function() { reject(new Error('Failed to load image')); };
                     img.src = e.target.result;
                 };
 
-                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.onerror = function() { reject(new Error('Failed to read file')); };
                 reader.readAsDataURL(file);
             });
         }
 
-        // Wait for library to load
         function waitForAwsClient() {
-            return new Promise((resolve, reject) => {
+            return new Promise(function(resolve, reject) {
                 if (typeof AwsClient !== 'undefined') {
                     resolve(AwsClient);
                     return;
@@ -760,7 +754,7 @@
                 
                 let attempts = 0;
                 const maxAttempts = 50;
-                const interval = setInterval(() => {
+                const interval = setInterval(function() {
                     attempts++;
                     
                     let client = null;
@@ -822,7 +816,7 @@
                 updateProgress(5);
 
                 const fileName = themeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-                log(\`📝 Generated filename: \${fileName}\`, 'info');
+                log('📝 Generated filename: ' + fileName, 'info');
                 updateProgress(10);
 
                 log('🖼️ Resizing and compressing image...', 'info');
@@ -838,7 +832,7 @@
                 };
                 
                 try {
-                    const jsonUrl = \`\${PUBLIC_URL}/json/wallthemes.json\`;
+                    const jsonUrl = PUBLIC_URL + '/json/wallthemes.json';
                     const response = await fetch(jsonUrl);
                     
                     if (response.ok) {
@@ -846,7 +840,7 @@
                         
                         if (parsedJson && parsedJson.themes && Array.isArray(parsedJson.themes)) {
                             jsonData = parsedJson;
-                            log(\`✅ Found \${jsonData.themes.length} existing themes\`, 'success');
+                            log('✅ Found ' + jsonData.themes.length + ' existing themes', 'success');
                         }
                     }
                 } catch (error) {
@@ -854,35 +848,35 @@
                 }
                 updateProgress(30);
 
-                log(\`📤 Uploading \${fileName}.walltheme...\`, 'info');
-                const themeUrl = \`\${R2_ENDPOINT}/\${BUCKET_NAME}/content/\${fileName}.walltheme\`;
+                log('📤 Uploading ' + fileName + '.walltheme...', 'info');
+                const themeUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.walltheme';
                 const themeResponse = await aws.fetch(themeUrl, {
                     method: 'PUT',
                     body: themeFile,
                     headers: { 'Content-Type': 'application/octet-stream' }
                 });
                 
-                if (!themeResponse.ok) throw new Error(\`Failed to upload theme: \${themeResponse.statusText}\`);
+                if (!themeResponse.ok) throw new Error('Failed to upload theme: ' + themeResponse.statusText);
                 log('✅ Theme file uploaded!', 'success');
                 updateProgress(50);
 
-                log(\`📤 Uploading \${fileName}.png...\`, 'info');
-                const imageUrl = \`\${R2_ENDPOINT}/\${BUCKET_NAME}/content/\${fileName}.png\`;
+                log('📤 Uploading ' + fileName + '.png...', 'info');
+                const imageUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.png';
                 const imageResponse = await aws.fetch(imageUrl, {
                     method: 'PUT',
                     body: processedImage,
                     headers: { 'Content-Type': 'image/png' }
                 });
                 
-                if (!imageResponse.ok) throw new Error(\`Failed to upload image: \${imageResponse.statusText}\`);
+                if (!imageResponse.ok) throw new Error('Failed to upload image: ' + imageResponse.statusText);
                 log('✅ Image uploaded!', 'success');
                 updateProgress(70);
 
                 const newTheme = {
                     name: themeName,
                     author: authorName,
-                    thumbnail_url: \`\${PUBLIC_URL}/content/\${fileName}.png\`,
-                    theme_url: \`\${PUBLIC_URL}/content/\${fileName}.walltheme\`,
+                    thumbnail_url: PUBLIC_URL + '/content/' + fileName + '.png',
+                    theme_url: PUBLIC_URL + '/content/' + fileName + '.walltheme',
                     created_date: new Date().toISOString(),
                     downloads: 0
                 };
@@ -890,18 +884,18 @@
                 jsonData.themes.push(newTheme);
                 jsonData.last_updated = new Date().toISOString();
                 
-                log(\`📝 Updated themes list (now \${jsonData.themes.length} themes)\`, 'info');
+                log('📝 Updated themes list (now ' + jsonData.themes.length + ' themes)', 'info');
                 updateProgress(80);
 
                 log('📤 Uploading updated wallthemes.json...', 'info');
-                const jsonUploadUrl = \`\${R2_ENDPOINT}/\${BUCKET_NAME}/json/wallthemes.json\`;
+                const jsonUploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/json/wallthemes.json';
                 const jsonResponse = await aws.fetch(jsonUploadUrl, {
                     method: 'PUT',
                     body: JSON.stringify(jsonData, null, 2),
                     headers: { 'Content-Type': 'application/json' }
                 });
                 
-                if (!jsonResponse.ok) throw new Error(\`Failed to upload JSON: \${jsonResponse.statusText}\`);
+                if (!jsonResponse.ok) throw new Error('Failed to upload JSON: ' + jsonResponse.statusText);
                 log('✅ JSON updated!', 'success');
                 updateProgress(100);
 
@@ -909,14 +903,11 @@
                 log('✨ All done! Your theme is now live!', 'success');
 
                 const linksDiv = document.getElementById('linksList');
-                linksDiv.innerHTML = \`
-                    <a href="\${PUBLIC_URL}/content/\${fileName}.walltheme" target="_blank">🔗 Theme File</a>
-                    <a href="\${PUBLIC_URL}/content/\${fileName}.png" target="_blank">🔗 Preview Image</a>
-                    <a href="\${PUBLIC_URL}/json/wallthemes.json" target="_blank">🔗 Updated JSON</a>
-                \`;
+                linksDiv.innerHTML = '<a href="' + PUBLIC_URL + '/content/' + fileName + '.walltheme" target="_blank">🔗 Theme File</a>' +
+                    '<a href="' + PUBLIC_URL + '/content/' + fileName + '.png" target="_blank">🔗 Preview Image</a>' +
+                    '<a href="' + PUBLIC_URL + '/json/wallthemes.json" target="_blank">🔗 Updated JSON</a>';
                 document.getElementById('successLinks').style.display = 'block';
 
-                // Reset form
                 document.getElementById('themeName').value = '';
                 document.getElementById('authorName').value = '';
                 document.getElementById('themeFile').value = '';
@@ -941,7 +932,7 @@
             gallery.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading themes...</p></div>';
 
             try {
-                const response = await fetch(\`\${PUBLIC_URL}/json/wallthemes.json\`);
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json');
                 
                 if (!response.ok) {
                     throw new Error('Failed to load themes');
@@ -950,26 +941,23 @@
                 const data = await response.json();
                 const themes = data.themes || [];
 
-                // Update stats
                 document.getElementById('totalThemes').textContent = themes.length;
-                const totalDownloads = themes.reduce((sum, theme) => sum + (theme.downloads || 0), 0);
+                const totalDownloads = themes.reduce(function(sum, theme) { return sum + (theme.downloads || 0); }, 0);
                 document.getElementById('totalDownloads').textContent = totalDownloads;
 
                 if (themes.length === 0) {
-                    gallery.innerHTML = \`
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📦</div>
-                            <h3>No themes yet</h3>
-                            <p>Upload your first theme to get started!</p>
-                        </div>
-                    \`;
+                    gallery.innerHTML = '<div class="empty-state">' +
+                        '<div class="empty-state-icon">📦</div>' +
+                        '<h3>No themes yet</h3>' +
+                        '<p>Upload your first theme to get started!</p>' +
+                        '</div>';
                     return;
                 }
 
                 gallery.innerHTML = '<div class="theme-gallery"></div>';
                 const galleryGrid = gallery.querySelector('.theme-gallery');
 
-                themes.forEach((theme, index) => {
+                themes.forEach(function(theme, index) {
                     const card = document.createElement('div');
                     card.className = 'theme-card';
                     
@@ -980,33 +968,25 @@
                         day: 'numeric' 
                     });
 
-                    card.innerHTML = \`
-                        <img src="\${theme.thumbnail_url}" alt="\${theme.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%2318181b%22 width=%22400%22 height=%22300%22/%3E%3Ctext fill=%22%2371717a%22 font-family=%22system-ui%22 font-size=%2218%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENo Image%3C/text%3E%3C/svg%3E'">
-                        <div class="theme-card-content">
-                            <h3>\${theme.name}</h3>
-                            <div class="author">\${theme.author}</div>
-                            <div class="meta">
-                                📅 \${formattedDate} · 📥 \${theme.downloads || 0} downloads
-                            </div>
-                            <div class="theme-card-actions">
-                                <a href="\${theme.theme_url}" class="btn btn-secondary btn-sm" target="_blank">⬇️ Download</a>
-                                <button class="btn btn-danger btn-sm" onclick="deleteTheme(\${index}, '\${theme.name}')">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    \`;
+                    card.innerHTML = '<img src="' + theme.thumbnail_url + '" alt="' + theme.name + '" onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%2318181b%22 width=%22400%22 height=%22300%22/%3E%3Ctext fill=%22%2371717a%22 font-family=%22system-ui%22 font-size=%2218%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENo Image%3C/text%3E%3C/svg%3E\'">' +
+                        '<div class="theme-card-content">' +
+                        '<h3>' + theme.name + '</h3>' +
+                        '<div class="author">' + theme.author + '</div>' +
+                        '<div class="meta">📅 ' + formattedDate + ' · 📥 ' + (theme.downloads || 0) + ' downloads</div>' +
+                        '<div class="theme-card-actions">' +
+                        '<a href="' + theme.theme_url + '" class="btn btn-secondary btn-sm" target="_blank">⬇️ Download</a>' +
+                        '<button class="btn btn-danger btn-sm" onclick="deleteTheme(' + index + ', \'' + theme.name + '\')">🗑️ Delete</button>' +
+                        '</div></div>';
                     
                     galleryGrid.appendChild(card);
                 });
 
             } catch (error) {
                 console.error('Error loading themes:', error);
-                gallery.innerHTML = \`
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚠️</div>
-                        <h3>Failed to load themes</h3>
-                        <p>\${error.message}</p>
-                    </div>
-                \`;
+                gallery.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon">⚠️</div>' +
+                    '<h3>Failed to load themes</h3>' +
+                    '<p>' + error.message + '</p></div>';
             }
         }
 
@@ -1033,30 +1013,24 @@
                     region: 'auto'
                 });
 
-                // Fetch current JSON
-                const response = await fetch(\`\${PUBLIC_URL}/json/wallthemes.json\`);
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json');
                 const jsonData = await response.json();
                 
-                // Get theme to delete
                 const themeToDelete = jsonData.themes[currentThemeToDelete];
                 const fileName = themeToDelete.theme_url.split('/').pop().replace('.walltheme', '');
 
-                // Delete theme file
-                await aws.fetch(\`\${R2_ENDPOINT}/\${BUCKET_NAME}/content/\${fileName}.walltheme\`, {
+                await aws.fetch(R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.walltheme', {
                     method: 'DELETE'
                 });
 
-                // Delete image file
-                await aws.fetch(\`\${R2_ENDPOINT}/\${BUCKET_NAME}/content/\${fileName}.png\`, {
+                await aws.fetch(R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.png', {
                     method: 'DELETE'
                 });
 
-                // Remove from JSON
                 jsonData.themes.splice(currentThemeToDelete, 1);
                 jsonData.last_updated = new Date().toISOString();
 
-                // Upload updated JSON
-                await aws.fetch(\`\${R2_ENDPOINT}/\${BUCKET_NAME}/json/wallthemes.json\`, {
+                await aws.fetch(R2_ENDPOINT + '/' + BUCKET_NAME + '/json/wallthemes.json', {
                     method: 'PUT',
                     body: JSON.stringify(jsonData, null, 2),
                     headers: { 'Content-Type': 'application/json' }
@@ -1071,7 +1045,6 @@
             }
         }
 
-        // Set up event listeners
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('themeName').addEventListener('input', function() {
                 const themeName = this.value.trim();
@@ -1087,7 +1060,7 @@
             document.getElementById('themeFile').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    document.getElementById('themeFileLabel').textContent = \`✅ \${file.name}\`;
+                    document.getElementById('themeFileLabel').textContent = '✅ ' + file.name;
                     document.getElementById('themeFileLabel').classList.add('has-file');
                 }
             });
@@ -1095,7 +1068,7 @@
             document.getElementById('imageFile').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    document.getElementById('imageFileLabel').textContent = \`✅ \${file.name}\`;
+                    document.getElementById('imageFileLabel').textContent = '✅ ' + file.name;
                     document.getElementById('imageFileLabel').classList.add('has-file');
                     
                     const reader = new FileReader();
@@ -1107,7 +1080,7 @@
                         const tempImg = new Image();
                         tempImg.onload = function() {
                             document.getElementById('previewInfo').textContent = 
-                                \`Original: \${tempImg.width}×\${tempImg.height}px • Will be resized to 828×1792px\`;
+                                'Original: ' + tempImg.width + '×' + tempImg.height + 'px • Will be resized to 828×1792px';
                         };
                         tempImg.src = event.target.result;
                     };
@@ -1115,7 +1088,6 @@
                 }
             });
 
-            // Load themes on page load
             loadThemes();
         });
 

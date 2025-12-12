@@ -559,6 +559,7 @@
 
                 <div class="form-group">
                     <label>Preview Image (PNG, JPG) *</label>
+                    <p style="font-size: 12px; color: #71717a; margin-bottom: 8px;">Images will be resized to max 1920px while preserving aspect ratio</p>
                     <div class="file-input-wrapper">
                         <label for="imageFile" class="file-input-label" id="imageFileLabel">
                             🖼️ Choose image file
@@ -677,7 +678,7 @@
             bar.style.width = percent + '%';
         }
 
-        function resizeImage(file, targetWidth, targetHeight) {
+        function resizeImage(file, maxDimension) {
             return new Promise(function(resolve, reject) {
                 const reader = new FileReader();
                 
@@ -685,29 +686,29 @@
                     const img = new Image();
                     
                     img.onload = function() {
+                        // Calculate new dimensions while preserving aspect ratio
+                        let newWidth = img.width;
+                        let newHeight = img.height;
+                        
+                        // Only resize if image is larger than max dimension
+                        if (img.width > maxDimension || img.height > maxDimension) {
+                            if (img.width > img.height) {
+                                newWidth = maxDimension;
+                                newHeight = (img.height / img.width) * maxDimension;
+                            } else {
+                                newHeight = maxDimension;
+                                newWidth = (img.width / img.height) * maxDimension;
+                            }
+                        }
+                        
+                        // Create canvas with new dimensions
                         const canvas = document.createElement('canvas');
-                        canvas.width = targetWidth;
-                        canvas.height = targetHeight;
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
                         const ctx = canvas.getContext('2d');
 
-                        const imgRatio = img.width / img.height;
-                        const targetRatio = targetWidth / targetHeight;
-                        
-                        let drawWidth, drawHeight, offsetX, offsetY;
-                        
-                        if (imgRatio > targetRatio) {
-                            drawHeight = targetHeight;
-                            drawWidth = img.width * (targetHeight / img.height);
-                            offsetX = (targetWidth - drawWidth) / 2;
-                            offsetY = 0;
-                        } else {
-                            drawWidth = targetWidth;
-                            drawHeight = img.height * (targetWidth / img.width);
-                            offsetX = 0;
-                            offsetY = (targetHeight - drawHeight) / 2;
-                        }
-
-                        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                        // Draw image at new size (no cropping, preserves aspect ratio)
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
                         canvas.toBlob(
                             function(blob) {
@@ -819,9 +820,9 @@
                 log('📝 Generated filename: ' + fileName, 'info');
                 updateProgress(10);
 
-                log('🖼️ Resizing and compressing image...', 'info');
-                processedImage = await resizeImage(imageFile, 828, 1792);
-                log('✅ Image processed: 828×1792px', 'success');
+                log('🖼️ Processing image...', 'info');
+                processedImage = await resizeImage(imageFile, 1920);
+                log('✅ Image processed (aspect ratio preserved)', 'success');
                 updateProgress(20);
 
                 log('📥 Fetching current wallthemes.json...', 'info');
@@ -1079,8 +1080,24 @@
                         
                         const tempImg = new Image();
                         tempImg.onload = function() {
-                            document.getElementById('previewInfo').textContent = 
-                                'Original: ' + tempImg.width + '×' + tempImg.height + 'px • Will be resized to 828×1792px';
+                            const maxDim = 1920;
+                            let displayText = 'Original: ' + tempImg.width + '×' + tempImg.height + 'px';
+                            
+                            if (tempImg.width > maxDim || tempImg.height > maxDim) {
+                                let newW, newH;
+                                if (tempImg.width > tempImg.height) {
+                                    newW = maxDim;
+                                    newH = Math.round((tempImg.height / tempImg.width) * maxDim);
+                                } else {
+                                    newH = maxDim;
+                                    newW = Math.round((tempImg.width / tempImg.height) * maxDim);
+                                }
+                                displayText += ' • Will be resized to ' + newW + '×' + newH + 'px (aspect ratio preserved)';
+                            } else {
+                                displayText += ' • No resize needed';
+                            }
+                            
+                            document.getElementById('previewInfo').textContent = displayText;
                         };
                         tempImg.src = event.target.result;
                     };

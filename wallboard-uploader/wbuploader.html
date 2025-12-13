@@ -146,11 +146,19 @@
             transition: all 0.2s;
             color: #71717a;
             font-size: 14px;
+            -webkit-tap-highlight-color: rgba(129, 140, 248, 0.2);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         .file-input-label:hover {
             border-color: #818cf8;
             background: #18181b;
+        }
+        
+        .file-input-label:active {
+            transform: scale(0.98);
         }
 
         .file-input-label.has-file {
@@ -550,9 +558,9 @@
                 <div class="form-group">
                     <label>WallTheme File (.walltheme) *</label>
                     <div class="file-input-wrapper">
-                        <label for="themeFile" class="file-input-label" id="themeFileLabel">
+                        <div class="file-input-label" id="themeFileLabel">
                             📦 Choose .walltheme file
-                        </label>
+                        </div>
                         <input type="file" id="themeFile" accept=".walltheme" required>
                     </div>
                 </div>
@@ -561,9 +569,9 @@
                     <label>Preview Image (PNG, JPG) *</label>
                     <p style="font-size: 12px; color: #71717a; margin-bottom: 8px;">Images will be resized to max 1920px while preserving aspect ratio</p>
                     <div class="file-input-wrapper">
-                        <label for="imageFile" class="file-input-label" id="imageFileLabel">
+                        <div class="file-input-label" id="imageFileLabel">
                             🖼️ Choose image file
-                        </label>
+                        </div>
                         <input type="file" id="imageFile" accept="image/*" required>
                     </div>
                     
@@ -1112,6 +1120,14 @@
                     document.getElementById('themeFileLabel').classList.add('has-file');
                 }
             });
+            
+            // Add explicit click handler for mobile
+            document.getElementById('themeFileLabel').addEventListener('click', function(e) {
+                console.log('Theme file label clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('themeFile').click();
+            });
 
             document.getElementById('imageFile').addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -1150,6 +1166,14 @@
                     };
                     reader.readAsDataURL(file);
                 }
+            });
+            
+            // Add explicit click handler for mobile
+            document.getElementById('imageFileLabel').addEventListener('click', function(e) {
+                console.log('Image file label clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('imageFile').click();
             });
 
             loadThemes();

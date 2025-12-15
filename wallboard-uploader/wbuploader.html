@@ -294,6 +294,59 @@
             transition: width 0.3s;
         }
 
+        #fontProgress {
+            width: 100%;
+            height: 4px;
+            background: #27272a;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 12px;
+            display: none;
+        }
+
+        #fontProgress.show {
+            display: block;
+        }
+
+        #fontProgressBar {
+            height: 100%;
+            background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        #fontOutput {
+            margin-top: 20px;
+            padding: 16px;
+            background: #09090b;
+            border-radius: 8px;
+            color: #a1a1aa;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid #27272a;
+        }
+
+        #fontOutput.show {
+            display: block;
+        }
+
+        #fontOutput .success {
+            color: #22c55e;
+        }
+
+        #fontOutput .error {
+            color: #ef4444;
+        }
+
+        #fontOutput .info {
+            color: #818cf8;
+        }
+
         .filename-preview {
             background: rgba(129, 140, 248, 0.1);
             border: 1px solid rgba(129, 140, 248, 0.3);
@@ -531,6 +584,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('upload')">📤 Upload Theme</button>
             <button class="tab" onclick="switchTab('manage')">🗂️ Manage Themes</button>
+            <button class="tab" onclick="switchTab('fonts')">🔤 Manage Fonts</button>
         </div>
 
         <div id="upload-tab" class="tab-content active">
@@ -629,6 +683,60 @@
                 </div>
             </div>
         </div>
+
+        <!-- Fonts Tab -->
+        <div id="fonts-tab" class="tab-content">
+            <div class="section">
+                <h2>Current Font Package</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Download or replace the fonts.zip file used by WallBoard themes.</p>
+                
+                <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 20px; margin-bottom: 20px;" id="fontInfo">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="font-size: 32px;">📦</div>
+                        <div>
+                            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">fonts.zip</div>
+                            <div style="font-size: 13px; color: #71717a;" id="fontFileSize">Loading...</div>
+                        </div>
+                    </div>
+                    <a href="https://wallboard-themes.ske-d03.workers.dev/starter-assets/fonts/fonts.zip" 
+                       class="btn btn-secondary" 
+                       download
+                       style="text-decoration: none;">
+                        ⬇️ Download Current Fonts
+                    </a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Upload New Font Package</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Replace the current fonts.zip with a new version. This will overwrite the existing file.</p>
+                
+                <div class="form-group">
+                    <label>Font Package (.zip) *</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label" id="fontFileLabel">
+                            📦 Choose fonts.zip file
+                        </div>
+                        <input type="file" id="fontFile" accept=".zip" required>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="uploadFontBtn" onclick="uploadFonts()">
+                    ☁️ Upload Font Package
+                </button>
+
+                <div class="progress" id="fontProgress">
+                    <div class="progress-bar" id="fontProgressBar"></div>
+                </div>
+
+                <div class="output" id="fontOutput"></div>
+
+                <div id="fontSuccessLinks" class="success-links" style="display: none;">
+                    <h4>✅ Successfully Uploaded!</h4>
+                    <div id="fontLinksList"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="deleteModal" class="modal">
@@ -667,6 +775,8 @@
 
             if (tab === 'manage') {
                 loadThemes();
+            } else if (tab === 'fonts') {
+                loadFontInfo();
             }
         }
 
@@ -1101,6 +1211,142 @@
             }
         }
 
+        async function loadFontInfo() {
+            try {
+                const response = await fetch('https://wallboard-themes.ske-d03.workers.dev/starter-assets/fonts/fonts.zip', {
+                    method: 'HEAD'
+                });
+                
+                if (response.ok) {
+                    const size = response.headers.get('content-length');
+                    const lastModified = response.headers.get('last-modified');
+                    
+                    let sizeText = 'Unknown size';
+                    if (size) {
+                        const sizeMB = (parseInt(size) / (1024 * 1024)).toFixed(2);
+                        sizeText = sizeMB + ' MB';
+                    }
+                    
+                    let dateText = '';
+                    if (lastModified) {
+                        const date = new Date(lastModified);
+                        dateText = ' • Updated ' + date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    }
+                    
+                    document.getElementById('fontFileSize').textContent = sizeText + dateText;
+                } else {
+                    document.getElementById('fontFileSize').textContent = 'File not found';
+                }
+            } catch (error) {
+                console.error('Error loading font info:', error);
+                document.getElementById('fontFileSize').textContent = 'Error loading info';
+            }
+        }
+
+        function fontLog(message, type) {
+            type = type || 'info';
+            const output = document.getElementById('fontOutput');
+            output.classList.add('show');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateFontProgress(percent) {
+            const progress = document.getElementById('fontProgress');
+            const bar = document.getElementById('fontProgressBar');
+            progress.classList.add('show');
+            bar.style.width = percent + '%';
+        }
+
+        async function uploadFonts() {
+            document.getElementById('fontOutput').innerHTML = '';
+            document.getElementById('fontOutput').classList.remove('show');
+            document.getElementById('fontProgress').classList.remove('show');
+            document.getElementById('fontSuccessLinks').style.display = 'none';
+            
+            const uploadBtn = document.getElementById('uploadFontBtn');
+            uploadBtn.disabled = true;
+
+            try {
+                fontLog('⏳ Initializing...', 'info');
+                const AwsClientClass = await waitForAwsClient();
+
+                const aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                const fontFile = document.getElementById('fontFile').files[0];
+
+                if (!fontFile) {
+                    alert('Please select a fonts.zip file!');
+                    uploadBtn.disabled = false;
+                    return;
+                }
+
+                if (!fontFile.name.toLowerCase().endsWith('.zip')) {
+                    alert('Please select a .zip file!');
+                    uploadBtn.disabled = false;
+                    return;
+                }
+
+                fontLog('🚀 Starting upload to Cloudflare R2...', 'info');
+                updateFontProgress(10);
+
+                const sizeMB = (fontFile.size / (1024 * 1024)).toFixed(2);
+                fontLog('📦 File size: ' + sizeMB + ' MB', 'info');
+                updateFontProgress(30);
+
+                fontLog('📤 Uploading fonts.zip...', 'info');
+                const fontUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/starter-assets/fonts/fonts.zip';
+                const fontResponse = await aws.fetch(fontUrl, {
+                    method: 'PUT',
+                    body: fontFile,
+                    headers: { 
+                        'Content-Type': 'application/zip',
+                        'Cache-Control': 'public, max-age=3600'
+                    }
+                });
+                
+                if (!fontResponse.ok) throw new Error('Failed to upload fonts: ' + fontResponse.statusText);
+                fontLog('✅ Font package uploaded!', 'success');
+                updateFontProgress(90);
+
+                // Wait for Cloudflare to propagate
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+                
+                updateFontProgress(100);
+
+                fontLog('', 'info');
+                fontLog('✨ All done! Font package is now live!', 'success');
+
+                const linksDiv = document.getElementById('fontLinksList');
+                linksDiv.innerHTML = '<a href="https://wallboard-themes.ske-d03.workers.dev/starter-assets/fonts/fonts.zip" target="_blank">🔗 Download Updated Fonts</a>';
+                document.getElementById('fontSuccessLinks').style.display = 'block';
+
+                // Reset form
+                document.getElementById('fontFile').value = '';
+                document.getElementById('fontFileLabel').textContent = '📦 Choose fonts.zip file';
+                document.getElementById('fontFileLabel').classList.remove('has-file');
+
+                // Reload font info
+                setTimeout(loadFontInfo, 2000);
+
+            } catch (error) {
+                fontLog('❌ Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('themeName').addEventListener('input', function() {
                 const themeName = this.value.trim();
@@ -1176,7 +1422,25 @@
                 document.getElementById('imageFile').click();
             });
 
+            // Font file input handler
+            document.getElementById('fontFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    document.getElementById('fontFileLabel').textContent = '✅ ' + file.name + ' (' + sizeMB + ' MB)';
+                    document.getElementById('fontFileLabel').classList.add('has-file');
+                }
+            });
+            
+            document.getElementById('fontFileLabel').addEventListener('click', function(e) {
+                console.log('Font file label clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('fontFile').click();
+            });
+
             loadThemes();
+            loadFontInfo();
         });
 
         window.uploadToCloudflare = uploadToCloudflare;

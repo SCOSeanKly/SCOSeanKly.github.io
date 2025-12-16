@@ -860,9 +860,62 @@
         </div>
     </div>
 
+    <!-- Update Theme File Modal -->
+    <div id="updateThemeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Theme File</h3>
+                <p>Replace the .walltheme file for "<strong id="updateThemeFileName"></strong>"</p>
+            </div>
+            <div class="form-group">
+                <label>New Theme File (.walltheme)</label>
+                <div class="file-input-wrapper">
+                    <div class="file-input-label" id="updateThemeFileLabel">
+                        📦 Choose .walltheme file
+                    </div>
+                    <input type="file" id="updateThemeFileInput" accept=".walltheme">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeUpdateThemeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmUpdateTheme()">Update Theme File</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Image Modal -->
+    <div id="updateImageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Preview Image</h3>
+                <p>Replace the preview image for "<strong id="updateImageThemeName"></strong>"</p>
+            </div>
+            <div class="form-group">
+                <label>New Preview Image (PNG, JPG)</label>
+                <p style="font-size: 12px; color: #71717a; margin-bottom: 8px;">Images will be resized to max 1920px while preserving aspect ratio</p>
+                <div class="file-input-wrapper">
+                    <div class="file-input-label" id="updateImageFileLabel">
+                        🖼️ Choose image file
+                    </div>
+                    <input type="file" id="updateImageFileInput" accept="image/*">
+                </div>
+                <div class="preview" id="updateImagePreview" style="margin-top: 16px; display: none;">
+                    <img id="updatePreviewImg" alt="Preview" style="max-width: 200px; border-radius: 8px; border: 1px solid #27272a;">
+                    <div class="preview-info" id="updatePreviewInfo" style="margin-top: 8px; font-size: 12px; color: #71717a;"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeUpdateImageModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmUpdateImage()">Update Image</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let processedImage = null;
         let currentThemeToDelete = null;
+        let currentThemeToUpdate = null;
+        let allThemesData = null;
 
         const R2_ENDPOINT = 'https://d030355118641a7dd9d7205bd27f54cc.r2.cloudflarestorage.com';
         const BUCKET_NAME = 'wallboard-themes';
@@ -1235,6 +1288,10 @@
                         '<div class="meta">📅 ' + formattedDate + ' · 📥 ' + (theme.downloads || 0) + ' downloads</div>' +
                         '<div class="theme-card-actions">' +
                         '<a href="' + theme.theme_url + '" class="btn btn-secondary btn-sm" target="_blank">⬇️ Download</a>' +
+                        '<button class="btn btn-secondary btn-sm" onclick="updateThemeFile(' + index + ', \'' + theme.name + '\')">📝 Update Theme</button>' +
+                        '</div>' +
+                        '<div class="theme-card-actions" style="margin-top: 8px;">' +
+                        '<button class="btn btn-secondary btn-sm" onclick="updateThemeImage(' + index + ', \'' + theme.name + '\')">🖼️ Update Image</button>' +
                         '<button class="btn btn-danger btn-sm" onclick="deleteTheme(' + index + ', \'' + theme.name + '\')">🗑️ Delete</button>' +
                         '</div></div>';
                     
@@ -1259,6 +1316,154 @@
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.remove('show');
             currentThemeToDelete = null;
+        }
+
+        function updateThemeFile(index, name) {
+            currentThemeToUpdate = index;
+            document.getElementById('updateThemeFileName').textContent = name;
+            document.getElementById('updateThemeModal').classList.add('show');
+        }
+
+        function closeUpdateThemeModal() {
+            document.getElementById('updateThemeModal').classList.remove('show');
+            document.getElementById('updateThemeFileInput').value = '';
+            document.getElementById('updateThemeFileLabel').textContent = '📦 Choose .walltheme file';
+            document.getElementById('updateThemeFileLabel').classList.remove('has-file');
+            currentThemeToUpdate = null;
+        }
+
+        async function confirmUpdateTheme() {
+            if (currentThemeToUpdate === null) return;
+
+            const fileInput = document.getElementById('updateThemeFileInput');
+            const newFile = fileInput.files[0];
+
+            if (!newFile) {
+                alert('Please select a .walltheme file!');
+                return;
+            }
+
+            if (!newFile.name.toLowerCase().endsWith('.walltheme')) {
+                alert('Please select a .walltheme file!');
+                return;
+            }
+
+            try {
+                const AwsClientClass = await waitForAwsClient();
+                const aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                // Fetch current JSON
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                const jsonData = await response.json();
+                
+                const theme = jsonData.themes[currentThemeToUpdate];
+                const fileName = theme.theme_url.split('/').pop().replace('.walltheme', '');
+
+                // Upload new theme file
+                const themeUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.walltheme';
+                const themeResponse = await aws.fetch(themeUrl, {
+                    method: 'PUT',
+                    body: newFile,
+                    headers: { 'Content-Type': 'application/octet-stream' }
+                });
+
+                if (!themeResponse.ok) throw new Error('Failed to upload theme file');
+
+                closeUpdateThemeModal();
+                alert('Theme file updated successfully!');
+
+                // Wait for propagation
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+
+            } catch (error) {
+                alert('Failed to update theme file: ' + error.message);
+                console.error('Update error:', error);
+            }
+        }
+
+        function updateThemeImage(index, name) {
+            currentThemeToUpdate = index;
+            document.getElementById('updateImageThemeName').textContent = name;
+            document.getElementById('updateImageModal').classList.add('show');
+        }
+
+        function closeUpdateImageModal() {
+            document.getElementById('updateImageModal').classList.remove('show');
+            document.getElementById('updateImageFileInput').value = '';
+            document.getElementById('updateImageFileLabel').textContent = '🖼️ Choose image file';
+            document.getElementById('updateImageFileLabel').classList.remove('has-file');
+            document.getElementById('updateImagePreview').style.display = 'none';
+            currentThemeToUpdate = null;
+        }
+
+        async function confirmUpdateImage() {
+            if (currentThemeToUpdate === null) return;
+
+            const fileInput = document.getElementById('updateImageFileInput');
+            const newFile = fileInput.files[0];
+
+            if (!newFile) {
+                alert('Please select an image file!');
+                return;
+            }
+
+            try {
+                const AwsClientClass = await waitForAwsClient();
+                const aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                // Fetch current JSON
+                const response = await fetch(PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime(), {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                const jsonData = await response.json();
+                
+                const theme = jsonData.themes[currentThemeToUpdate];
+                const fileName = theme.thumbnail_url.split('/').pop().replace('.png', '');
+
+                // Process and resize image
+                const processedImg = await resizeImage(newFile, 1920);
+
+                // Upload new image
+                const imageUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName + '.png';
+                const imageResponse = await aws.fetch(imageUrl, {
+                    method: 'PUT',
+                    body: processedImg,
+                    headers: { 'Content-Type': 'image/png' }
+                });
+
+                if (!imageResponse.ok) throw new Error('Failed to upload image');
+
+                closeUpdateImageModal();
+                alert('Image updated successfully!');
+
+                // Wait for propagation then reload gallery
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+                loadThemes();
+
+            } catch (error) {
+                alert('Failed to update image: ' + error.message);
+                console.error('Update error:', error);
+            }
         }
 
         async function confirmDelete() {
@@ -1700,6 +1905,67 @@
                 e.preventDefault();
                 e.stopPropagation();
                 document.getElementById('weatherFile').click();
+            });
+
+            // Update theme file input handler
+            document.getElementById('updateThemeFileInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('updateThemeFileLabel').textContent = '✅ ' + file.name;
+                    document.getElementById('updateThemeFileLabel').classList.add('has-file');
+                }
+            });
+            
+            document.getElementById('updateThemeFileLabel').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('updateThemeFileInput').click();
+            });
+
+            // Update image file input handler
+            document.getElementById('updateImageFileInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('updateImageFileLabel').textContent = '✅ ' + file.name;
+                    document.getElementById('updateImageFileLabel').classList.add('has-file');
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.getElementById('updatePreviewImg');
+                        img.src = event.target.result;
+                        document.getElementById('updateImagePreview').style.display = 'block';
+                        
+                        const tempImg = new Image();
+                        tempImg.onload = function() {
+                            const maxDim = 1920;
+                            let displayText = 'Original: ' + tempImg.width + '×' + tempImg.height + 'px';
+                            
+                            if (tempImg.width > maxDim || tempImg.height > maxDim) {
+                                let newW, newH;
+                                if (tempImg.width > tempImg.height) {
+                                    newW = maxDim;
+                                    newH = Math.round((tempImg.height / tempImg.width) * maxDim);
+                                } else {
+                                    newH = maxDim;
+                                    newW = Math.round((tempImg.width / tempImg.height) * maxDim);
+                                }
+                                displayText += ' • Will be resized to ' + newW + '×' + newH + 'px (aspect ratio preserved)';
+                            } else {
+                                displayText += ' • No resize needed';
+                            }
+                            
+                            document.getElementById('updatePreviewInfo').textContent = displayText;
+                        };
+                        tempImg.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            document.getElementById('updateImageFileLabel').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('updateImageFileInput').click();
             });
 
             loadThemes();

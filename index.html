@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCOSeanKly's iOS App Portfolio</title>
+    <title>Show Creative — iOS Development Studio</title>
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1D2ZX9QDZW"></script>
@@ -11,7 +11,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-1D2ZX9QDZW');
     </script>
     
@@ -20,328 +19,405 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
     <link rel="manifest" href="/favicon/site.webmanifest">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
-    <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="top-bar">
-        <div class="logo-container">
-            <img src="images/logo.png" alt="Logo" class="logo">
-            <span class="welcome-text">Welcome to Show Creative</span>
-        </div>
-        <div class="menu-icon" onclick="toggleDropdown()">☰</div>
-    </div>
-
-    <div class="blur-overlay" id="blurOverlay"></div>
-    <div class="dropdown" id="myDropdown">
-        <div class="dropdown-content">
-            <div class="app-links">
-                <h2>Apps</h2>
-                <a href="#iconweb" onclick="scrollToSection('iconweb')">iconWeb</a>
-                <a href="#mliteweb" onclick="scrollToSection('mliteweb')">mLiteWeb</a>
-                <a href="#pfpmaker" onclick="scrollToSection('pfpmaker')">pfp.MAKER</a>
-                <a href="#funforge" onclick="scrollToSection('funforge')">FunForge</a>
-                <a href="#mlite" onclick="scrollToSection('mlite')">mLite</a>
-                <a href="#walls" onclick="scrollToSection('walls')">Walls</a>
-                <a href="#fishm" onclick="scrollToSection('fishm')">FishM</a>
-                <a href="#spendr" onclick="scrollToSection('spendr')">Spendr</a>
-                <a href="#statcoach" onclick="scrollToSection('statcoach')">StatCoach</a>
-                <a href="#mockupm" onclick="scrollToSection('mockupm')">MockupM</a>
-                <a href="#clipm" onclick="scrollToSection('clipm')">ClipM</a>
-                <a href="#showae" onclick="scrollToSection('showae')">ShowAE</a>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    
+    <!-- Grain Overlay -->
+    <div class="grain"></div>
+    
+    <!-- Navigation -->
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">
+            <img src="images/logo.png" alt="Show Creative" class="logo-img">
+            <span class="logo-text">Show Creative</span>
+        </a>
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+            <span class="nav-toggle-line"></span>
+            <span class="nav-toggle-line"></span>
+        </button>
+    </nav>
+    
+    <!-- Full Screen Menu -->
+    <div class="menu" id="menu">
+        <div class="menu-bg"></div>
+        <div class="menu-content">
+            <div class="menu-column menu-apps">
+                <span class="menu-label">Apps</span>
+                <a href="#iconweb" class="menu-link" data-app="iconweb">iconWeb</a>
+                <a href="#mliteweb" class="menu-link" data-app="mliteweb">mLiteWeb</a>
+                <a href="#pfpmaker" class="menu-link" data-app="pfpmaker">pfp.MAKER</a>
+                <a href="#funforge" class="menu-link" data-app="funforge">FunForge</a>
+                <a href="#mlite" class="menu-link" data-app="mlite">mLite</a>
+                <a href="#walls" class="menu-link" data-app="walls">Walls</a>
+                <a href="#fishm" class="menu-link" data-app="fishm">FishM</a>
+                <a href="#spendr" class="menu-link" data-app="spendr">Spendr</a>
+                <a href="#statcoach" class="menu-link" data-app="statcoach">StatCoach</a>
+                <a href="#mockupm" class="menu-link" data-app="mockupm">MockupM</a>
+                <a href="#clipm" class="menu-link" data-app="clipm">ClipM</a>
+                <a href="#showae" class="menu-link" data-app="showae">ShowAE</a>
             </div>
-            <div class="quick-links">
-                <h2>Quick Links</h2>
-                <a href="privacy-policy.html">Privacy Policy</a>
-                <a href="terms-of-use.html">Terms of Use</a>
-                <a href="about.html">About Me</a>
-            </div>
-            <div class="social-links-dropdown">
-                <h2>Social</h2>
-                <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
-                <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
-            </div>
-        </div>
-    </div>
-
-   
-
-     <div class="app-section" id="iconweb">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/iconweb-icon.jpg" alt="iconWeb Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/iconwebbanner.png" alt="iconWeb Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">Icon Web (BETA)</h2>
-                    <p class="app-description">Icon AE on the Web!</p>
+            <div class="menu-column menu-secondary">
+                <div class="menu-group">
+                    <span class="menu-label">Navigate</span>
+                    <a href="about.html" class="menu-link-small">About</a>
+                    <a href="privacy-policy.html" class="menu-link-small">Privacy</a>
+                    <a href="terms-of-use.html" class="menu-link-small">Terms</a>
+                </div>
+                <div class="menu-group">
+                    <span class="menu-label">Connect</span>
+                    <a href="https://x.com/SeanKly" target="_blank" class="menu-link-small">X / Twitter</a>
+                    <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank" class="menu-link-small">Telegram</a>
+                    <a href="mailto:showcreative@icloud.com" class="menu-link-small">Email</a>
                 </div>
             </div>
-            <p class="app-body">Create custom icons with a huge selection of Icon Effects. Simply select the icon effect and upload your icons. Download the zip. Done!</p>
-              <div class="button-container">
-                <a href="https://showcreative.co.uk/iconWeb/index.html" class="download-button">
-                    <img src="images/gobutton.png" alt="Download on ShowCreative">
-                </a>
-            </div>
+        </div>
+        <div class="menu-footer">
+            <span>© 2025 Show Creative</span>
+            <span>Scotland, UK</span>
         </div>
     </div>
 
-   <div class="app-section" id="mliteweb">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/mliteweb-icon.jpg" alt="mLiteWeb Icon">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-eyebrow">
+                <span class="eyebrow-line"></span>
+                <span>iOS Development Studio</span>
             </div>
-            <div class="banner-container">
-                <img src="images/mlitewebbanner.png" alt="mLiteWeb Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">mLite Web (BETA)</h2>
-                    <p class="app-description">Device Mockups on the Web!</p>
+            <h1 class="hero-title">
+                <span class="title-line">
+                    <span class="title-word" data-delay="0">Crafting</span>
+                </span>
+                <span class="title-line">
+                    <span class="title-word" data-delay="1">Beautiful</span>
+                    <span class="title-word title-italic" data-delay="2">iOS</span>
+                </span>
+                <span class="title-line">
+                    <span class="title-word" data-delay="3">Experiences</span>
+                </span>
+            </h1>
+            <p class="hero-description">
+                Twelve apps. Millions of possibilities. Built with SwiftUI and a passion for pixel-perfect design.
+            </p>
+        </div>
+        <div class="hero-scroll">
+            <span>Scroll to explore</span>
+            <div class="scroll-indicator">
+                <div class="scroll-dot"></div>
+            </div>
+        </div>
+        <div class="hero-ambient"></div>
+    </section>
+
+    <!-- Featured Apps Section -->
+    <section class="featured">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <h2 class="section-title">Featured Work</h2>
+        </div>
+        
+        <!-- App: iconWeb -->
+        <article class="app-card" id="iconweb">
+            <div class="app-card-inner">
+                <div class="app-visual">
+                    <div class="app-icon-wrapper">
+                        <img src="images/iconweb-icon.jpg" alt="iconWeb" class="app-icon">
+                        <div class="app-icon-glow"></div>
+                    </div>
+                    <div class="app-banner-wrapper">
+                        <img src="images/iconwebbanner.png" alt="iconWeb Banner" class="app-banner">
+                        <div class="banner-overlay-effect"></div>
+                    </div>
+                </div>
+                <div class="app-info">
+                    <span class="app-tag">Web App • Beta</span>
+                    <h3 class="app-name">iconWeb</h3>
+                    <p class="app-tagline">Icon AE on the Web</p>
+                    <p class="app-description">Create custom icons with a huge selection of Icon Effects. Simply select the icon effect and upload your icons. Download the zip. Done.</p>
+                    <a href="https://showcreative.co.uk/iconWeb/index.html" class="app-cta">
+                        <span>Launch App</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">The ultimate mockup creator on the web. Intuitive interface makes creating mockups super simple! Browse all of the mockups available on our dedicated Telegram channel</p>
-              <div class="button-container">
-                <a href="https://showcreative.co.uk/mLiteWeb/index.html" class="download-button">
-                    <img src="images/gobutton.png" alt="Download on ShowCreative">
-                </a>
-            </div>
-        </div>
-    </div>
+        </article>
 
-     <div class="app-section" id="pfpmaker">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/pfpmaker-icon.jpg" alt="pfpmaker Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/pfpmakerbanner.png" alt="pfpmaker Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">pfp.MAKER</h2>
-                    <p class="app-description">Professional & Fun Profile Pictures</p>
+        <!-- App: mLiteWeb -->
+        <article class="app-card app-card-reverse" id="mliteweb">
+            <div class="app-card-inner">
+                <div class="app-visual">
+                    <div class="app-icon-wrapper">
+                        <img src="images/mliteweb-icon.jpg" alt="mLiteWeb" class="app-icon">
+                        <div class="app-icon-glow"></div>
+                    </div>
+                    <div class="app-banner-wrapper">
+                        <img src="images/mlitewebbanner.png" alt="mLiteWeb Banner" class="app-banner">
+                        <div class="banner-overlay-effect"></div>
+                    </div>
+                </div>
+                <div class="app-info">
+                    <span class="app-tag">Web App • Beta</span>
+                    <h3 class="app-name">mLiteWeb</h3>
+                    <p class="app-tagline">Device Mockups on the Web</p>
+                    <p class="app-description">The ultimate mockup creator on the web. Intuitive interface makes creating mockups super simple! Browse all of the mockups available on our dedicated Telegram channel.</p>
+                    <a href="https://showcreative.co.uk/mLiteWeb/index.html" class="app-cta">
+                        <span>Launch App</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">The only profile picture and avatar creator app you will ever need!</p>
-              <div class="button-container">
-                <a href="https://apps.apple.com/app/id6751644930" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
+        </article>
 
-
-        </div>
-    </div>
-
-      <div class="app-section" id="funforge">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/funforge-icon.jpg" alt="funforge Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/funforgebanner.png" alt="funforge Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">FunForge</h2>
-                    <p class="app-description">Comedy Forge, AI Style</p>
+        <!-- App: pfp.MAKER -->
+        <article class="app-card" id="pfpmaker">
+            <div class="app-card-inner">
+                <div class="app-visual">
+                    <div class="app-icon-wrapper">
+                        <img src="images/pfpmaker-icon.jpg" alt="pfp.MAKER" class="app-icon">
+                        <div class="app-icon-glow"></div>
+                    </div>
+                    <div class="app-banner-wrapper">
+                        <img src="images/pfpmakerbanner.png" alt="pfp.MAKER Banner" class="app-banner">
+                        <div class="banner-overlay-effect"></div>
+                    </div>
+                </div>
+                <div class="app-info">
+                    <span class="app-tag">iOS App</span>
+                    <h3 class="app-name">pfp.MAKER</h3>
+                    <p class="app-tagline">Professional & Fun Profile Pictures</p>
+                    <p class="app-description">The only profile picture and avatar creator app you will ever need. AI-powered generation meets intuitive design.</p>
+                    <a href="https://apps.apple.com/app/id6751644930" class="app-cta app-cta-store">
+                        <img src="images/downloadbutton.png" alt="Download on App Store">
+                    </a>
                 </div>
             </div>
-            <p class="app-body">Turn your photos into hilarious captions & uplifting compliments with AI. Fun, shareable, and perfect for friends or parties!</p>
-              <div class="button-container">
-                <a href="https://apps.apple.com/app/id6751491797" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
+        </article>
 
-
-        </div>
-    </div>
-
-      <div class="app-section" id="mLite">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/mLite-icon.jpg" alt="mLite Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/mLitebanner.png" alt="mLite Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">mLite Mockup Creator</h2>
-                    <p class="app-description">Device Mockups Made Easy!</p>
+        <!-- App: FunForge -->
+        <article class="app-card app-card-reverse" id="funforge">
+            <div class="app-card-inner">
+                <div class="app-visual">
+                    <div class="app-icon-wrapper">
+                        <img src="images/funforge-icon.jpg" alt="FunForge" class="app-icon">
+                        <div class="app-icon-glow"></div>
+                    </div>
+                    <div class="app-banner-wrapper">
+                        <img src="images/funforgebanner.png" alt="FunForge Banner" class="app-banner">
+                        <div class="banner-overlay-effect"></div>
+                    </div>
+                </div>
+                <div class="app-info">
+                    <span class="app-tag">iOS App</span>
+                    <h3 class="app-name">FunForge</h3>
+                    <p class="app-tagline">Comedy Forge, AI Style</p>
+                    <p class="app-description">Turn your photos into hilarious captions & uplifting compliments with AI. Fun, shareable, and perfect for friends or parties!</p>
+                    <a href="https://apps.apple.com/app/id6751491797" class="app-cta app-cta-store">
+                        <img src="images/downloadbutton.png" alt="Download on App Store">
+                    </a>
                 </div>
             </div>
-            <p class="app-body">The ultimate mockup creator for iPhone and iPad. Intuitive interface makes creating mockups super simple! Create and share your mockups.</p>
-              <div class="button-container">
-                <a href="https://apps.apple.com/app/id6740822336" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
+        </article>
+    </section>
 
-
+    <!-- Horizontal Scroll Gallery -->
+    <section class="gallery">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <h2 class="section-title">All Apps</h2>
         </div>
-    </div>
- 
-      <div class="app-section" id="walls">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/walls-icon.jpg" alt="Walls Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/wallsbanner.png" alt="Walls Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">Walls</h2>
-                    <p class="app-description">Discover Breathtaking Wallpapers</p>
+        <div class="gallery-track">
+            <div class="gallery-item" id="mlite">
+                <div class="gallery-item-inner">
+                    <img src="images/mlite-icon.jpg" alt="mLite" class="gallery-icon">
+                    <h4 class="gallery-name">mLite</h4>
+                    <p class="gallery-tagline">Device Mockups Made Easy</p>
+                    <a href="https://apps.apple.com/gb/app/mlite/id6471967546" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">Experience the ultimate wallpaper collection curated by world-class digital artists. Walls brings you stunning, high-resolution designs updated daily to transform your device into a masterpiece!</p>
-              <div class="button-container">
-                <a href="https://apps.apple.com/app/id6737687624" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-
-
-        </div>
-    </div>
-
-      <div class="app-section" id="fishm">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/fishm-icon.jpg" alt="FishM Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/fishmbanner.png" alt="FishM Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">FishM</h2>
-                    <p class="app-description">The all-in-one Fishing App</p>
+            <div class="gallery-item" id="walls">
+                <div class="gallery-item-inner">
+                    <img src="images/walls-icon.jpg" alt="Walls" class="gallery-icon">
+                    <h4 class="gallery-name">Walls</h4>
+                    <p class="gallery-tagline">Premium Wallpaper Collection</p>
+                    <a href="https://apps.apple.com/app/id6737687624" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">FishM transforms your smartphone into a powerful fishing log, inventory manager, and permit organizer. With its intuitive interface and comprehensive features, you'll never forget a catch, lose track of your gear, or miss a permit renewal again!</p>
-              <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/fishm-fishing-log/id6698889140" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-            
-           
-        </div>
-    </div>
-
-     <div class="app-section" id="spendr">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/spendr-icon.jpg" alt="Spendr Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/spendrbanner.png" alt="Spendr Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">Spendr</h2>
-                    <p class="app-description">Personal Finance Made Simple</p>
+            <div class="gallery-item" id="fishm">
+                <div class="gallery-item-inner">
+                    <img src="images/fishm-icon.jpg" alt="FishM" class="gallery-icon">
+                    <h4 class="gallery-name">FishM</h4>
+                    <p class="gallery-tagline">The All-in-One Fishing App</p>
+                    <a href="https://apps.apple.com/gb/app/fishm-fishing-log/id6698889140" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">Take control of your finances with this intuitive budget management app. Easily track income and expenses, categorize transactions, and gain financial clarity. Your path to smarter money management starts here – download now and transform your financial future!</p>
-             <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/spendr/id6654924081" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-           
-        </div>
-    </div>
-
-    <div class="app-section" id="statcoach">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/statcoach-icon.png" alt="StatCoach Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/statcoachbanner.png" alt="StatCoach Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">StatCoach</h2>
-                    <p class="app-description">AI powered football team management</p>
+            <div class="gallery-item" id="spendr">
+                <div class="gallery-item-inner">
+                    <img src="images/spendr-icon.jpg" alt="Spendr" class="gallery-icon">
+                    <h4 class="gallery-name">Spendr</h4>
+                    <p class="gallery-tagline">Personal Finance Made Simple</p>
+                    <a href="https://apps.apple.com/gb/app/spendr/id6654924081" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">StatCoach is an innovative app designed to help young football teams track and analyze their performance in real-time. With AI-enhanced features, it provides valuable insights and coaching suggestions to improve team strategy and player development.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/statcoach/id6578456085" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-section" id="mockupm">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/mockupm-icon.png" alt="MockupM Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/mockupmbanner.png" alt="MockupM Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">MockupM</h2>
-                    <p class="app-description">Create iPhone mockups and browse thousands of wallpapers</p>
+            <div class="gallery-item" id="statcoach">
+                <div class="gallery-item-inner">
+                    <img src="images/statcoach-icon.png" alt="StatCoach" class="gallery-icon">
+                    <h4 class="gallery-name">StatCoach</h4>
+                    <p class="gallery-tagline">AI Football Team Management</p>
+                    <a href="https://apps.apple.com/gb/app/statcoach/id6578456085" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">MockupM is the ultimate tool for creating stunning iPhone mockups and discovering a vast collection of wallpapers. Whether you're a designer, developer, or enthusiast, MockupM provides an easy-to-use interface to showcase your apps or personalize your device.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/mockup-m/id6467768436" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-section" id="clipm">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/clipm-icon.png" alt="ClipM Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/clipmbanner.png" alt="ClipM Banner" class="app-banner">
-                <div class="banner-overlay">
-                   <h2 class="app-title">ClipM</h2>
-                    <p class="app-description">Your smart AI clipboard companion</p>
+            <div class="gallery-item" id="mockupm">
+                <div class="gallery-item-inner">
+                    <img src="images/mockupm-icon.png" alt="MockupM" class="gallery-icon">
+                    <h4 class="gallery-name">MockupM</h4>
+                    <p class="gallery-tagline">Mockups & Wallpapers</p>
+                    <a href="https://apps.apple.com/gb/app/mockup-m/id6467768436" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">ClipM revolutionizes your clipboard experience with AI-powered enhancements. This intelligent clipboard manager goes beyond simple copy and paste, offering smart organization, content suggestions, and seamless integration with your workflow.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/clipm/id6523435496" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="app-section" id="showae">
-        <div class="app-content">
-            <div class="app-icon">
-                <img src="images/showae-icon.png" alt="ShowAE Icon">
-            </div>
-            <div class="banner-container">
-                <img src="images/showaebanner.png" alt="ShowAE Banner" class="app-banner">
-                <div class="banner-overlay">
-                    <h2 class="app-title">ShowAE</h2>
-                    <p class="app-description">Icon theming made super easy</p>
+            <div class="gallery-item" id="clipm">
+                <div class="gallery-item-inner">
+                    <img src="images/clipm-icon.png" alt="ClipM" class="gallery-icon">
+                    <h4 class="gallery-name">ClipM</h4>
+                    <p class="gallery-tagline">AI Clipboard Companion</p>
+                    <a href="https://apps.apple.com/gb/app/clipm/id6523435496" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
-            <p class="app-body">ShowAE has over 300 unique icon effects so you can theme your homescreen icons and have an amazing looking homescreen! Choose from multiple icon effect layers to create a unique and amazing icon effects.</p>
-            <div class="button-container">
-                <a href="https://apps.apple.com/gb/app/showae/id6444632255" class="download-button">
-                    <img src="images/downloadbutton.png" alt="Download on App Store">
-                </a>
+            <div class="gallery-item" id="showae">
+                <div class="gallery-item-inner">
+                    <img src="images/showae-icon.png" alt="ShowAE" class="gallery-icon">
+                    <h4 class="gallery-name">ShowAE</h4>
+                    <p class="gallery-tagline">Icon Theming Made Easy</p>
+                    <a href="https://apps.apple.com/gb/app/showae/id6444632255" class="gallery-link">
+                        <span>App Store</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
+        <div class="gallery-progress">
+            <div class="gallery-progress-bar"></div>
+        </div>
+    </section>
 
-   <div id="contact" class="app-section">
-        <h2>Contact Me</h2>
-        <p>Have questions or want to collaborate? Feel free to reach out!</p>
-        <a href="mailto:showcreative@icloud.com" class="button">Send an Email</a>
-        <a href="mailto:showcreative@icloud.com?subject=I%20need%20some%20help%20with%20a%20ShowCreative%20app&body=App%20Name%3A%20%0D%0A%0D%0ADescription%20of%20the%20support%20required%3A%20%0D%0A%0D%0A%0D%0AI%20will%20try%20to%20respond%20as%20quickly%20as%20possible.%20If%20you%20require%20quicker%20support%2C%20please%20visit%20our%20Telegram%20support%20channel%20at%3A%20%0D%0A%0D%0Ahttps%3A%2F%2Ft.me%2F%2BurxfCpCtJYllMjhk" class="button">App Support</a>
-    </div>
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number" data-value="12">0</span>
+                <span class="stat-label">Apps Published</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-value="300">0</span>
+                <span class="stat-suffix">+</span>
+                <span class="stat-label">Icon Effects</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-value="2">0</span>
+                <span class="stat-label">Years Building</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-value="100">0</span>
+                <span class="stat-suffix">%</span>
+                <span class="stat-label">SwiftUI</span>
+            </div>
+        </div>
+    </section>
 
- <footer class="footer">
-        <p>&copy; 2025 Show Creative. All rights reserved.</p>
-        <p><a href="about.html">About Me</a> | <a href="privacy-policy.html">Privacy Policy</a> | <a href="terms-of-use.html">Terms of Use</a> | <a href="https://showcreative.co.uk/APKExtractor.html">mLite APK Extractor</a> | <a href="https://showcreative.co.uk/pfpMAKER.html">pfp.MAKER</a></p>
-        <div class="social-links">
-            <a href="https://x.com/SeanKly" target="_blank">X (Twitter)</a>
-            <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank">Telegram</a>
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="contact-content">
+            <span class="section-number">03</span>
+            <h2 class="contact-title">
+                <span class="contact-title-line">Let's build</span>
+                <span class="contact-title-line contact-title-italic">something</span>
+                <span class="contact-title-line">together</span>
+            </h2>
+            <p class="contact-description">Have a project in mind or want to collaborate? I'm always open to discussing new opportunities.</p>
+            <div class="contact-links">
+                <a href="mailto:showcreative@icloud.com" class="contact-cta">
+                    <span>Send an Email</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                    </svg>
+                </a>
+                <div class="contact-socials">
+                    <a href="https://x.com/SeanKly" target="_blank" class="social-link">X / Twitter</a>
+                    <a href="https://t.me/+urxfCpCtJYllMjhk" target="_blank" class="social-link">Telegram</a>
+                </div>
+            </div>
+        </div>
+        <div class="contact-visual">
+            <div class="contact-orb"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-left">
+                <span class="footer-logo">Show Creative</span>
+                <span class="footer-location">Scotland, United Kingdom</span>
+            </div>
+            <div class="footer-right">
+                <a href="about.html">About</a>
+                <a href="privacy-policy.html">Privacy</a>
+                <a href="terms-of-use.html">Terms</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>© 2025 Show Creative. All rights reserved.</span>
+            <span class="footer-credit">Designed with intention</span>
         </div>
     </footer>
 

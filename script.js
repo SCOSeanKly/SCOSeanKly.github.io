@@ -21,23 +21,38 @@ document.addEventListener('DOMContentLoaded', function() {
             mouseY = e.clientY;
         });
         
-        // Smooth cursor animation
-        function animateCursor() {
+        // Smooth cursor animation with delta time for consistent speed across refresh rates
+        let lastTime = performance.now();
+        const targetFPS = 60; // Normalize to 60fps
+        const frameTime = 1000 / targetFPS;
+        
+        // Lerp speeds (per 60fps frame)
+        const cursorSpeed = 0.2;
+        const followerSpeed = 0.08;
+        
+        function animateCursor(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            
+            // Calculate frame-rate independent lerp factor
+            const cursorLerp = 1 - Math.pow(1 - cursorSpeed, deltaTime / frameTime);
+            const followerLerp = 1 - Math.pow(1 - followerSpeed, deltaTime / frameTime);
+            
             // Main cursor (faster)
-            cursorX += (mouseX - cursorX) * 0.2;
-            cursorY += (mouseY - cursorY) * 0.2;
+            cursorX += (mouseX - cursorX) * cursorLerp;
+            cursorY += (mouseY - cursorY) * cursorLerp;
             cursor.style.left = cursorX + 'px';
             cursor.style.top = cursorY + 'px';
             
             // Follower (slower, more laggy)
-            followerX += (mouseX - followerX) * 0.08;
-            followerY += (mouseY - followerY) * 0.08;
+            followerX += (mouseX - followerX) * followerLerp;
+            followerY += (mouseY - followerY) * followerLerp;
             cursorFollower.style.left = followerX + 'px';
             cursorFollower.style.top = followerY + 'px';
             
             requestAnimationFrame(animateCursor);
         }
-        animateCursor();
+        requestAnimationFrame(animateCursor);
         
         // Hover effects for interactive elements
         const hoverElements = document.querySelectorAll('a, button, .app-card, .gallery-item');

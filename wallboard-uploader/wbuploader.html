@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WallBoard Theme Manager</title>
     <script src="https://unpkg.com/aws4fetch@1.0.18/dist/aws4fetch.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -639,6 +640,7 @@
             <button class="tab" onclick="switchTab('manage')">🗂️ Manage Themes</button>
             <button class="tab" onclick="switchTab('fonts')">🔤 Manage Fonts</button>
             <button class="tab" onclick="switchTab('weather')">🌤️ Weather Icons</button>
+            <button class="tab" onclick="switchTab('backup')">💾 Backup & Restore</button>
         </div>
 
         <div id="upload-tab" class="tab-content active">
@@ -842,6 +844,64 @@
                 <div id="weatherSuccessLinks" class="success-links" style="display: none;">
                     <h4>✅ Successfully Uploaded!</h4>
                     <div id="weatherLinksList"></div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup & Restore Tab -->
+        <div id="backup-tab" class="tab-content">
+            <div class="section">
+                <h2>💾 Backup All Themes</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Download a complete backup of all themes including the JSON manifest, all .walltheme files, and all preview images.</p>
+                
+                <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="font-size: 32px;">📦</div>
+                        <div>
+                            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Full Theme Backup</div>
+                            <div style="font-size: 13px; color: #71717a;" id="backupInfo">Includes all themes, images, and metadata</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="backupBtn" onclick="downloadBackup()">
+                        ⬇️ Download Full Backup
+                    </button>
+                </div>
+
+                <div class="progress" id="backupProgress">
+                    <div class="progress-bar" id="backupProgressBar"></div>
+                </div>
+
+                <div class="output" id="backupOutput"></div>
+            </div>
+
+            <div class="section">
+                <h2>🔄 Restore Themes</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Restore themes from a previously downloaded backup file. <strong style="color: #f59e0b;">Warning:</strong> This will replace all existing themes!</p>
+                
+                <div class="form-group">
+                    <label>Backup File (.zip)</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label" id="restoreFileLabel">
+                            📦 Choose backup .zip file
+                        </div>
+                        <input type="file" id="restoreFile" accept=".zip">
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" id="restoreBtn" onclick="confirmRestore()">
+                    🔄 Restore from Backup
+                </button>
+
+                <div class="progress" id="restoreProgress">
+                    <div class="progress-bar" id="restoreProgressBar"></div>
+                </div>
+
+                <div class="output" id="restoreOutput"></div>
+
+                <div id="restoreSuccessLinks" class="success-links" style="display: none;">
+                    <h4>✅ Successfully Restored!</h4>
+                    <div id="restoreLinksList"></div>
                 </div>
             </div>
         </div>
@@ -1798,6 +1858,335 @@
             }
         }
 
+        // ==================== BACKUP & RESTORE FUNCTIONS ====================
+
+        function backupLog(message, type) {
+            type = type || 'info';
+            const output = document.getElementById('backupOutput');
+            output.classList.add('show');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateBackupProgress(percent) {
+            const progress = document.getElementById('backupProgress');
+            const bar = document.getElementById('backupProgressBar');
+            progress.classList.add('show');
+            bar.style.width = percent + '%';
+        }
+
+        function restoreLog(message, type) {
+            type = type || 'info';
+            const output = document.getElementById('restoreOutput');
+            output.classList.add('show');
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateRestoreProgress(percent) {
+            const progress = document.getElementById('restoreProgress');
+            const bar = document.getElementById('restoreProgressBar');
+            progress.classList.add('show');
+            bar.style.width = percent + '%';
+        }
+
+        async function downloadBackup() {
+            const backupBtn = document.getElementById('backupBtn');
+            backupBtn.disabled = true;
+            document.getElementById('backupOutput').innerHTML = '';
+            document.getElementById('backupOutput').classList.remove('show');
+            document.getElementById('backupProgress').classList.remove('show');
+
+            try {
+                backupLog('⏳ Starting backup...', 'info');
+                updateBackupProgress(5);
+
+                // Fetch the themes JSON
+                backupLog('📥 Fetching themes manifest...', 'info');
+                const jsonUrl = PUBLIC_URL + '/json/wallthemes.json?t=' + new Date().getTime();
+                const response = await fetch(jsonUrl, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch themes JSON');
+                }
+
+                const jsonData = await response.json();
+                const themes = jsonData.themes || [];
+                backupLog('✅ Found ' + themes.length + ' themes to backup', 'success');
+                updateBackupProgress(10);
+
+                if (themes.length === 0) {
+                    backupLog('⚠️ No themes to backup!', 'error');
+                    backupBtn.disabled = false;
+                    return;
+                }
+
+                // Create a new ZIP
+                const zip = new JSZip();
+                
+                // Add the JSON file
+                zip.file('wallthemes.json', JSON.stringify(jsonData, null, 2));
+                backupLog('📦 Added wallthemes.json to backup', 'info');
+
+                // Create folders
+                const contentFolder = zip.folder('content');
+
+                // Download and add each theme file and image
+                const totalFiles = themes.length * 2; // Each theme has a .walltheme and .png
+                let downloadedFiles = 0;
+
+                for (const theme of themes) {
+                    try {
+                        // Extract filename from URL
+                        const themeFileName = theme.theme_url.split('/').pop();
+                        const imageFileName = theme.thumbnail_url.split('/').pop();
+
+                        // Download theme file
+                        backupLog('📥 Downloading ' + themeFileName + '...', 'info');
+                        const themeResponse = await fetch(theme.theme_url);
+                        if (themeResponse.ok) {
+                            const themeBlob = await themeResponse.blob();
+                            contentFolder.file(themeFileName, themeBlob);
+                            downloadedFiles++;
+                            backupLog('✅ Added ' + themeFileName, 'success');
+                        } else {
+                            backupLog('⚠️ Failed to download ' + themeFileName, 'error');
+                        }
+
+                        // Download image file
+                        backupLog('📥 Downloading ' + imageFileName + '...', 'info');
+                        const imageResponse = await fetch(theme.thumbnail_url);
+                        if (imageResponse.ok) {
+                            const imageBlob = await imageResponse.blob();
+                            contentFolder.file(imageFileName, imageBlob);
+                            downloadedFiles++;
+                            backupLog('✅ Added ' + imageFileName, 'success');
+                        } else {
+                            backupLog('⚠️ Failed to download ' + imageFileName, 'error');
+                        }
+
+                        // Update progress
+                        const progress = 10 + (downloadedFiles / totalFiles) * 70;
+                        updateBackupProgress(progress);
+
+                    } catch (err) {
+                        backupLog('⚠️ Error processing theme "' + theme.name + '": ' + err.message, 'error');
+                    }
+                }
+
+                backupLog('📦 Generating ZIP file...', 'info');
+                updateBackupProgress(85);
+
+                // Generate the ZIP file
+                const content = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                }, function(metadata) {
+                    updateBackupProgress(85 + (metadata.percent / 100) * 10);
+                });
+
+                updateBackupProgress(95);
+
+                // Create download link
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const fileName = 'wallboard-themes-backup-' + timestamp + '.zip';
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(content);
+                downloadLink.download = fileName;
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+
+                updateBackupProgress(100);
+                
+                const sizeMB = (content.size / (1024 * 1024)).toFixed(2);
+                backupLog('', 'info');
+                backupLog('✨ Backup complete! Downloaded ' + fileName + ' (' + sizeMB + ' MB)', 'success');
+                backupLog('📊 ' + downloadedFiles + ' files backed up from ' + themes.length + ' themes', 'success');
+
+            } catch (error) {
+                backupLog('❌ Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                backupBtn.disabled = false;
+            }
+        }
+
+        function confirmRestore() {
+            const restoreFile = document.getElementById('restoreFile').files[0];
+            
+            if (!restoreFile) {
+                alert('Please select a backup file first!');
+                return;
+            }
+
+            if (!restoreFile.name.toLowerCase().endsWith('.zip')) {
+                alert('Please select a valid .zip backup file!');
+                return;
+            }
+
+            if (confirm('⚠️ WARNING: This will replace ALL existing themes with the backup content.\n\nAre you sure you want to continue?')) {
+                restoreFromBackup();
+            }
+        }
+
+        async function restoreFromBackup() {
+            const restoreBtn = document.getElementById('restoreBtn');
+            restoreBtn.disabled = true;
+            document.getElementById('restoreOutput').innerHTML = '';
+            document.getElementById('restoreOutput').classList.remove('show');
+            document.getElementById('restoreProgress').classList.remove('show');
+            document.getElementById('restoreSuccessLinks').style.display = 'none';
+
+            try {
+                restoreLog('⏳ Starting restore...', 'info');
+                updateRestoreProgress(5);
+
+                const AwsClientClass = await waitForAwsClient();
+                const aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                const restoreFile = document.getElementById('restoreFile').files[0];
+                
+                restoreLog('📦 Reading backup file...', 'info');
+                updateRestoreProgress(10);
+
+                // Read the ZIP file
+                const zip = await JSZip.loadAsync(restoreFile);
+                
+                // Check if wallthemes.json exists
+                const jsonFile = zip.file('wallthemes.json');
+                if (!jsonFile) {
+                    throw new Error('Invalid backup: wallthemes.json not found');
+                }
+
+                restoreLog('✅ Valid backup file detected', 'success');
+                updateRestoreProgress(15);
+
+                // Parse the JSON
+                const jsonContent = await jsonFile.async('string');
+                const jsonData = JSON.parse(jsonContent);
+                const themes = jsonData.themes || [];
+
+                restoreLog('📋 Found ' + themes.length + ' themes in backup', 'info');
+                updateRestoreProgress(20);
+
+                // Get the content folder
+                const contentFiles = [];
+                zip.folder('content').forEach(function(relativePath, file) {
+                    contentFiles.push({ path: relativePath, file: file });
+                });
+
+                restoreLog('📦 Found ' + contentFiles.length + ' content files', 'info');
+
+                // Upload each content file
+                let uploadedFiles = 0;
+                const totalFiles = contentFiles.length + 1; // +1 for JSON
+
+                for (const item of contentFiles) {
+                    try {
+                        const blob = await item.file.async('blob');
+                        const fileName = item.path;
+                        
+                        // Determine content type
+                        let contentType = 'application/octet-stream';
+                        if (fileName.endsWith('.png')) {
+                            contentType = 'image/png';
+                        } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+                            contentType = 'image/jpeg';
+                        } else if (fileName.endsWith('.walltheme')) {
+                            contentType = 'application/octet-stream';
+                        }
+
+                        restoreLog('📤 Uploading ' + fileName + '...', 'info');
+                        
+                        const uploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/content/' + fileName;
+                        const response = await aws.fetch(uploadUrl, {
+                            method: 'PUT',
+                            body: blob,
+                            headers: { 'Content-Type': contentType }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Upload failed: ' + response.statusText);
+                        }
+
+                        uploadedFiles++;
+                        restoreLog('✅ Uploaded ' + fileName, 'success');
+                        
+                        const progress = 20 + (uploadedFiles / totalFiles) * 70;
+                        updateRestoreProgress(progress);
+
+                    } catch (err) {
+                        restoreLog('⚠️ Failed to upload ' + item.path + ': ' + err.message, 'error');
+                    }
+                }
+
+                // Upload the JSON file
+                restoreLog('📤 Uploading wallthemes.json...', 'info');
+                
+                // Update the last_updated timestamp
+                jsonData.last_updated = new Date().toISOString();
+                
+                const jsonUploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/json/wallthemes.json';
+                const jsonResponse = await aws.fetch(jsonUploadUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify(jsonData, null, 2),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!jsonResponse.ok) {
+                    throw new Error('Failed to upload JSON: ' + jsonResponse.statusText);
+                }
+
+                restoreLog('✅ Uploaded wallthemes.json', 'success');
+                updateRestoreProgress(95);
+
+                // Wait for Cloudflare to propagate
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+
+                updateRestoreProgress(100);
+
+                restoreLog('', 'info');
+                restoreLog('✨ Restore complete!', 'success');
+                restoreLog('📊 Restored ' + themes.length + ' themes (' + uploadedFiles + ' files)', 'success');
+
+                const linksDiv = document.getElementById('restoreLinksList');
+                linksDiv.innerHTML = '<a href="' + PUBLIC_URL + '/json/wallthemes.json" target="_blank">🔗 View Restored JSON</a>';
+                document.getElementById('restoreSuccessLinks').style.display = 'block';
+
+                // Reset form
+                document.getElementById('restoreFile').value = '';
+                document.getElementById('restoreFileLabel').textContent = '📦 Choose backup .zip file';
+                document.getElementById('restoreFileLabel').classList.remove('has-file');
+
+                // Reload themes gallery
+                setTimeout(loadThemes, 2000);
+
+            } catch (error) {
+                restoreLog('❌ Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                restoreBtn.disabled = false;
+            }
+        }
+
+        // ==================== END BACKUP & RESTORE ====================
+
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('themeName').addEventListener('input', function() {
                 const themeName = this.value.trim();
@@ -1966,6 +2355,23 @@
                 e.preventDefault();
                 e.stopPropagation();
                 document.getElementById('updateImageFileInput').click();
+            });
+
+            // Restore file input handler
+            document.getElementById('restoreFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    document.getElementById('restoreFileLabel').textContent = '✅ ' + file.name + ' (' + sizeMB + ' MB)';
+                    document.getElementById('restoreFileLabel').classList.add('has-file');
+                }
+            });
+            
+            document.getElementById('restoreFileLabel').addEventListener('click', function(e) {
+                console.log('Restore file label clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('restoreFile').click();
             });
 
             loadThemes();

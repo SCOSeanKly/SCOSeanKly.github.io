@@ -565,8 +565,24 @@
                     });
                 }
                 
+                // Extract day-of-week images from dotwbase64 section
+                if (data.dotwbase64) {
+                    const dotwSection = data.dotwbase64;
+                    Object.keys(dotwSection).forEach(key => {
+                        if (typeof dotwSection[key] === 'string' && dotwSection[key].length > 100) {
+                            extractedFiles.push({
+                                name: key,
+                                base64: dotwSection[key],
+                                type: 'day-of-week',
+                                format: 'png',
+                                category: 'day-of-week'
+                            });
+                        }
+                    });
+                }
+                
                 if (extractedFiles.length === 0) {
-                    showStatus('⚠️ No fonts, images, or weather icons found in JSON', 'error');
+                    showStatus('⚠️ No fonts, images, weather icons, or day-of-week images found in JSON', 'error');
                     return;
                 }
                 
@@ -576,8 +592,9 @@
                 const fontCount = extractedFiles.filter(f => f.category === 'fonts').length;
                 const imageCount = extractedFiles.filter(f => f.category === 'images').length;
                 const weatherCount = extractedFiles.filter(f => f.category === 'weather-icons').length;
+                const dotwCount = extractedFiles.filter(f => f.category === 'day-of-week').length;
                 
-                showStatus(`✓ Found ${fontCount} font(s), ${imageCount} image(s), ${weatherCount} weather icon(s)`, 'success');
+                showStatus(`✓ Found ${fontCount} font(s), ${imageCount} image(s), ${weatherCount} weather icon(s), ${dotwCount} day-of-week image(s)`, 'success');
                 
             } catch (error) {
                 showStatus(`✗ Error reading JSON: ${error.message}`, 'error');
@@ -596,7 +613,8 @@
             const categories = {
                 'fonts': extractedFiles.filter(f => f.category === 'fonts'),
                 'images': extractedFiles.filter(f => f.category === 'images'),
-                'weather-icons': extractedFiles.filter(f => f.category === 'weather-icons')
+                'weather-icons': extractedFiles.filter(f => f.category === 'weather-icons'),
+                'day-of-week': extractedFiles.filter(f => f.category === 'day-of-week')
             };
             
             // Display each category
@@ -677,6 +695,7 @@
                         // Organize files into folders
                         const folderName = file.category === 'fonts' ? 'Fonts' : 
                                           file.category === 'images' ? 'Images' : 
+                                          file.category === 'day-of-week' ? 'Day of Week' :
                                           'Weather Icons';
                         
                         zip.file(`${folderName}/${file.name}.${file.format}`, arrayBuffer);

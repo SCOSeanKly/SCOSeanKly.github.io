@@ -414,14 +414,15 @@ button {
     font-family: var(--font-display);
     font-size: clamp(3rem, 12vw, 10rem);
     font-weight: 800;
-    line-height: 0.95;
+    line-height: 1.05;
     letter-spacing: -0.03em;
     margin-bottom: var(--space-lg);
 }
 
 .title-line {
     display: block;
-    overflow: hidden;
+    overflow: visible;
+    padding-bottom: 0.05em;
 }
 
 .title-word {
@@ -749,7 +750,7 @@ button {
 .gallery-track {
     display: flex;
     gap: var(--space-md);
-    padding: 0 var(--container-padding);
+    padding: var(--space-sm) var(--container-padding);
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
@@ -1103,9 +1104,32 @@ button {
         gap: var(--space-lg);
     }
     
+    .app-card-reverse .app-card-inner {
+        grid-template-columns: 1fr;
+    }
+    
     .app-card-reverse .app-visual,
     .app-card-reverse .app-info {
         order: unset;
+    }
+    
+    .app-visual {
+        width: 100%;
+    }
+    
+    .app-icon-wrapper {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: var(--space-sm);
+    }
+    
+    .app-banner-wrapper {
+        width: 100%;
+    }
+    
+    .app-description {
+        max-width: 100%;
     }
     
     .stats-grid {
@@ -1168,10 +1192,12 @@ button {
     .hero-title {
         font-size: clamp(2.5rem, 11vw, 5rem);
         margin-bottom: var(--space-md);
+        line-height: 1.1;
     }
     
     .hero-description {
         font-size: 1rem;
+        max-width: 100%;
     }
     
     .hero-scroll {
@@ -1193,6 +1219,22 @@ button {
     
     .app-card {
         margin-bottom: var(--space-lg);
+        padding: var(--space-md) var(--container-padding);
+    }
+    
+    .app-card-inner {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+    
+    .app-card-reverse .app-visual,
+    .app-card-reverse .app-info {
+        order: unset;
+    }
+    
+    .app-visual {
+        width: 100%;
     }
     
     .app-icon-wrapper {
@@ -1208,16 +1250,32 @@ button {
     }
     
     .app-banner-wrapper {
-        height: 200px;
+        height: auto;
+        min-height: 200px;
         border-radius: 16px;
+    }
+    
+    .app-banner {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    
+    .app-info {
+        padding: 0;
     }
     
     .app-name {
         font-size: 1.8rem;
     }
     
+    .app-tagline {
+        font-size: 1.1rem;
+    }
+    
     .app-description {
         font-size: 0.95rem;
+        max-width: 100%;
     }
     
     .gallery-item {
@@ -1293,16 +1351,58 @@ button {
     }
     
     .hero-eyebrow {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+        gap: 0.5rem;
+    }
+    
+    .eyebrow-line {
+        width: 24px;
     }
     
     .hero-title {
         font-size: clamp(2rem, 12vw, 3.5rem);
+        line-height: 1.1;
+    }
+    
+    .title-line {
+        padding-bottom: 0.08em;
     }
     
     .title-italic {
-        display: block;
-        margin-left: 0;
+        display: inline-block;
+        margin-left: 0.05em;
+    }
+    
+    .hero-description {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    .app-card {
+        padding: var(--space-sm) var(--container-padding);
+    }
+    
+    .app-icon {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .app-name {
+        font-size: 1.5rem;
+    }
+    
+    .app-tagline {
+        font-size: 1rem;
+    }
+    
+    .app-description {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+    
+    .app-tag {
+        font-size: 0.7rem;
+        padding: 5px 10px;
     }
     
     .gallery-item {
@@ -1311,7 +1411,7 @@ button {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: var(--space-sm);
     }
     
@@ -1319,8 +1419,12 @@ button {
         font-size: clamp(2.5rem, 12vw, 4rem);
     }
     
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
     .menu-link {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
     }
     
     .menu-link-small {
@@ -1330,6 +1434,34 @@ button {
     .app-cta {
         width: 100%;
         justify-content: center;
+        padding: 12px 24px;
+        font-size: 0.85rem;
+    }
+    
+    .contact-title {
+        font-size: clamp(1.75rem, 9vw, 3rem);
+    }
+    
+    .contact-description {
+        font-size: 0.95rem;
+    }
+    
+    .contact-cta {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+    
+    .contact-socials {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+    
+    .section-title {
+        font-size: clamp(1.25rem, 5vw, 1.75rem);
+    }
+    
+    .section-number {
+        font-size: 0.75rem;
     }
 }
 

@@ -413,6 +413,101 @@
             color: #818cf8;
         }
 
+        #versionOutput .success {
+            color: #22c55e;
+        }
+
+        #versionOutput .error {
+            color: #ef4444;
+        }
+
+        #versionOutput .info {
+            color: #818cf8;
+        }
+
+        #newsOutput .success {
+            color: #22c55e;
+        }
+
+        #newsOutput .error {
+            color: #ef4444;
+        }
+
+        #newsOutput .info {
+            color: #818cf8;
+        }
+
+        .news-item-card {
+            background: #09090b;
+            border: 1px solid #27272a;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .news-item-card:hover {
+            border-color: #3f3f46;
+        }
+
+        .news-item-card .news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .news-item-card .news-title {
+            font-weight: 600;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .news-item-card .news-message {
+            color: #a1a1aa;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .news-item-card .news-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #71717a;
+        }
+
+        .news-type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .news-type-badge.update {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+        }
+
+        .news-type-badge.feature {
+            background: rgba(129, 140, 248, 0.15);
+            color: #a5b4fc;
+        }
+
+        .news-type-badge.announcement {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+        }
+
+        .news-type-badge.alert {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
         .filename-preview {
             background: rgba(129, 140, 248, 0.1);
             border: 1px solid rgba(129, 140, 248, 0.3);
@@ -746,6 +841,7 @@
             <button class="tab" onclick="switchTab('manage')">🗂️ Manage Themes</button>
             <button class="tab" onclick="switchTab('fonts')">🔤 Manage Fonts</button>
             <button class="tab" onclick="switchTab('weather')">🌤️ Weather Icons</button>
+            <button class="tab" onclick="switchTab('news')">📰 News</button>
             <button class="tab" onclick="switchTab('backup')">💾 Backup & Restore</button>
             <button class="tab" onclick="switchTab('browse')">📂 Browse Files</button>
         </div>
@@ -961,9 +1057,9 @@
                 <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
                     <div style="font-size: 13px; color: #a5b4fc; line-height: 1.6;">
                         <strong>How it works:</strong><br>
-                        1. Select your new icon pack folder (e.g. <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">MyNewPack</code>)<br>
+                        1. Select your new icon pack folder<br>
                         2. Click "Merge Into Archive"<br>
-                        3. The tool downloads the current archive (31 folders), adds your folder (now 32), re-zips everything and uploads it
+                        3. The tool downloads the current archive, adds your folder alongside the existing packs, re-zips and uploads
                     </div>
                 </div>
 
@@ -997,6 +1093,93 @@
                     <div id="mergeWeatherLinksList"></div>
                 </div>
             </div>
+
+            <div class="section">
+                <h2>📋 Weather Icons Version</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">View and update the version.json that lives alongside weathericons.zip.</p>
+
+                <div style="background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 20px; margin-bottom: 20px;" id="versionInfo">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="font-size: 32px;">📋</div>
+                        <div>
+                            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">version.json</div>
+                            <div style="font-size: 13px; color: #71717a;" id="versionCurrentInfo">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 0 0 120px;">
+                        <label>Version</label>
+                        <input type="text" id="versionNumber" placeholder="e.g. 2" style="text-align: center;">
+                    </div>
+                    <div class="form-group" style="flex: 0 0 200px;">
+                        <label>Updated Date</label>
+                        <input type="date" id="versionDate" style="width: 100%; padding: 12px 16px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; color: #e4e4e7; font-size: 14px; color-scheme: dark;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="setVersionDateToday()">📅 Set Date to Today</button>
+                    <button class="btn btn-secondary" onclick="incrementVersion()">⬆️ Increment Version</button>
+                    <button class="btn btn-primary" id="saveVersionBtn" onclick="saveVersionJson()">💾 Save version.json</button>
+                </div>
+
+                <div id="versionOutput" style="margin-top: 20px; padding: 16px; background: #09090b; border-radius: 8px; color: #a1a1aa; font-family: 'SF Mono', Monaco, monospace; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; display: none; border: 1px solid #27272a;"></div>
+            </div>
+
+            </div>
+        </div>
+
+        <!-- News Tab -->
+        <div id="news-tab" class="tab-content">
+            <div class="section">
+                <h2>📰 Current News Items</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Manage the news.json feed shown in WallComposer. Items are sorted newest first.</p>
+
+                <div id="newsListLoading" style="color: #71717a; padding: 20px; text-align: center;">Loading news items...</div>
+                <div id="newsList"></div>
+            </div>
+
+            <div class="section">
+                <h2>➕ Add News Item</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Create a new news item. The ID will be generated automatically from the date.</p>
+
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="newsTitle" placeholder="e.g. New Weather Icon Packs Available">
+                </div>
+
+                <div class="form-group">
+                    <label>Message *</label>
+                    <textarea id="newsMessage" rows="3" placeholder="e.g. 5 new weather icon packs have been added..." style="width: 100%; padding: 12px 16px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; color: #e4e4e7; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 160px;">
+                        <label>Type *</label>
+                        <select id="newsType" style="width: 100%; padding: 12px 16px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; color: #e4e4e7; font-size: 14px; color-scheme: dark;">
+                            <option value="update">🔄 Update</option>
+                            <option value="feature">✨ Feature</option>
+                            <option value="announcement">📢 Announcement</option>
+                            <option value="alert">🚨 Alert</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 160px;">
+                        <label>Action URL (optional)</label>
+                        <input type="text" id="newsActionURL" placeholder="https://...">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 160px;">
+                        <label>Expiry Date (optional)</label>
+                        <input type="date" id="newsExpiry" style="width: 100%; padding: 12px 16px; background: #09090b; border: 1px solid #27272a; border-radius: 8px; color: #e4e4e7; font-size: 14px; color-scheme: dark;">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" id="addNewsBtn" onclick="addNewsItem()">
+                    ➕ Add News Item
+                </button>
+
+                <div id="newsOutput" style="margin-top: 20px; padding: 16px; background: #09090b; border-radius: 8px; color: #a1a1aa; font-family: 'SF Mono', Monaco, monospace; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; display: none; border: 1px solid #27272a;"></div>
             </div>
         </div>
 
@@ -1199,6 +1382,8 @@
                 loadFontInfo();
             } else if (tab === 'weather') {
                 loadWeatherInfo();
+            } else if (tab === 'news') {
+                loadNewsItems();
             } else if (tab === 'browse') {
                 loadBucketFiles();
             }
@@ -1857,6 +2042,90 @@
                 console.error('Error loading weather info:', error);
                 document.getElementById('weatherFileSize').textContent = 'Error loading info';
             }
+            loadVersionJson();
+        }
+
+        async function loadVersionJson() {
+            try {
+                var response = await fetch('https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/version.json?t=' + Date.now());
+                if (response.ok) {
+                    var data = await response.json();
+                    document.getElementById('versionNumber').value = data.version || '';
+                    document.getElementById('versionDate').value = data.updated || '';
+                    document.getElementById('versionCurrentInfo').textContent = 'Version ' + data.version + ' • Updated ' + data.updated;
+                } else {
+                    document.getElementById('versionCurrentInfo').textContent = 'File not found — save to create it';
+                    document.getElementById('versionNumber').value = '1';
+                    setVersionDateToday();
+                }
+            } catch (error) {
+                console.error('Error loading version.json:', error);
+                document.getElementById('versionCurrentInfo').textContent = 'Error loading — save to create it';
+                document.getElementById('versionNumber').value = '1';
+                setVersionDateToday();
+            }
+        }
+
+        function setVersionDateToday() {
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('versionDate').value = yyyy + '-' + mm + '-' + dd;
+        }
+
+        function incrementVersion() {
+            var input = document.getElementById('versionNumber');
+            var current = parseInt(input.value) || 0;
+            input.value = current + 1;
+        }
+
+        function versionLog(message, type) {
+            type = type || 'info';
+            var output = document.getElementById('versionOutput');
+            output.style.display = 'block';
+            var className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function saveVersionJson() {
+            var output = document.getElementById('versionOutput');
+            output.innerHTML = '';
+            output.style.display = 'none';
+
+            var version = document.getElementById('versionNumber').value.trim();
+            var updated = document.getElementById('versionDate').value.trim();
+
+            if (!version) { alert('Please enter a version number!'); return; }
+            if (!updated) { alert('Please enter an updated date!'); return; }
+
+            var saveBtn = document.getElementById('saveVersionBtn');
+            saveBtn.disabled = true;
+
+            try {
+                versionLog('⏳ Initializing...', 'info');
+                var AwsClientClass = await waitForAwsClient();
+                var aws = new AwsClientClass({ accessKeyId: ACCESS_KEY, secretAccessKey: SECRET_KEY, service: 's3', region: 'auto' });
+
+                var versionValue = isNaN(version) ? version : parseInt(version);
+                var jsonData = JSON.stringify({ version: versionValue, updated: updated }, null, 2);
+
+                versionLog('📤 Uploading version.json...', 'info');
+                var uploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/starter-assets/weather-icons/version.json';
+                var uploadResponse = await aws.fetch(uploadUrl, {
+                    method: 'PUT',
+                    body: jsonData,
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' }
+                });
+                if (!uploadResponse.ok) throw new Error('Failed to upload version.json: ' + uploadResponse.statusText);
+                versionLog('✅ version.json saved! Version ' + versionValue + ' • Updated ' + updated, 'success');
+                document.getElementById('versionCurrentInfo').textContent = 'Version ' + versionValue + ' • Updated ' + updated;
+            } catch (error) {
+                versionLog('❌ Error: ' + error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+            }
         }
 
         function fontLog(message, type) {
@@ -2076,7 +2345,6 @@
             bar.style.width = percent + '%';
         }
 
-        // Stored folder files from the picker
         var pendingMergeFiles = null;
         var pendingMergeFolderName = null;
 
@@ -2099,27 +2367,17 @@
 
                 mergeLog('⏳ Initializing...', 'info');
                 var AwsClientClass = await waitForAwsClient();
+                var aws = new AwsClientClass({ accessKeyId: ACCESS_KEY, secretAccessKey: SECRET_KEY, service: 's3', region: 'auto' });
 
-                var aws = new AwsClientClass({
-                    accessKeyId: ACCESS_KEY,
-                    secretAccessKey: SECRET_KEY,
-                    service: 's3',
-                    region: 'auto'
-                });
-
-                // Step 1: Download the existing archive
                 mergeLog('📥 Downloading current weathericons.zip from R2...', 'info');
                 updateMergeProgress(10);
 
-                var existingUrl = 'https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip';
-                var existingResponse = await fetch(existingUrl);
+                var existingResponse = await fetch('https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip');
                 if (!existingResponse.ok) throw new Error('Failed to download existing weather icons: ' + existingResponse.statusText);
                 var existingBlob = await existingResponse.blob();
-                var existingSizeMB = (existingBlob.size / (1024 * 1024)).toFixed(2);
-                mergeLog('✅ Downloaded existing archive (' + existingSizeMB + ' MB)', 'success');
+                mergeLog('✅ Downloaded existing archive (' + (existingBlob.size / (1024 * 1024)).toFixed(2) + ' MB)', 'success');
                 updateMergeProgress(25);
 
-                // Step 2: Load existing zip
                 mergeLog('📦 Reading existing archive...', 'info');
                 var existingZip = await JSZip.loadAsync(existingBlob);
                 var existingFolders = [];
@@ -2132,104 +2390,62 @@
                 mergeLog('📁 Existing packs (' + existingFolders.length + '): ' + existingFolders.sort().join(', '), 'info');
                 updateMergeProgress(40);
 
-                // Check for conflicts
                 var folderName = pendingMergeFolderName;
                 if (existingFolders.indexOf(folderName) !== -1) {
-                    var overwrite = confirm(
-                        'A pack called "' + folderName + '" already exists in the archive.\n\n' +
-                        'Do you want to overwrite it?'
-                    );
-                    if (!overwrite) {
-                        mergeLog('❌ Merge cancelled by user.', 'error');
+                    if (!confirm('A pack called "' + folderName + '" already exists.\n\nOverwrite it?')) {
+                        mergeLog('❌ Merge cancelled.', 'error');
                         mergeBtn.disabled = false;
                         return;
                     }
                     mergeLog('⚠️ Overwriting existing pack: ' + folderName, 'info');
                 }
 
-                // Step 3: Add all files from the selected folder into the zip
                 mergeLog('🔀 Adding "' + folderName + '" to archive...', 'info');
                 updateMergeProgress(50);
 
                 var fileCount = 0;
                 var files = pendingMergeFiles;
-
                 for (var i = 0; i < files.length; i++) {
                     var file = files[i];
-                    // webkitRelativePath gives us "FolderName/subfolder/file.png"
                     var relativePath = file.webkitRelativePath;
-
-                    // Skip macOS junk
-                    if (relativePath.includes('__MACOSX') || relativePath.includes('.DS_Store')) {
-                        continue;
-                    }
-
-                    var arrayBuffer = await file.arrayBuffer();
-                    existingZip.file(relativePath, arrayBuffer);
+                    if (relativePath.includes('__MACOSX') || relativePath.includes('.DS_Store')) continue;
+                    existingZip.file(relativePath, await file.arrayBuffer());
                     fileCount++;
-
-                    // Update progress for large folders
-                    if (fileCount % 20 === 0) {
-                        var addProgress = 50 + Math.round((i / files.length) * 15);
-                        updateMergeProgress(addProgress);
-                    }
+                    if (fileCount % 20 === 0) updateMergeProgress(50 + Math.round((i / files.length) * 15));
                 }
 
                 mergeLog('✅ Added ' + fileCount + ' files from "' + folderName + '"', 'success');
                 updateMergeProgress(65);
 
-                // Step 4: Generate the new combined zip
                 mergeLog('📦 Generating combined archive...', 'info');
                 var combinedBlob = await existingZip.generateAsync({
-                    type: 'blob',
-                    compression: 'DEFLATE',
-                    compressionOptions: { level: 6 }
-                }, function(metadata) {
-                    var genProgress = 65 + Math.round(metadata.percent * 0.2);
-                    updateMergeProgress(genProgress);
-                });
+                    type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 }
+                }, function(metadata) { updateMergeProgress(65 + Math.round(metadata.percent * 0.2)); });
 
-                var combinedSizeMB = (combinedBlob.size / (1024 * 1024)).toFixed(2);
-                mergeLog('✅ Combined archive generated (' + combinedSizeMB + ' MB)', 'success');
+                mergeLog('✅ Combined archive (' + (combinedBlob.size / (1024 * 1024)).toFixed(2) + ' MB)', 'success');
                 updateMergeProgress(85);
 
-                // Step 5: Upload back to R2
-                mergeLog('📤 Uploading merged weathericons.zip to R2...', 'info');
-                var uploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/starter-assets/weather-icons/weathericons.zip';
-                var uploadResponse = await aws.fetch(uploadUrl, {
-                    method: 'PUT',
-                    body: combinedBlob,
-                    headers: {
-                        'Content-Type': 'application/zip',
-                        'Cache-Control': 'public, max-age=3600'
-                    }
+                mergeLog('📤 Uploading merged weathericons.zip...', 'info');
+                var uploadResponse = await aws.fetch(R2_ENDPOINT + '/' + BUCKET_NAME + '/starter-assets/weather-icons/weathericons.zip', {
+                    method: 'PUT', body: combinedBlob,
+                    headers: { 'Content-Type': 'application/zip', 'Cache-Control': 'public, max-age=3600' }
                 });
-
-                if (!uploadResponse.ok) throw new Error('Failed to upload merged archive: ' + uploadResponse.statusText);
-                mergeLog('✅ Merged archive uploaded!', 'success');
-                updateMergeProgress(95);
-
-                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+                if (!uploadResponse.ok) throw new Error('Failed to upload: ' + uploadResponse.statusText);
                 updateMergeProgress(100);
 
-                // Show final folder listing
                 var finalFolders = [];
                 existingZip.forEach(function(relativePath) {
                     var topLevel = relativePath.split('/')[0];
-                    if (finalFolders.indexOf(topLevel) === -1 && topLevel !== '' && topLevel !== '__MACOSX') {
-                        finalFolders.push(topLevel);
-                    }
+                    if (finalFolders.indexOf(topLevel) === -1 && topLevel !== '' && topLevel !== '__MACOSX') finalFolders.push(topLevel);
                 });
 
                 mergeLog('', 'info');
                 mergeLog('✨ Done! Archive now contains ' + finalFolders.length + ' packs:', 'success');
                 mergeLog('📋 ' + finalFolders.sort().join(', '), 'info');
 
-                var linksDiv = document.getElementById('mergeWeatherLinksList');
-                linksDiv.innerHTML = '<a href="https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip" target="_blank">🔗 Download Updated Weather Icons</a>';
+                document.getElementById('mergeWeatherLinksList').innerHTML = '<a href="https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip" target="_blank">🔗 Download Updated Weather Icons</a>';
                 document.getElementById('mergeWeatherSuccessLinks').style.display = 'block';
 
-                // Reset form
                 document.getElementById('mergeWeatherFolder').value = '';
                 document.getElementById('mergeWeatherFolderLabel').textContent = '📂 Choose icon pack folder';
                 document.getElementById('mergeWeatherFolderLabel').classList.remove('has-file');
@@ -2237,13 +2453,190 @@
                 pendingMergeFiles = null;
                 pendingMergeFolderName = null;
 
-                setTimeout(loadWeatherInfo, 2000);
+                incrementVersion();
+                setVersionDateToday();
+                mergeLog('', 'info');
+                mergeLog('💡 Version bumped to ' + document.getElementById('versionNumber').value + ' and date set to today — remember to save version.json!', 'info');
 
+                setTimeout(loadWeatherInfo, 2000);
             } catch (error) {
                 mergeLog('❌ Error: ' + error.message, 'error');
                 console.error('Full error:', error);
             } finally {
                 mergeBtn.disabled = false;
+            }
+        }
+
+        // ==================== NEWS MANAGEMENT ====================
+
+        var currentNewsData = [];
+        var NEWS_URL = 'https://wallboard-themes.ske-d03.workers.dev/json/news.json';
+        var NEWS_R2_PATH = '/json/news.json';
+
+        function newsLog(message, type) {
+            type = type || 'info';
+            var output = document.getElementById('newsOutput');
+            output.style.display = 'block';
+            var className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            output.innerHTML += '<span class="' + className + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function loadNewsItems() {
+            var listDiv = document.getElementById('newsList');
+            var loadingDiv = document.getElementById('newsListLoading');
+            loadingDiv.style.display = 'block';
+            listDiv.innerHTML = '';
+
+            try {
+                var response = await fetch(NEWS_URL + '?t=' + Date.now());
+                if (!response.ok) throw new Error('Failed to fetch news.json: ' + response.statusText);
+                currentNewsData = await response.json();
+
+                loadingDiv.style.display = 'none';
+
+                if (currentNewsData.length === 0) {
+                    listDiv.innerHTML = '<div style="color: #71717a; padding: 20px; text-align: center;">No news items yet.</div>';
+                    return;
+                }
+
+                // Sort newest first
+                currentNewsData.sort(function(a, b) {
+                    return new Date(b.date) - new Date(a.date);
+                });
+
+                var html = '';
+                currentNewsData.forEach(function(item, index) {
+                    var date = new Date(item.date);
+                    var dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                    var expiryStr = '';
+                    if (item.expiryDate) {
+                        var expiry = new Date(item.expiryDate);
+                        var isExpired = expiry < new Date();
+                        expiryStr = '<span style="color: ' + (isExpired ? '#ef4444' : '#71717a') + ';">' +
+                            (isExpired ? '⚠️ Expired' : '⏳ Expires') + ' ' +
+                            expiry.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + '</span>';
+                    }
+
+                    html += '<div class="news-item-card">' +
+                        '<div class="news-header">' +
+                            '<div>' +
+                                '<span class="news-type-badge ' + (item.type || 'update') + '">' + (item.type || 'update') + '</span>' +
+                                ' <span class="news-title">' + escapeHtml(item.title) + '</span>' +
+                            '</div>' +
+                            '<button class="btn btn-danger btn-sm" onclick="deleteNewsItem(\'' + item.id + '\')" style="padding: 6px 12px; font-size: 12px; flex-shrink: 0;">🗑️ Delete</button>' +
+                        '</div>' +
+                        '<div class="news-message">' + escapeHtml(item.message) + '</div>' +
+                        '<div class="news-meta">' +
+                            '<span>📅 ' + dateStr + '</span>' +
+                            (item.actionURL ? '<span>🔗 <a href="' + escapeHtml(item.actionURL) + '" target="_blank" style="color: #818cf8;">' + escapeHtml(item.actionURL) + '</a></span>' : '') +
+                            (expiryStr ? expiryStr : '') +
+                            '<span style="color: #52525b; font-family: monospace; font-size: 11px;">' + escapeHtml(item.id) + '</span>' +
+                        '</div>' +
+                    '</div>';
+                });
+
+                listDiv.innerHTML = html;
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                listDiv.innerHTML = '<div style="color: #ef4444; padding: 20px; text-align: center;">Error loading news: ' + error.message + '</div>';
+                console.error('Error loading news:', error);
+            }
+        }
+
+        async function saveNewsToR2(newsArray) {
+            var AwsClientClass = await waitForAwsClient();
+            var aws = new AwsClientClass({ accessKeyId: ACCESS_KEY, secretAccessKey: SECRET_KEY, service: 's3', region: 'auto' });
+
+            var jsonData = JSON.stringify(newsArray, null, 2);
+            var uploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + NEWS_R2_PATH;
+            var response = await aws.fetch(uploadUrl, {
+                method: 'PUT',
+                body: jsonData,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' }
+            });
+            if (!response.ok) throw new Error('Failed to save news.json: ' + response.statusText);
+        }
+
+        async function deleteNewsItem(id) {
+            if (!confirm('Delete this news item?')) return;
+
+            try {
+                var filtered = currentNewsData.filter(function(item) { return item.id !== id; });
+                await saveNewsToR2(filtered);
+                currentNewsData = filtered;
+                loadNewsItems();
+            } catch (error) {
+                alert('Error deleting news item: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        async function addNewsItem() {
+            var output = document.getElementById('newsOutput');
+            output.innerHTML = '';
+            output.style.display = 'none';
+
+            var title = document.getElementById('newsTitle').value.trim();
+            var message = document.getElementById('newsMessage').value.trim();
+            var type = document.getElementById('newsType').value;
+            var actionURL = document.getElementById('newsActionURL').value.trim() || null;
+            var expiry = document.getElementById('newsExpiry').value;
+
+            if (!title) { alert('Please enter a title!'); return; }
+            if (!message) { alert('Please enter a message!'); return; }
+
+            var addBtn = document.getElementById('addNewsBtn');
+            addBtn.disabled = true;
+
+            try {
+                newsLog('⏳ Saving news item...', 'info');
+
+                // Generate ID from current date
+                var now = new Date();
+                var dateStr = now.getFullYear() + '-' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(now.getDate()).padStart(2, '0');
+
+                // Find next available sequence number for today
+                var seq = 1;
+                currentNewsData.forEach(function(item) {
+                    if (item.id && item.id.startsWith('news-' + dateStr)) {
+                        var parts = item.id.split('-');
+                        var existing = parseInt(parts[parts.length - 1]);
+                        if (existing >= seq) seq = existing + 1;
+                    }
+                });
+
+                var newItem = {
+                    id: 'news-' + dateStr + '-' + String(seq).padStart(3, '0'),
+                    title: title,
+                    message: message,
+                    date: now.toISOString(),
+                    type: type,
+                    actionURL: actionURL,
+                    expiryDate: expiry ? new Date(expiry + 'T00:00:00Z').toISOString() : null
+                };
+
+                currentNewsData.unshift(newItem);
+                await saveNewsToR2(currentNewsData);
+
+                newsLog('✅ News item added: ' + newItem.id, 'success');
+
+                // Reset form
+                document.getElementById('newsTitle').value = '';
+                document.getElementById('newsMessage').value = '';
+                document.getElementById('newsType').value = 'update';
+                document.getElementById('newsActionURL').value = '';
+                document.getElementById('newsExpiry').value = '';
+
+                loadNewsItems();
+            } catch (error) {
+                newsLog('❌ Error: ' + error.message, 'error');
+                console.error(error);
+            } finally {
+                addBtn.disabled = false;
             }
         }
 
@@ -3025,39 +3418,25 @@
             document.getElementById('mergeWeatherFolder').addEventListener('change', function(e) {
                 var files = e.target.files;
                 if (files && files.length > 0) {
-                    // The folder name is the first part of webkitRelativePath
                     var folderName = files[0].webkitRelativePath.split('/')[0];
-                    
-                    // Filter out junk files
                     var validFiles = [];
                     for (var i = 0; i < files.length; i++) {
                         var path = files[i].webkitRelativePath;
-                        if (!path.includes('__MACOSX') && !path.includes('.DS_Store')) {
-                            validFiles.push(files[i]);
-                        }
+                        if (!path.includes('__MACOSX') && !path.includes('.DS_Store')) validFiles.push(files[i]);
                     }
-
                     pendingMergeFiles = files;
                     pendingMergeFolderName = folderName;
-
                     document.getElementById('mergeWeatherFolderLabel').textContent = '✅ ' + folderName + ' (' + validFiles.length + ' files)';
                     document.getElementById('mergeWeatherFolderLabel').classList.add('has-file');
 
-                    // Show preview
                     var previewHtml = '📁 <strong>' + folderName + '</strong> — ' + validFiles.length + ' files';
-                    
-                    // Show a few sample file names
                     var samples = validFiles.slice(0, 5);
                     previewHtml += '<div style="margin-top: 8px; padding-left: 16px; color: #71717a;">';
                     for (var j = 0; j < samples.length; j++) {
-                        var shortPath = samples[j].webkitRelativePath;
-                        previewHtml += '  ' + shortPath + '<br>';
+                        previewHtml += '  ' + samples[j].webkitRelativePath + '<br>';
                     }
-                    if (validFiles.length > 5) {
-                        previewHtml += '  ... and ' + (validFiles.length - 5) + ' more';
-                    }
+                    if (validFiles.length > 5) previewHtml += '  ... and ' + (validFiles.length - 5) + ' more';
                     previewHtml += '</div>';
-
                     document.getElementById('mergePreviewList').innerHTML = previewHtml;
                     document.getElementById('mergePreview').style.display = 'block';
                     document.getElementById('mergeWeatherBtn').disabled = false;

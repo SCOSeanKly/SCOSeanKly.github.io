@@ -401,6 +401,18 @@
             color: #818cf8;
         }
 
+        #mergeWeatherOutput .success {
+            color: #22c55e;
+        }
+
+        #mergeWeatherOutput .error {
+            color: #ef4444;
+        }
+
+        #mergeWeatherOutput .info {
+            color: #818cf8;
+        }
+
         .filename-preview {
             background: rgba(129, 140, 248, 0.1);
             border: 1px solid rgba(129, 140, 248, 0.3);
@@ -941,6 +953,50 @@
                     <div id="weatherLinksList"></div>
                 </div>
                 </div>
+
+            <div class="section">
+                <h2>📂 Add Icon Pack to Archive</h2>
+                <p style="color: #71717a; margin-bottom: 20px;">Add a new icon pack folder directly into the existing weathericons.zip. Just select your folder and it will be merged in alongside the existing packs.</p>
+                
+                <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                    <div style="font-size: 13px; color: #a5b4fc; line-height: 1.6;">
+                        <strong>How it works:</strong><br>
+                        1. Select your new icon pack folder (e.g. <code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">MyNewPack</code>)<br>
+                        2. Click "Merge Into Archive"<br>
+                        3. The tool downloads the current archive (31 folders), adds your folder (now 32), re-zips everything and uploads it
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>New Icon Pack Folder *</label>
+                    <div class="file-input-wrapper">
+                        <div class="file-input-label" id="mergeWeatherFolderLabel">
+                            📂 Choose icon pack folder
+                        </div>
+                        <input type="file" id="mergeWeatherFolder" webkitdirectory directory multiple>
+                    </div>
+                </div>
+
+                <div id="mergePreview" style="display: none; background: #09090b; border: 1px solid #27272a; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                    <div style="font-weight: 600; color: #fff; margin-bottom: 8px;">📋 Folder to be added:</div>
+                    <div id="mergePreviewList" style="font-size: 13px; color: #a1a1aa; font-family: 'SF Mono', Monaco, monospace;"></div>
+                </div>
+
+                <button class="btn btn-primary" id="mergeWeatherBtn" onclick="mergeWeatherIcons()" disabled>
+                    🔀 Merge Into Archive
+                </button>
+
+                <div id="mergeWeatherProgress" style="width: 100%; height: 4px; background: #27272a; border-radius: 2px; overflow: hidden; margin-top: 12px; display: none;">
+                    <div id="mergeWeatherProgressBar" style="height: 100%; background: linear-gradient(90deg, #818cf8 0%, #6366f1 100%); width: 0%; transition: width 0.3s;"></div>
+                </div>
+
+                <div id="mergeWeatherOutput" style="margin-top: 20px; padding: 16px; background: #09090b; border-radius: 8px; color: #a1a1aa; font-family: 'SF Mono', Monaco, monospace; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; display: none; border: 1px solid #27272a;"></div>
+
+                <div id="mergeWeatherSuccessLinks" class="success-links" style="display: none;">
+                    <h4>✅ Pack Successfully Merged!</h4>
+                    <div id="mergeWeatherLinksList"></div>
+                </div>
+            </div>
             </div>
         </div>
 
@@ -2003,6 +2059,194 @@
             }
         }
 
+        // ==================== MERGE WEATHER ICON PACK ====================
+
+        function mergeLog(message, type) {
+            type = type || 'info';
+            var output = document.getElementById('mergeWeatherOutput');
+            output.classList.add('show');
+            output.innerHTML += '<span class="' + type + '">' + message + '</span>\n';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function updateMergeProgress(percent) {
+            var progress = document.getElementById('mergeWeatherProgress');
+            var bar = document.getElementById('mergeWeatherProgressBar');
+            progress.style.display = 'block';
+            bar.style.width = percent + '%';
+        }
+
+        // Stored folder files from the picker
+        var pendingMergeFiles = null;
+        var pendingMergeFolderName = null;
+
+        async function mergeWeatherIcons() {
+            var output = document.getElementById('mergeWeatherOutput');
+            output.innerHTML = '';
+            output.classList.remove('show');
+            document.getElementById('mergeWeatherProgress').style.display = 'none';
+            document.getElementById('mergeWeatherSuccessLinks').style.display = 'none';
+
+            var mergeBtn = document.getElementById('mergeWeatherBtn');
+            mergeBtn.disabled = true;
+
+            try {
+                if (!pendingMergeFiles || pendingMergeFiles.length === 0) {
+                    alert('Please select a folder first!');
+                    mergeBtn.disabled = false;
+                    return;
+                }
+
+                mergeLog('⏳ Initializing...', 'info');
+                var AwsClientClass = await waitForAwsClient();
+
+                var aws = new AwsClientClass({
+                    accessKeyId: ACCESS_KEY,
+                    secretAccessKey: SECRET_KEY,
+                    service: 's3',
+                    region: 'auto'
+                });
+
+                // Step 1: Download the existing archive
+                mergeLog('📥 Downloading current weathericons.zip from R2...', 'info');
+                updateMergeProgress(10);
+
+                var existingUrl = 'https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip';
+                var existingResponse = await fetch(existingUrl);
+                if (!existingResponse.ok) throw new Error('Failed to download existing weather icons: ' + existingResponse.statusText);
+                var existingBlob = await existingResponse.blob();
+                var existingSizeMB = (existingBlob.size / (1024 * 1024)).toFixed(2);
+                mergeLog('✅ Downloaded existing archive (' + existingSizeMB + ' MB)', 'success');
+                updateMergeProgress(25);
+
+                // Step 2: Load existing zip
+                mergeLog('📦 Reading existing archive...', 'info');
+                var existingZip = await JSZip.loadAsync(existingBlob);
+                var existingFolders = [];
+                existingZip.forEach(function(relativePath) {
+                    var topLevel = relativePath.split('/')[0];
+                    if (existingFolders.indexOf(topLevel) === -1 && topLevel !== '' && topLevel !== '__MACOSX') {
+                        existingFolders.push(topLevel);
+                    }
+                });
+                mergeLog('📁 Existing packs (' + existingFolders.length + '): ' + existingFolders.sort().join(', '), 'info');
+                updateMergeProgress(40);
+
+                // Check for conflicts
+                var folderName = pendingMergeFolderName;
+                if (existingFolders.indexOf(folderName) !== -1) {
+                    var overwrite = confirm(
+                        'A pack called "' + folderName + '" already exists in the archive.\n\n' +
+                        'Do you want to overwrite it?'
+                    );
+                    if (!overwrite) {
+                        mergeLog('❌ Merge cancelled by user.', 'error');
+                        mergeBtn.disabled = false;
+                        return;
+                    }
+                    mergeLog('⚠️ Overwriting existing pack: ' + folderName, 'info');
+                }
+
+                // Step 3: Add all files from the selected folder into the zip
+                mergeLog('🔀 Adding "' + folderName + '" to archive...', 'info');
+                updateMergeProgress(50);
+
+                var fileCount = 0;
+                var files = pendingMergeFiles;
+
+                for (var i = 0; i < files.length; i++) {
+                    var file = files[i];
+                    // webkitRelativePath gives us "FolderName/subfolder/file.png"
+                    var relativePath = file.webkitRelativePath;
+
+                    // Skip macOS junk
+                    if (relativePath.includes('__MACOSX') || relativePath.includes('.DS_Store')) {
+                        continue;
+                    }
+
+                    var arrayBuffer = await file.arrayBuffer();
+                    existingZip.file(relativePath, arrayBuffer);
+                    fileCount++;
+
+                    // Update progress for large folders
+                    if (fileCount % 20 === 0) {
+                        var addProgress = 50 + Math.round((i / files.length) * 15);
+                        updateMergeProgress(addProgress);
+                    }
+                }
+
+                mergeLog('✅ Added ' + fileCount + ' files from "' + folderName + '"', 'success');
+                updateMergeProgress(65);
+
+                // Step 4: Generate the new combined zip
+                mergeLog('📦 Generating combined archive...', 'info');
+                var combinedBlob = await existingZip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                }, function(metadata) {
+                    var genProgress = 65 + Math.round(metadata.percent * 0.2);
+                    updateMergeProgress(genProgress);
+                });
+
+                var combinedSizeMB = (combinedBlob.size / (1024 * 1024)).toFixed(2);
+                mergeLog('✅ Combined archive generated (' + combinedSizeMB + ' MB)', 'success');
+                updateMergeProgress(85);
+
+                // Step 5: Upload back to R2
+                mergeLog('📤 Uploading merged weathericons.zip to R2...', 'info');
+                var uploadUrl = R2_ENDPOINT + '/' + BUCKET_NAME + '/starter-assets/weather-icons/weathericons.zip';
+                var uploadResponse = await aws.fetch(uploadUrl, {
+                    method: 'PUT',
+                    body: combinedBlob,
+                    headers: {
+                        'Content-Type': 'application/zip',
+                        'Cache-Control': 'public, max-age=3600'
+                    }
+                });
+
+                if (!uploadResponse.ok) throw new Error('Failed to upload merged archive: ' + uploadResponse.statusText);
+                mergeLog('✅ Merged archive uploaded!', 'success');
+                updateMergeProgress(95);
+
+                await new Promise(function(resolve) { setTimeout(resolve, 1000); });
+                updateMergeProgress(100);
+
+                // Show final folder listing
+                var finalFolders = [];
+                existingZip.forEach(function(relativePath) {
+                    var topLevel = relativePath.split('/')[0];
+                    if (finalFolders.indexOf(topLevel) === -1 && topLevel !== '' && topLevel !== '__MACOSX') {
+                        finalFolders.push(topLevel);
+                    }
+                });
+
+                mergeLog('', 'info');
+                mergeLog('✨ Done! Archive now contains ' + finalFolders.length + ' packs:', 'success');
+                mergeLog('📋 ' + finalFolders.sort().join(', '), 'info');
+
+                var linksDiv = document.getElementById('mergeWeatherLinksList');
+                linksDiv.innerHTML = '<a href="https://wallboard-themes.ske-d03.workers.dev/starter-assets/weather-icons/weathericons.zip" target="_blank">🔗 Download Updated Weather Icons</a>';
+                document.getElementById('mergeWeatherSuccessLinks').style.display = 'block';
+
+                // Reset form
+                document.getElementById('mergeWeatherFolder').value = '';
+                document.getElementById('mergeWeatherFolderLabel').textContent = '📂 Choose icon pack folder';
+                document.getElementById('mergeWeatherFolderLabel').classList.remove('has-file');
+                document.getElementById('mergePreview').style.display = 'none';
+                pendingMergeFiles = null;
+                pendingMergeFolderName = null;
+
+                setTimeout(loadWeatherInfo, 2000);
+
+            } catch (error) {
+                mergeLog('❌ Error: ' + error.message, 'error');
+                console.error('Full error:', error);
+            } finally {
+                mergeBtn.disabled = false;
+            }
+        }
+
         // ==================== BACKUP & RESTORE FUNCTIONS ====================
 
         function backupLog(message, type) {
@@ -2775,6 +3019,55 @@
                 e.preventDefault();
                 e.stopPropagation();
                 document.getElementById('weatherFile').click();
+            });
+
+            // Merge weather folder input handler
+            document.getElementById('mergeWeatherFolder').addEventListener('change', function(e) {
+                var files = e.target.files;
+                if (files && files.length > 0) {
+                    // The folder name is the first part of webkitRelativePath
+                    var folderName = files[0].webkitRelativePath.split('/')[0];
+                    
+                    // Filter out junk files
+                    var validFiles = [];
+                    for (var i = 0; i < files.length; i++) {
+                        var path = files[i].webkitRelativePath;
+                        if (!path.includes('__MACOSX') && !path.includes('.DS_Store')) {
+                            validFiles.push(files[i]);
+                        }
+                    }
+
+                    pendingMergeFiles = files;
+                    pendingMergeFolderName = folderName;
+
+                    document.getElementById('mergeWeatherFolderLabel').textContent = '✅ ' + folderName + ' (' + validFiles.length + ' files)';
+                    document.getElementById('mergeWeatherFolderLabel').classList.add('has-file');
+
+                    // Show preview
+                    var previewHtml = '📁 <strong>' + folderName + '</strong> — ' + validFiles.length + ' files';
+                    
+                    // Show a few sample file names
+                    var samples = validFiles.slice(0, 5);
+                    previewHtml += '<div style="margin-top: 8px; padding-left: 16px; color: #71717a;">';
+                    for (var j = 0; j < samples.length; j++) {
+                        var shortPath = samples[j].webkitRelativePath;
+                        previewHtml += '  ' + shortPath + '<br>';
+                    }
+                    if (validFiles.length > 5) {
+                        previewHtml += '  ... and ' + (validFiles.length - 5) + ' more';
+                    }
+                    previewHtml += '</div>';
+
+                    document.getElementById('mergePreviewList').innerHTML = previewHtml;
+                    document.getElementById('mergePreview').style.display = 'block';
+                    document.getElementById('mergeWeatherBtn').disabled = false;
+                }
+            });
+
+            document.getElementById('mergeWeatherFolderLabel').addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('mergeWeatherFolder').click();
             });
 
             // Update theme file input handler

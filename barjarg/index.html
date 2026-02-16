@@ -931,6 +931,7 @@
       currentPage: 'login',
       user: null,     // { id, name, token }
       catches: [],
+      myCatches: [],
       stats: null,
       members: [],
       loading: false,
@@ -1236,11 +1237,11 @@
               </div>
             ` : ''}
 
-            ${(s.recentCatches || []).length > 0 ? `
+            ${(state.myCatches || []).length > 0 ? `
               <div class="animate-in animate-in-delay-3">
-                <div class="section-label mb-3">Recent Catches</div>
+                <div class="section-label mb-3">Your Recent Catches</div>
                 <div class="flex flex-col gap-3">
-                  ${(s.recentCatches || []).slice(0, 5).map((c, i) => renderCatchCard(c, i)).join('')}
+                  ${(state.myCatches || []).slice(0, 5).map((c, i) => renderCatchCard(c, i)).join('')}
                 </div>
               </div>
             ` : `
@@ -1250,6 +1251,18 @@
                 <p>Tap the + button to log your first catch</p>
               </div>
             `}
+
+            ${(() => {
+              const others = (s.recentCatches || []).filter(c => c.memberId !== state.user?.id).slice(0, 3);
+              return others.length > 0 ? `
+                <div class="animate-in animate-in-delay-4" style="margin-top:24px;">
+                  <div class="section-label mb-3">Syndicate Activity</div>
+                  <div class="flex flex-col gap-3">
+                    ${others.map((c, i) => renderCatchCard(c, i)).join('')}
+                  </div>
+                </div>
+              ` : '';
+            })()}
           `}
         </div>
       `;
@@ -1257,14 +1270,19 @@
 
     async function loadDashboardData() {
       try {
-        const stats = await api('/api/stats');
-        setState({ stats });
-        // Load thumbnails for recent catches on dashboard
-        loadCatchThumbnails(stats.recentCatches);
+        const [stats, myCatches] = await Promise.all([
+          api('/api/stats'),
+          api(`/api/catches?memberId=${state.user?.id}`),
+        ]);
+        setState({ stats, myCatches });
+        // Load thumbnails for user's recent catches on dashboard
+        loadCatchThumbnails(myCatches.slice(0, 5));
+        // Also load thumbnails for syndicate activity
+        const otherCatches = (stats.recentCatches || []).filter(c => c.memberId !== state.user?.id);
+        loadCatchThumbnails(otherCatches.slice(0, 3));
       } catch (err) {
         console.error('Failed to load stats:', err);
-        // Show dashboard with empty state rather than hanging on spinner
-        setState({ stats: { overview: { totalCatches: 0, speciesBreakdown: {}, uniqueVisitDays: 0, successRate: 0, photoCatches: 0, totalWeight: 0, catchesPerVisitDay: 0, speciesCount: 0 }, records: { biggestFish: null, longestFish: null, speciesRecords: {}, bestDay: null }, memberStats: [], timeAnalysis: { byHour: {}, byDayOfWeek: {}, byMonth: {}, byCalendarMonth: {} }, conditions: { tempRanges: {}, windRanges: {}, byWeatherType: {}, byClarity: {}, waterTempRanges: {}, fightTime: {} }, baitsAndMethods: { baitStats: {}, methodStats: {}, baitBySpecies: {} }, locations: { hotspots: [], bestBySpecies: {} }, recentCatches: [] } });
+        setState({ stats: { overview: { totalCatches: 0, speciesBreakdown: {}, uniqueVisitDays: 0, successRate: 0, photoCatches: 0, totalWeight: 0, catchesPerVisitDay: 0, speciesCount: 0 }, records: { biggestFish: null, longestFish: null, speciesRecords: {}, bestDay: null }, memberStats: [], timeAnalysis: { byHour: {}, byDayOfWeek: {}, byMonth: {}, byCalendarMonth: {} }, conditions: { tempRanges: {}, windRanges: {}, byWeatherType: {}, byClarity: {}, waterTempRanges: {}, fightTime: {} }, baitsAndMethods: { baitStats: {}, methodStats: {}, baitBySpecies: {} }, locations: { hotspots: [], bestBySpecies: {} }, recentCatches: [] }, myCatches: [] });
       }
       // Fetch water level independently
       try { loadWaterLevel(); } catch (e) {}
@@ -2046,6 +2064,7 @@
 
     async function viewCatchDetail(catchId) {
       const c = allCatches.find(x => x.id === catchId) ||
+                (state.myCatches || []).find(x => x.id === catchId) ||
                 (state.stats?.recentCatches || []).find(x => x.id === catchId);
       if (!c) return;
 

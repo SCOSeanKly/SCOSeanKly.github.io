@@ -2129,7 +2129,29 @@
             </div>
           ` : ''}
           ${c.notes ? `<div class="card mb-3"><div class="text-muted text-xs mb-2" style="text-transform:uppercase;letter-spacing:0.1em;">Notes</div><p class="text-sm">${c.notes}</p></div>` : ''}
-          ${c.lat && c.lng ? `<div class="map-container mb-3" id="detailMap" style="height:200px;"></div>` : ''}
+          ${c.lat && c.lng ? `
+            <div class="card mb-3" style="padding:0;overflow:hidden;">
+              <div id="detailMap" style="height:300px;width:100%;"></div>
+              ${c.locationName ? `<div style="padding:10px 14px;border-top:1px solid var(--border);">
+                <div class="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span class="text-sm" style="font-weight:500;">${c.locationName}</span>
+                </div>
+              </div>` : ''}
+            </div>
+          ` : ''}
+          <div class="card mb-3" id="detailRiverLevel" style="display:none;">
+            <div class="flex items-center gap-2 mb-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M2 18c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></svg>
+              <div class="text-muted text-xs" style="text-transform:uppercase;letter-spacing:0.1em;">River Level on ${formatDate(c.date)}</div>
+            </div>
+            <div id="detailRiverContent">
+              <div class="flex items-center gap-2">
+                <div class="spinner" style="width:14px;height:14px;color:var(--teal);"></div>
+                <span class="text-xs text-muted">Loading river data...</span>
+              </div>
+            </div>
+          </div>
           ${c.memberId === state.user?.id ? `
             <button class="btn btn-block" id="deleteCatchBtn" onclick="confirmDeleteCatch('${c.id}')"
               style="background:rgba(248,113,113,0.1);color:var(--salmon);border:1px solid rgba(248,113,113,0.2);margin-top:12px;">
@@ -2143,23 +2165,153 @@
       // Init detail map
       if (c.lat && c.lng) {
         setTimeout(() => {
-          const dm = L.map('detailMap', { center: [c.lat, c.lng], zoom: 15, zoomControl: false, attributionControl: false });
+          const dm = L.map('detailMap', { center: [c.lat, c.lng], zoom: 16, zoomControl: true, attributionControl: false });
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(dm);
           L.marker([c.lat, c.lng], {
             icon: L.divIcon({
               className: '',
-              html: `<div style="width:20px;height:20px;background:${getSpeciesColor(c.species)};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
-              iconSize: [20, 20],
-              iconAnchor: [10, 10],
+              html: `<div style="width:24px;height:24px;background:${getSpeciesColor(c.species)};border:3px solid white;border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,0.5);"></div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
             }),
           }).addTo(dm);
+          setTimeout(() => dm.invalidateSize(), 100);
         }, 200);
       }
+
+      // Fetch river level for this catch date
+      loadDetailRiverLevel(c.date, c.time);
 
       // Close on background click
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.remove();
       });
+    }
+
+    // ─── DETAIL RIVER LEVEL ───────────────────────────────────
+    async function loadDetailRiverLevel(dateStr, timeStr) {
+      const card = document.getElementById('detailRiverLevel');
+      const container = document.getElementById('detailRiverContent');
+      if (!card || !container) return;
+
+      try {
+        // Query the full day of the catch
+        const from = `${dateStr}T00:00:00`;
+        const nextDay = new Date(new Date(dateStr + 'T00:00:00').getTime() + 86400000).toISOString().split('T')[0];
+        const to = `${nextDay}T00:00:00`;
+
+        const data = await api(`/api/water-level?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+
+        if (!data || data.error || !data.readings || data.readings.length === 0) {
+          container.innerHTML = `<p class="text-xs text-muted">No river data available for this date</p>`;
+          card.style.display = 'block';
+          return;
+        }
+
+        // Find the reading closest to the catch time
+        let closestReading = null;
+        if (timeStr && data.readings.length > 0) {
+          const catchHour = parseInt(timeStr.split(':')[0]);
+          const catchMin = parseInt(timeStr.split(':')[1] || '0');
+          const catchMins = catchHour * 60 + catchMin;
+          let minDiff = Infinity;
+          data.readings.forEach(r => {
+            try {
+              const rTime = new Date(r.timestamp);
+              const rMins = rTime.getHours() * 60 + rTime.getMinutes();
+              const diff = Math.abs(rMins - catchMins);
+              if (diff < minDiff) { minDiff = diff; closestReading = r; }
+            } catch (e) {}
+          });
+        }
+
+        const atCatch = closestReading ? closestReading.value.toFixed(2) : null;
+        const trendIcon = data.trend === 'rising' ? '↑' : data.trend === 'falling' ? '↓' : '→';
+        const trendColor = data.trend === 'rising' ? 'var(--teal)' : data.trend === 'falling' ? 'var(--salmon)' : 'var(--text-secondary)';
+
+        // Build compact sparkline
+        const chartHtml = buildDetailWaterChart(data.readings, closestReading);
+
+        container.innerHTML = `
+          <div class="flex items-center gap-4 mb-2">
+            <div>
+              <div style="font-family:var(--font-heading);font-size:1.5rem;font-weight:700;color:var(--teal);line-height:1;">
+                ${atCatch || data.avg?.toFixed(2) || '—'}<span style="font-size:0.8rem;font-weight:400;color:var(--text-muted);"> ${data.unit}</span>
+              </div>
+              <div class="text-xs mt-1" style="color:var(--text-muted);">
+                ${atCatch ? 'at time of catch' : 'daily average'}
+                <span style="color:${trendColor};font-weight:600;margin-left:6px;">${trendIcon} ${data.trend}</span>
+              </div>
+            </div>
+            <div style="margin-left:auto;text-align:right;">
+              <div class="text-xs text-muted">High: <span style="color:var(--text-secondary);">${data.max?.toFixed(2)}${data.unit}</span></div>
+              <div class="text-xs text-muted">Low: <span style="color:var(--text-secondary);">${data.min?.toFixed(2)}${data.unit}</span></div>
+            </div>
+          </div>
+          ${chartHtml}
+        `;
+        card.style.display = 'block';
+      } catch (err) {
+        console.error('Detail river level failed:', err);
+        container.innerHTML = `<p class="text-xs text-muted">Could not load river data</p>`;
+        card.style.display = 'block';
+      }
+    }
+
+    function buildDetailWaterChart(readings, highlight) {
+      if (!readings || readings.length < 2) return '';
+
+      const width = 320;
+      const height = 60;
+      const padding = { top: 6, bottom: 14, left: 0, right: 0 };
+      const values = readings.map(r => r.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = max - min || 0.1;
+      const chartW = width - padding.left - padding.right;
+      const chartH = height - padding.top - padding.bottom;
+
+      const points = values.map((v, i) => {
+        const x = padding.left + (i / (values.length - 1)) * chartW;
+        const y = padding.top + chartH - ((v - min) / range) * chartH;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+
+      const areaPoints = points +
+        ` ${(padding.left + chartW).toFixed(1)},${(padding.top + chartH).toFixed(1)}` +
+        ` ${padding.left.toFixed(1)},${(padding.top + chartH).toFixed(1)}`;
+
+      // Highlight dot for catch time
+      let highlightDot = '';
+      if (highlight) {
+        const idx = readings.findIndex(r => r.timestamp === highlight.timestamp);
+        if (idx >= 0) {
+          const hx = padding.left + (idx / (values.length - 1)) * chartW;
+          const hy = padding.top + chartH - ((highlight.value - min) / range) * chartH;
+          highlightDot = `<circle cx="${hx.toFixed(1)}" cy="${hy.toFixed(1)}" r="4" fill="var(--gold)" stroke="white" stroke-width="2"/>`;
+        }
+      }
+
+      // Time labels
+      const firstTime = new Date(readings[0].timestamp);
+      const lastTime = new Date(readings[readings.length - 1].timestamp);
+      const fmtTime = d => d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+
+      return `
+        <svg viewBox="0 0 ${width} ${height}" style="width:100%;height:60px;display:block;" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="detailWaterGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="rgba(45,212,191,0.25)"/>
+              <stop offset="100%" stop-color="rgba(45,212,191,0.02)"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${areaPoints}" fill="url(#detailWaterGrad)"/>
+          <polyline points="${points}" fill="none" stroke="rgba(45,212,191,0.6)" stroke-width="1.5" stroke-linejoin="round"/>
+          ${highlightDot}
+          <text x="${padding.left + 2}" y="${height - 2}" fill="var(--text-muted)" font-size="9" font-family="var(--font-body)">${fmtTime(firstTime)}</text>
+          <text x="${padding.left + chartW - 2}" y="${height - 2}" fill="var(--text-muted)" font-size="9" font-family="var(--font-body)" text-anchor="end">${fmtTime(lastTime)}</text>
+        </svg>
+      `;
     }
 
     // ─── DELETE CATCH ──────────────────────────────────────────

@@ -1186,7 +1186,12 @@
         <div class="page">
           <div class="animate-in mb-6" style="margin-top:8px;">
             <p class="text-secondary text-sm mb-2">${greeting}</p>
-            <h1 class="heading-xl">${state.user?.name || 'Angler'}</h1>
+            <div class="flex justify-between items-center">
+              <h1 class="heading-xl">${state.user?.name || 'Angler'}</h1>
+              <button onclick="showSyndicateRules()" style="background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;" title="Syndicate Rules">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              </button>
+            </div>
           </div>
 
           ${!s ? `
@@ -2060,6 +2065,80 @@
         <div style="position:absolute;top:16px;right:16px;color:white;font-size:1.5rem;opacity:0.7;">✕</div>
       `;
       document.body.appendChild(overlay);
+    }
+
+    function showSyndicateRules() {
+      const rules = [
+        'The season for Salmon & Sea Trout runs from 25th February until 30th November, for Brown Trout 15th March until 6th October, dates inclusive.',
+        'Grayling can be fished for during the closed season, until 15th March and on Sundays.',
+        'Graeme Lightbody is the Syndicate Captain and shall have final say in the event of any queries, questions, concerns and or pish.',
+        'All members must always notify their intention of date and time of arrival to fish on the WhatsApp group a reasonable timescale in advance.',
+        'Members may bring a guest rod to fish, by prior notice and agreement on the Barjarg Fishings WhatsApp group.',
+        'Repeat guests may only be allowed to fish on no more than three occasions throughout the angling season.',
+        'Syndicate, family, member guests (age 21 & under) do not count as part of the guest allocation, however, must be always accompanied by a syndicate member whilst on the river.',
+        'All catches to be recorded in the catch record book.',
+        'The river is currently "Grade 3" status thus all Salmon to be returned. Sea Trout over 3lb to be returned with all fish handled with the utmost care, prior to returning to the water.',
+        'A daily limit to take 1 Sea Trout or 1 Brown Trout per day per angler is allowed, in line with the Nith District Salmon Fishery Board (NDSFB) Conservation Policy.',
+        'When more than one angler is in attendance, agreement of who fishes and where to be mutually agreed or lots drawn and pools fished on rotation to give fair chance.',
+        'Ask permission from your fellow fisherman if you would like to go into a pool in front of them if they are fishing or intending to start fishing a pool.',
+        'Cast and take a minimum of one step to ensure everyone gets a chance to fish the pool out in a timely, sportingly, manner.',
+        'Please be courteous with Closeburn Castle anglers. Any issues, do not engage, be courteous — take a description, pool, time and date, and report to Graeme who shall deal with Closeburn Castle & Barndennoch Syndicate Captains.',
+        'Be courteous and minded about disturbance of the close neighbours.',
+        'All legal methods allowed appropriate to river height.',
+        'Sensible wading please, be thoughtful to pool disturbance in low water and your personal safety in high water.',
+        'All anglers to always act in a safe manner.',
+        'Dogs must be always kept under control.',
+        'Leave all field gates in the position you find them.',
+        'Report any pollution or dead fish/wildlife to Syndicate Captain, take pictures but do not touch.',
+        'All litter to be taken to cabin and put in waste bin (and feel free to empty the cabin bins every now and again i.e. take home and dispose of in your household general waste bin).',
+        'Cabin to be kept clean and tidy, ensure heating and water is left appropriate to the season, and all locked up after each visit.',
+        'Rod store to be always kept tidy and locked.',
+        'Your gear is left at your own risk.',
+        'Strimming and bank maintenance is required, some pre-arranged days shall be notified to members at the start of the Summer, please make every attempt to attend and help.',
+        'Ensure you familiarise yourself and adhere to the Nith District Salmon Fishery Board (NDSFB) Conservation Policy.',
+        'Be mindful not to waste the pools by wading and fishing in low water during the peak of the sea trout run and potentially spooking the sea trout, potentially spoiling the night fishing for the sea trout, particularly on a Friday evening.',
+        'Enjoy your fishing, tight lines & happy hunting!',
+        'AGM will be held in November to discuss plans for the following season i.e. proposed new members and will be on a vote basis, with each and every current members vote being equal.',
+      ];
+
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);overflow-y:auto;padding:20px;animation:fadeIn 0.3s ease;';
+      modal.innerHTML = `
+        <div style="max-width:540px;margin:20px auto;padding-bottom:40px;">
+          <div class="flex justify-between items-center mb-5">
+            <div class="flex items-center gap-3">
+              <img src="https://pub-2ba725f0b0e64c299f9c2af3bdcaa07e.r2.dev/Logo/barjarglogo.png" alt="" style="width:36px;height:36px;object-fit:contain;">
+              <div>
+                <h2 style="font-family:var(--font-heading);font-size:1.2rem;font-weight:700;color:var(--text-heading);line-height:1.2;">Syndicate Rules</h2>
+                <div class="text-xs text-muted" style="margin-top:2px;">Guidelines & Etiquette — 2024</div>
+              </div>
+            </div>
+            <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:8px;">${icons.x}</button>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:0;">
+            ${rules.map((text, i) => `
+              <div style="display:flex;gap:14px;padding:13px 16px;background:var(--bg-card);border:1px solid var(--border);border-top:${i === 0 ? '1px' : '0'} solid var(--border);${i === 0 ? 'border-radius:var(--radius) var(--radius) 0 0;' : i === rules.length - 1 ? 'border-radius:0 0 var(--radius) var(--radius);' : ''}">
+                <div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(212,165,116,0.1);display:flex;align-items:center;justify-content:center;margin-top:1px;">
+                  <span style="font-size:0.65rem;font-weight:700;color:var(--gold);font-family:var(--font-heading);">${i + 1}</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <span class="text-sm" style="color:var(--text-secondary);line-height:1.65;">${text}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="text-align:center;margin-top:20px;padding:12px;opacity:0.5;">
+            <span class="text-xs text-muted">Nith at Friars Carse — Barjarg Estate</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.remove();
+      });
     }
 
     async function viewCatchDetail(catchId) {

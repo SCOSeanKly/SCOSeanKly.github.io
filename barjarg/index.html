@@ -3860,29 +3860,38 @@
         // Group by guest name and count visits
         const guestCounts = {};
         guests.forEach(g => {
-          if (!guestCounts[g.guestName]) guestCounts[g.guestName] = { visits: [], broughtBy: g.broughtByName };
+          if (!guestCounts[g.guestName]) guestCounts[g.guestName] = { visits: [], broughtBy: g.broughtByName, type: g.guestType || 'guest' };
           guestCounts[g.guestName].visits.push(g);
+          // Use most recent type if it changes
+          if (g.guestType) guestCounts[g.guestName].type = g.guestType;
         });
 
         container.innerHTML = `
           <div class="card mb-3" style="background:linear-gradient(135deg, rgba(212,165,116,0.06), rgba(212,165,116,0.02));border-color:rgba(212,165,116,0.12);">
-            <div class="text-xs text-muted">Reminder: Repeat guests may only visit <strong style="color:var(--gold);">3 times</strong> per season (Rule 6)</div>
+            <div class="text-xs text-muted" style="line-height:1.6;">
+              <strong style="color:var(--gold);">Rule 6:</strong> Repeat guests may only visit <strong style="color:var(--gold);">3 times</strong> per season.<br>
+              <strong style="color:var(--teal);">Rule 7:</strong> Family/junior guests (21 & under) are <strong style="color:var(--teal);">exempt</strong> — must be accompanied by a member.
+            </div>
           </div>
           ${Object.entries(guestCounts).map(([name, data]) => {
-            const overLimit = data.visits.length >= 3;
+            const isFamily = data.type === 'family';
+            const countableVisits = data.visits.filter(v => (v.guestType || 'guest') === 'guest').length;
+            const overLimit = !isFamily && countableVisits >= 3;
+            const badgeText = isFamily ? 'Family / Junior' : `${countableVisits}/3 visits`;
+            const badgeBg = isFamily ? 'rgba(45,212,191,0.15);color:var(--teal)' : (overLimit ? 'rgba(248,113,113,0.15);color:#f87171' : 'rgba(45,212,191,0.15);color:var(--teal)');
             return `
               <div class="card mb-2">
                 <div class="flex justify-between items-start">
                   <div>
                     <div class="text-sm" style="font-weight:600;">${name}</div>
-                    <div class="text-xs text-muted">Guest of ${data.broughtBy}</div>
+                    <div class="text-xs text-muted">Guest of ${data.broughtBy}${isFamily ? ' · <span style="color:var(--teal);">Exempt from limit</span>' : ''}</div>
                   </div>
-                  <span style="padding:2px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;background:${overLimit ? 'rgba(248,113,113,0.15);color:#f87171' : 'rgba(45,212,191,0.15);color:var(--teal)'};">
-                    ${data.visits.length}/3 visits
+                  <span style="padding:2px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;background:${badgeBg};">
+                    ${badgeText}
                   </span>
                 </div>
                 <div style="margin-top:8px;">
-                  ${data.visits.map(v => `<div class="text-xs text-muted" style="padding:2px 0;">${formatDate(v.date)}${v.notes ? ' — ' + v.notes : ''}</div>`).join('')}
+                  ${data.visits.map(v => `<div class="text-xs text-muted" style="padding:2px 0;">${formatDate(v.date)}${v.notes ? ' — ' + v.notes : ''}${v.guestType === 'family' ? ' <span style="color:var(--teal);">(family)</span>' : ''}</div>`).join('')}
                 </div>
               </div>
             `;
@@ -3903,6 +3912,15 @@
             <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:4px;">${icons.x}</button>
           </div>
           <div class="form-group">
+            <label class="form-label">Guest Type</label>
+            <div class="flex gap-2">
+              <button type="button" class="btn btn-secondary btn-sm flex-1" id="gTypeGuest" onclick="setGuestType('guest')" style="padding:8px;background:var(--gold);color:var(--bg);border-color:var(--gold);">Guest</button>
+              <button type="button" class="btn btn-secondary btn-sm flex-1" id="gTypeFamily" onclick="setGuestType('family')" style="padding:8px;">Family / Junior</button>
+            </div>
+            <input type="hidden" id="guestTypeInput" value="guest">
+            <div id="guestTypeHint" class="text-xs text-muted" style="margin-top:4px;">Counts toward 3-visit season limit (Rule 6)</div>
+          </div>
+          <div class="form-group">
             <label class="form-label">Guest Name</label>
             <input class="form-input" id="guestNameInput" placeholder="Guest's full name">
           </div>
@@ -3912,13 +3930,29 @@
           </div>
           <div class="form-group">
             <label class="form-label">Notes <span class="optional">(optional)</span></label>
-            <input class="form-input" id="guestNotesInput" placeholder="e.g. Family member, experienced angler...">
+            <input class="form-input" id="guestNotesInput" placeholder="e.g. Relationship, experience level...">
           </div>
           <button class="btn btn-primary btn-block" onclick="submitGuest(this)">Log Guest Visit</button>
         </div>
       `;
       modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
       document.body.appendChild(modal);
+    }
+
+    function setGuestType(type) {
+      document.getElementById('guestTypeInput').value = type;
+      const btnG = document.getElementById('gTypeGuest');
+      const btnF = document.getElementById('gTypeFamily');
+      const hint = document.getElementById('guestTypeHint');
+      if (type === 'guest') {
+        btnG.style.background = 'var(--gold)'; btnG.style.color = 'var(--bg)'; btnG.style.borderColor = 'var(--gold)';
+        btnF.style.background = ''; btnF.style.color = ''; btnF.style.borderColor = '';
+        if (hint) hint.textContent = 'Counts toward 3-visit season limit (Rule 6)';
+      } else {
+        btnF.style.background = 'var(--teal)'; btnF.style.color = 'var(--bg)'; btnF.style.borderColor = 'var(--teal)';
+        btnG.style.background = ''; btnG.style.color = ''; btnG.style.borderColor = '';
+        if (hint) hint.innerHTML = 'Age 21 & under — <strong style="color:var(--teal);">does not count</strong> toward the 3-visit limit (Rule 7). Must be accompanied by a member.';
+      }
     }
 
     async function submitGuest(btn) {
@@ -3933,6 +3967,7 @@
           broughtByName: state.user.name,
           date: document.getElementById('guestDateInput')?.value || new Date().toISOString().split('T')[0],
           notes: document.getElementById('guestNotesInput')?.value || null,
+          guestType: document.getElementById('guestTypeInput')?.value || 'guest',
         })});
         btn.closest('div[style*=fixed]').remove();
         showToast('Guest visit logged');

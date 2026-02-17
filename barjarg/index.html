@@ -497,7 +497,7 @@
     .photo-upload {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
-      padding: 32px 20px;
+      padding: 14px 16px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -516,7 +516,7 @@
     }
     .photo-upload-preview {
       width: 100%;
-      max-height: 300px;
+      max-height: 200px;
       object-fit: cover;
       border-radius: var(--radius-sm);
     }
@@ -1123,6 +1123,9 @@
         case 'history': pageContent = renderHistory(); break;
         case 'stats': pageContent = renderStats(); break;
         case 'gallery': pageContent = renderGallery(); break;
+        case 'more': pageContent = renderMore(); break;
+        case 'guests': pageContent = renderGuests(); break;
+        case 'maintenance': pageContent = renderMaintenance(); break;
         default: pageContent = renderDashboard();
       }
 
@@ -1155,9 +1158,9 @@
             ${icons.chart}
             Stats
           </button>
-          <button class="nav-item ${state.currentPage === 'gallery' ? 'active' : ''}" onclick="navigate('gallery')">
-            ${icons.camera}
-            Gallery
+          <button class="nav-item ${['more','gallery','guests','maintenance'].includes(state.currentPage) ? 'active' : ''}" onclick="navigate('more')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            More
           </button>
         </nav>
       `;
@@ -1170,6 +1173,8 @@
       if (page === 'history') loadCatches();
       if (page === 'stats') loadStats();
       if (page === 'gallery') loadGallery();
+      if (page === 'guests') loadGuestsData();
+      if (page === 'maintenance') loadMaintenanceData();
     }
 
     function handleLogout() {
@@ -1212,6 +1217,38 @@
               </div>
             </div>
 
+            <!-- Check In/Out -->
+            <div class="card mb-5 animate-in animate-in-delay-1" id="checkinCard">
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="section-label flex items-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    River Status
+                  </div>
+                  <div id="checkinStatus" class="text-sm text-muted" style="margin-top:4px;">Loading...</div>
+                </div>
+                <div id="checkinBtnArea"></div>
+              </div>
+              <div id="onRiverList" style="margin-top:10px;"></div>
+            </div>
+
+            <!-- Weather Forecast -->
+            <div class="card mb-5 animate-in animate-in-delay-1" id="forecastCard" style="overflow:hidden;">
+              <div class="flex justify-between items-center mb-3">
+                <div class="section-label" style="margin-bottom:0;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  Weather Forecast
+                </div>
+                <span class="text-xs text-muted">Barjarg</span>
+              </div>
+              <div id="forecastContent">
+                <div class="flex items-center gap-2">
+                  <div class="spinner" style="width:16px;height:16px;color:var(--teal);"></div>
+                  <span class="text-sm text-muted">Loading forecast...</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Water Level -->
             <div class="card mb-5 animate-in animate-in-delay-1" id="waterLevelCard" style="overflow:hidden;">
               <div class="flex justify-between items-center mb-3">
@@ -1241,6 +1278,18 @@
                 </div>
               </div>
             ` : ''}
+
+            <!-- League Table Preview -->
+            <div class="animate-in animate-in-delay-2" id="leaguePreview" style="display:none;">
+              <div class="flex justify-between items-center mb-3">
+                <div class="section-label flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                  League Table
+                </div>
+                <button class="btn btn-ghost" onclick="navigate('stats')" style="font-size:0.7rem;padding:4px 8px;">View All</button>
+              </div>
+              <div id="leaguePreviewContent" class="card" style="padding:0;overflow:hidden;"></div>
+            </div>
 
             ${(state.myCatches || []).length > 0 ? `
               <div class="animate-in animate-in-delay-3">
@@ -1289,8 +1338,123 @@
         console.error('Failed to load stats:', err);
         setState({ stats: { overview: { totalCatches: 0, speciesBreakdown: {}, uniqueVisitDays: 0, successRate: 0, photoCatches: 0, totalWeight: 0, catchesPerVisitDay: 0, speciesCount: 0 }, records: { biggestFish: null, longestFish: null, speciesRecords: {}, bestDay: null }, memberStats: [], timeAnalysis: { byHour: {}, byDayOfWeek: {}, byMonth: {}, byCalendarMonth: {} }, conditions: { tempRanges: {}, windRanges: {}, byWeatherType: {}, byClarity: {}, waterTempRanges: {}, fightTime: {} }, baitsAndMethods: { baitStats: {}, methodStats: {}, baitBySpecies: {} }, locations: { hotspots: [], bestBySpecies: {} }, recentCatches: [] }, myCatches: [] });
       }
-      // Fetch water level independently
+      // Fetch water level, checkins, league, and forecast independently
       try { loadWaterLevel(); } catch (e) {}
+      try { loadCheckinStatus(); } catch (e) {}
+      try { loadLeaguePreview(); } catch (e) {}
+      try { loadWeatherForecast(); } catch (e) {}
+    }
+
+    // ─── CHECK IN / OUT ─────────────────────────────────────────
+    async function loadCheckinStatus() {
+      try {
+        const active = await api('/api/checkins');
+        const card = document.getElementById('checkinCard');
+        const status = document.getElementById('checkinStatus');
+        const btnArea = document.getElementById('checkinBtnArea');
+        const list = document.getElementById('onRiverList');
+        if (!card) return;
+
+        const myCheckin = active.find(c => c.memberId === state.user?.id);
+        const others = active.filter(c => c.memberId !== state.user?.id);
+
+        if (myCheckin) {
+          const since = new Date(myCheckin.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          const hoursAgo = (Date.now() - new Date(myCheckin.checkInTime).getTime()) / (1000 * 60 * 60);
+
+          if (hoursAgo >= 12) {
+            // Stale check-in — show "Still here?" prompt
+            status.innerHTML = `<span style="color:var(--gold);">Checked in since ${since} — still on the river?</span>`;
+            btnArea.innerHTML = `
+              <div class="flex gap-2">
+                <button class="btn btn-sm" onclick="confirmStillHere()" style="background:var(--teal);color:var(--bg);font-size:0.7rem;padding:6px 12px;">Still here</button>
+                <button class="btn btn-sm" onclick="doCheckout()" style="background:var(--border);color:var(--text-secondary);font-size:0.7rem;padding:6px 12px;">Check out</button>
+              </div>
+            `;
+          } else {
+            status.innerHTML = `<span style="color:var(--teal);">You're on the river</span> since ${since}`;
+            btnArea.innerHTML = `<button class="btn btn-sm" onclick="doCheckout()" style="background:var(--border);color:var(--text-secondary);font-size:0.7rem;padding:6px 14px;">Check Out</button>`;
+          }
+        } else {
+          status.innerHTML = active.length > 0 ? `<span style="color:var(--gold);">${active.length} angler${active.length > 1 ? 's' : ''} on the river</span>` : 'Nobody on the river';
+          btnArea.innerHTML = `<button class="btn btn-sm" onclick="doCheckin()" style="background:var(--teal);color:var(--bg);font-size:0.7rem;padding:6px 14px;">Check In</button>`;
+        }
+
+        if (active.length > 0) {
+          list.innerHTML = active.map(c => {
+            const since = new Date(c.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const isMe = c.memberId === state.user?.id;
+            return `<div class="flex items-center gap-2" style="padding:4px 0;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);"></div>
+              <span class="text-xs" style="color:${isMe ? 'var(--teal)' : 'var(--text-secondary)'};">${c.memberName}</span>
+              <span class="text-xs text-muted" style="margin-left:auto;">${since}${c.pool ? ' · ' + c.pool : ''}</span>
+            </div>`;
+          }).join('');
+        } else {
+          list.innerHTML = '';
+        }
+      } catch (e) {
+        console.error('Checkin load error:', e);
+      }
+    }
+
+    async function confirmStillHere() {
+      // Re-check-in to reset the timer
+      try {
+        await api('/api/checkout', { method: 'POST', body: JSON.stringify({ memberId: state.user.id, memberName: state.user.name }) });
+        await api('/api/checkin', { method: 'POST', body: JSON.stringify({ memberId: state.user.id, memberName: state.user.name }) });
+        showToast('Confirmed — tight lines!');
+        loadCheckinStatus();
+      } catch (e) { showToast('Failed to confirm', 'error'); }
+    }
+
+    async function doCheckin() {
+      try {
+        await api('/api/checkin', { method: 'POST', body: JSON.stringify({ memberId: state.user.id, memberName: state.user.name }) });
+        showToast('Checked in — tight lines!');
+        loadCheckinStatus();
+      } catch (e) { showToast(e.message || 'Failed to check in', 'error'); }
+    }
+
+    async function doCheckout() {
+      try {
+        await api('/api/checkout', { method: 'POST', body: JSON.stringify({ memberId: state.user.id, memberName: state.user.name }) });
+        showToast('Checked out');
+        loadCheckinStatus();
+      } catch (e) { showToast(e.message || 'Failed to check out', 'error'); }
+    }
+
+    // ─── LEAGUE TABLE PREVIEW ───────────────────────────────────
+    async function loadLeaguePreview() {
+      try {
+        const league = await api('/api/league');
+        const container = document.getElementById('leaguePreviewContent');
+        const wrapper = document.getElementById('leaguePreview');
+        if (!container || !wrapper) return;
+        if (league.length === 0) { wrapper.style.display = 'none'; return; }
+        wrapper.style.display = 'block';
+        const top5 = league.slice(0, 5);
+        container.innerHTML = top5.map((m, i) => {
+          const isMe = m.id === state.user?.id;
+          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+          return `<div class="flex items-center gap-3" style="padding:10px 14px;border-bottom:${i < top5.length - 1 ? '1px solid var(--border)' : 'none'};${isMe ? 'background:rgba(212,165,116,0.05);' : ''}">
+            <div style="width:22px;text-align:center;font-size:${medal ? '1rem' : '0.75rem'};color:var(--text-muted);font-weight:600;">${medal || (i + 1)}</div>
+            <div style="flex:1;min-width:0;">
+              <div class="text-sm" style="font-weight:${isMe ? '600' : '500'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-sm" style="font-weight:600;">${m.totalCatches}</div>
+              <div class="text-xs text-muted">catches</div>
+            </div>
+            <div class="text-right" style="min-width:50px;">
+              <div class="text-sm">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div>
+              <div class="text-xs text-muted">best</div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (e) {
+        console.error('League load error:', e);
+      }
     }
 
     async function loadWaterLevel() {
@@ -1340,6 +1504,91 @@
           <p class="text-sm text-muted">Could not load water level</p>
           <a href="https://waterlevels.sepa.org.uk/Station/133156" target="_blank" rel="noopener" class="text-xs" style="color:var(--teal);">View on SEPA ↗</a>
         `;
+      }
+    }
+
+    // ─── WEATHER FORECAST ───────────────────────────────────────
+    async function loadWeatherForecast() {
+      const container = document.getElementById('forecastContent');
+      if (!container) return;
+      try {
+        const resp = await fetch('https://api.open-meteo.com/v1/forecast?latitude=55.1938&longitude=-3.754&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=Europe/London&forecast_days=5');
+        const data = await resp.json();
+        if (!data.daily) { container.innerHTML = '<p class="text-sm text-muted">Forecast unavailable</p>'; return; }
+
+        const wmoIcon = (code) => {
+          if (code <= 1) return '☀️';
+          if (code <= 3) return '⛅';
+          if (code <= 48) return '☁️';
+          if (code <= 55) return '🌧️';
+          if (code <= 57) return '🌧️';
+          if (code <= 65) return '🌧️';
+          if (code <= 67) return '🌧️';
+          if (code <= 75) return '🌨️';
+          if (code <= 77) return '🌨️';
+          if (code <= 82) return '🌧️';
+          if (code <= 86) return '🌨️';
+          if (code <= 99) return '⛈️';
+          return '🌡️';
+        };
+        const wmoDesc = (code) => {
+          if (code <= 1) return 'Clear';
+          if (code <= 3) return 'Cloudy';
+          if (code <= 48) return 'Overcast';
+          if (code <= 55) return 'Drizzle';
+          if (code <= 65) return 'Rain';
+          if (code <= 67) return 'Freezing rain';
+          if (code <= 77) return 'Snow';
+          if (code <= 82) return 'Showers';
+          if (code <= 99) return 'Thunderstorm';
+          return '';
+        };
+
+        const d = data.daily;
+        const c = data.current;
+        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+        // Current conditions header
+        const currentHtml = c ? `
+          <div class="flex items-center gap-3 mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--border);">
+            <div style="font-size:2rem;">${wmoIcon(c.weathercode)}</div>
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:1.1rem;">${Math.round(c.temperature_2m)}°C</div>
+              <div class="text-xs text-muted">${wmoDesc(c.weathercode)} · Wind ${Math.round(c.windspeed_10m)} mph · ${c.relativehumidity_2m}% humidity</div>
+            </div>
+            <div class="text-xs text-muted" style="text-align:right;">Now</div>
+          </div>
+        ` : '';
+
+        // 5-day forecast strip using same color approach as water level chart
+        const maxRain = Math.max(...d.precipitation_sum, 1);
+        const forecastHtml = d.time.map((date, i) => {
+          const dt = new Date(date + 'T00:00:00');
+          const dayLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dayNames[dt.getDay()];
+          const rain = d.precipitation_sum[i];
+          const rainBarH = Math.round((rain / maxRain) * 20);
+          const rainColor = rain > 10 ? '#3b82f6' : rain > 5 ? '#60a5fa' : rain > 1 ? '#93c5fd' : 'rgba(147,197,253,0.3)';
+
+          return `<div style="flex:1;min-width:56px;text-align:center;padding:6px 2px;">
+            <div class="text-xs" style="font-weight:600;margin-bottom:4px;color:${i === 0 ? 'var(--gold)' : 'var(--text-secondary)'};">${dayLabel}</div>
+            <div style="font-size:1.3rem;line-height:1;margin-bottom:4px;">${wmoIcon(d.weathercode[i])}</div>
+            <div class="text-xs" style="font-weight:600;">${Math.round(d.temperature_2m_max[i])}°</div>
+            <div class="text-xs text-muted">${Math.round(d.temperature_2m_min[i])}°</div>
+            <div style="margin:6px auto 2px;width:16px;height:24px;display:flex;align-items:flex-end;justify-content:center;">
+              <div style="width:100%;height:${Math.max(rainBarH, 2)}px;background:${rainColor};border-radius:2px 2px 0 0;"></div>
+            </div>
+            <div class="text-xs text-muted" style="font-size:0.6rem;">${rain.toFixed(1)}mm</div>
+            <div class="text-xs text-muted" style="margin-top:2px;font-size:0.6rem;">${Math.round(d.windspeed_10m_max[i])}mph</div>
+          </div>`;
+        }).join('');
+
+        container.innerHTML = `
+          ${currentHtml}
+          <div class="flex" style="gap:0;">${forecastHtml}</div>
+        `;
+      } catch (e) {
+        console.error('Forecast error:', e);
+        container.innerHTML = '<p class="text-sm text-muted">Could not load forecast</p>';
       }
     }
 
@@ -1524,6 +1773,39 @@
               <input class="form-input" id="customSpecies" placeholder="e.g. Pike, Perch...">
             </div>
 
+            <!-- NDSFB Classification -->
+            <div class="form-group hidden" id="keptReleasedGroup">
+              <label class="form-label">Kept or Released</label>
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnReleased" onclick="setKeptReleased('Released')" style="padding:10px;">Released</button>
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnKept" onclick="setKeptReleased('Kept')" style="padding:10px;">Kept</button>
+              </div>
+              <input type="hidden" id="keptReleased" value="Released">
+            </div>
+            <div class="form-group hidden" id="fishTypeGroup">
+              <label class="form-label">Fish Type</label>
+              <select class="form-select" id="fishType">
+                <option value="Wild">Wild fish</option>
+                <option value="Farmed">Farmed escape</option>
+              </select>
+            </div>
+            <div class="form-group hidden" id="grilseGroup">
+              <label class="form-label">Classification</label>
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnSalmonAdult" onclick="setGrilse(false)" style="padding:10px;">Adult Salmon</button>
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnGrilse" onclick="setGrilse(true)" style="padding:10px;">Grilse</button>
+              </div>
+              <input type="hidden" id="isGrilse" value="false">
+            </div>
+            <div class="form-group hidden" id="seaTroutTypeGroup">
+              <label class="form-label">Classification</label>
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnAdult" onclick="setSeaTroutType('Adult')" style="padding:10px;">Adult</button>
+                <button type="button" class="btn btn-secondary btn-sm flex-1" id="btnHerling" onclick="setSeaTroutType('Herling/Finnock')" style="padding:10px;">Herling / Finnock</button>
+              </div>
+              <input type="hidden" id="seaTroutType" value="Adult">
+            </div>
+
             <!-- Date & Time -->
             <div class="grid-2">
               <div class="form-group">
@@ -1602,11 +1884,15 @@
             </div>
               <div class="photo-upload" id="photoUpload">
                 <div id="photoPreview">
-                  <div class="photo-upload-icon">${icons.camera}</div>
-                  <p class="text-muted text-sm">Tap to upload or take a photo</p>
-                  <p class="text-muted text-xs" style="margin-top:4px;">Max 5MB · JPG, PNG, WebP</p>
+                  <div class="flex items-center justify-center gap-3">
+                    <div class="photo-upload-icon" style="margin:0;">${icons.camera}</div>
+                    <div style="text-align:left;">
+                      <p class="text-sm" style="color:var(--text-secondary);">Add a photo</p>
+                      <p class="text-muted text-xs">Choose from library or take a photo</p>
+                    </div>
+                  </div>
                 </div>
-                <input type="file" accept="image/*" capture="environment" id="photoInput" onchange="handlePhotoSelect(this)">
+                <input type="file" accept="image/*" id="photoInput" onchange="handlePhotoSelect(this)">
               </div>
             </div>
 
@@ -1615,6 +1901,7 @@
               <div class="form-group">
                 <label class="form-label">Water Temp (°C) <span class="optional">(optional)</span></label>
                 <input class="form-input" type="number" id="waterTemp" step="0.5" min="0" max="30" placeholder="e.g. 12">
+                <div id="waterTempHint" class="text-xs text-muted" style="margin-top:3px;display:none;"></div>
               </div>
               <div class="form-group">
                 <label class="form-label">Fight Time (min) <span class="optional">(optional)</span></label>
@@ -1631,6 +1918,22 @@
                 <option value="Coloured">Coloured</option>
                 <option value="Muddy">Muddy</option>
               </select>
+              <div id="waterClarityHint" class="text-xs text-muted" style="margin-top:3px;display:none;"></div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label class="form-label">Tags <span class="optional">(optional)</span></label>
+              <div id="tagContainer" class="flex gap-2" style="flex-wrap:wrap;margin-bottom:8px;"></div>
+              <div class="flex gap-2">
+                <input class="form-input" id="tagInput" placeholder="e.g. PB, First of season..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTag();}">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addTag()" style="padding:8px 14px;">Add</button>
+              </div>
+              <div class="flex gap-2 mt-2" style="flex-wrap:wrap;">
+                ${['PB', 'First of Season', 'Specimen', 'Rising Fish', 'Night Fishing', 'High Water', 'Low Water', 'Coloured Water'].map(t =>
+                  `<button type="button" class="btn btn-ghost" onclick="addQuickTag('${t}')" style="padding:3px 10px;font-size:0.65rem;border-radius:20px;border:1px solid var(--border);">${t}</button>`
+                ).join('')}
+              </div>
             </div>
 
             <!-- Notes -->
@@ -1679,9 +1982,18 @@
           attributionControl: false,
         });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-        }).addTo(catchMap);
+        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+        streetLayer.addTo(catchMap);
+
+        // Add satellite toggle
+        const toggleDiv = document.createElement('div');
+        toggleDiv.style.cssText = 'position:absolute;top:10px;right:10px;z-index:1000;';
+        toggleDiv.innerHTML = `<button id="mapToggle" onclick="toggleMapLayer()" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:0.7rem;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);backdrop-filter:blur(8px);">Satellite</button>`;
+        document.getElementById('mapContainer').appendChild(toggleDiv);
+        window._catchMapStreet = streetLayer;
+        window._catchMapSatellite = satelliteLayer;
+        window._catchMapIsSatellite = false;
 
         catchMap.on('click', (e) => {
           const { lat, lng } = e.latlng;
@@ -1711,14 +2023,117 @@
       }, 100);
     }
 
+    function toggleMapLayer() {
+      if (!catchMap) return;
+      if (window._catchMapIsSatellite) {
+        catchMap.removeLayer(window._catchMapSatellite);
+        window._catchMapStreet.addTo(catchMap);
+        document.getElementById('mapToggle').textContent = 'Satellite';
+      } else {
+        catchMap.removeLayer(window._catchMapStreet);
+        window._catchMapSatellite.addTo(catchMap);
+        document.getElementById('mapToggle').textContent = 'Standard';
+      }
+      window._catchMapIsSatellite = !window._catchMapIsSatellite;
+    }
+
     function toggleCustomSpecies() {
       const sel = document.getElementById('species').value;
       const group = document.getElementById('customSpeciesGroup');
-      if (sel === 'Other') {
-        group.classList.remove('hidden');
-      } else {
-        group.classList.add('hidden');
+      const keptGroup = document.getElementById('keptReleasedGroup');
+      const fishTypeGroup = document.getElementById('fishTypeGroup');
+      const grilseGroup = document.getElementById('grilseGroup');
+      const seaTroutTypeGroup = document.getElementById('seaTroutTypeGroup');
+
+      group.classList.toggle('hidden', sel !== 'Other');
+
+      // Show kept/released for reportable species
+      const reportable = ['Salmon', 'Sea Trout', 'Grayling', 'Brown Trout'];
+      keptGroup.classList.toggle('hidden', !reportable.includes(sel));
+
+      // Show fish type (wild/farmed) for Salmon only
+      fishTypeGroup.classList.toggle('hidden', sel !== 'Salmon');
+
+      // Show grilse toggle for Salmon
+      grilseGroup.classList.toggle('hidden', sel !== 'Salmon');
+
+      // Show adult/herling for Sea Trout
+      seaTroutTypeGroup.classList.toggle('hidden', sel !== 'Sea Trout');
+
+      // Default to Released
+      if (reportable.includes(sel)) {
+        setKeptReleased('Released');
       }
+      if (sel === 'Salmon') {
+        setGrilse(false);
+      }
+      if (sel === 'Sea Trout') {
+        setSeaTroutType('Adult');
+      }
+    }
+
+    function setKeptReleased(val) {
+      document.getElementById('keptReleased').value = val;
+      const btnK = document.getElementById('btnKept');
+      const btnR = document.getElementById('btnReleased');
+      btnR.style.background = val === 'Released' ? 'var(--teal)' : '';
+      btnR.style.color = val === 'Released' ? 'var(--bg)' : '';
+      btnR.style.borderColor = val === 'Released' ? 'var(--teal)' : '';
+      btnK.style.background = val === 'Kept' ? 'var(--gold)' : '';
+      btnK.style.color = val === 'Kept' ? 'var(--bg)' : '';
+      btnK.style.borderColor = val === 'Kept' ? 'var(--gold)' : '';
+    }
+
+    function setGrilse(isGrilse) {
+      document.getElementById('isGrilse').value = isGrilse;
+      const btnA = document.getElementById('btnSalmonAdult');
+      const btnG = document.getElementById('btnGrilse');
+      btnA.style.background = !isGrilse ? 'var(--gold)' : '';
+      btnA.style.color = !isGrilse ? 'var(--bg)' : '';
+      btnA.style.borderColor = !isGrilse ? 'var(--gold)' : '';
+      btnG.style.background = isGrilse ? 'var(--gold)' : '';
+      btnG.style.color = isGrilse ? 'var(--bg)' : '';
+      btnG.style.borderColor = isGrilse ? 'var(--gold)' : '';
+    }
+
+    function setSeaTroutType(type) {
+      document.getElementById('seaTroutType').value = type;
+      const btnA = document.getElementById('btnAdult');
+      const btnH = document.getElementById('btnHerling');
+      btnA.style.background = type === 'Adult' ? 'var(--teal)' : '';
+      btnA.style.color = type === 'Adult' ? 'var(--bg)' : '';
+      btnA.style.borderColor = type === 'Adult' ? 'var(--teal)' : '';
+      btnH.style.background = type === 'Herling/Finnock' ? 'var(--teal)' : '';
+      btnH.style.color = type === 'Herling/Finnock' ? 'var(--bg)' : '';
+      btnH.style.borderColor = type === 'Herling/Finnock' ? 'var(--teal)' : '';
+    }
+
+    let catchTags = [];
+    function addTag() {
+      const input = document.getElementById('tagInput');
+      const val = (input?.value || '').trim();
+      if (!val || catchTags.includes(val)) { input.value = ''; return; }
+      catchTags.push(val);
+      input.value = '';
+      renderTags();
+    }
+    function addQuickTag(tag) {
+      if (catchTags.includes(tag)) return;
+      catchTags.push(tag);
+      renderTags();
+    }
+    function removeTag(tag) {
+      catchTags = catchTags.filter(t => t !== tag);
+      renderTags();
+    }
+    function renderTags() {
+      const c = document.getElementById('tagContainer');
+      if (!c) return;
+      c.innerHTML = catchTags.map(t =>
+        `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(212,165,116,0.12);border-radius:20px;font-size:0.7rem;color:var(--gold);font-weight:500;">
+          ${t} <span onclick="removeTag('${t.replace(/'/g,"\\'")}')" style="cursor:pointer;opacity:0.6;font-size:0.8rem;">&times;</span>
+        </span>`
+      ).join('');
     }
 
     function handlePhotoSelect(input) {
@@ -1736,7 +2151,7 @@
         photoData = e.target.result;
         document.getElementById('photoPreview').innerHTML = `
           <img src="${photoData}" class="photo-upload-preview" alt="Catch photo">
-          <p class="text-muted text-xs" style="margin-top:8px;">Tap to change photo</p>
+          <p class="text-muted text-xs" style="margin-top:6px;">Tap to change photo</p>
         `;
       };
       reader.readAsDataURL(file);
@@ -1744,46 +2159,108 @@
       // Read as ArrayBuffer for EXIF extraction
       const exifReader = new FileReader();
       exifReader.onload = (e) => {
-        const coords = extractGPS(e.target.result);
-        if (coords) {
-          const { lat, lng } = coords;
-          document.getElementById('lat').value = lat.toFixed(6);
-          document.getElementById('lng').value = lng.toFixed(6);
-          document.getElementById('mapHint').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)} (from photo)`;
+        const exif = extractExifData(e.target.result);
+        if (!exif) return;
 
-          // Update map marker
-          if (catchMap) {
-            if (catchMarker) catchMap.removeLayer(catchMarker);
-            catchMarker = L.marker([lat, lng], {
-              icon: L.divIcon({
-                className: '',
-                html: `<div style="width:24px;height:24px;background:var(--gold);border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12],
-              }),
-            }).addTo(catchMap);
-            catchMap.setView([lat, lng], 16);
-          }
+        const hasCoords = exif.lat && exif.lng;
+        const hasDate = exif.date;
+        const hasTime = exif.time;
 
-          // Fetch weather for photo location
-          fetchWeather(lat, lng);
-          showToast('Location set from photo GPS');
+        // Check if user already has values set
+        const existingLat = document.getElementById('lat').value;
+        const existingDate = document.getElementById('catchDate').value;
+        const existingTime = document.getElementById('catchTime').value;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const dateIsDefault = existingDate === todayStr;
+
+        // Collect what we can offer
+        const offers = [];
+        if (hasCoords) offers.push('location');
+        if (hasDate) offers.push('date');
+        if (hasTime) offers.push('time');
+
+        if (offers.length === 0) return;
+
+        // If fields are empty/default, apply silently
+        const fieldsAlreadySet = (existingLat && hasCoords) || (!dateIsDefault && hasDate) || (existingTime && hasTime);
+
+        if (fieldsAlreadySet) {
+          // Show prompt
+          showExifPrompt(exif, offers);
+        } else {
+          // Apply silently
+          applyExifData(exif);
         }
       };
       exifReader.readAsArrayBuffer(file);
     }
 
-    // ─── EXIF GPS Extractor (minimal, no dependencies) ──────────
-    function extractGPS(buffer) {
+    function showExifPrompt(exif, offers) {
+      const items = [];
+      if (offers.includes('location') && exif.lat) items.push(`Location: ${exif.lat.toFixed(4)}, ${exif.lng.toFixed(4)}`);
+      if (offers.includes('date') && exif.date) items.push(`Date: ${exif.date}`);
+      if (offers.includes('time') && exif.time) items.push(`Time: ${exif.time}`);
+
+      const banner = document.createElement('div');
+      banner.id = 'exifBanner';
+      banner.style.cssText = 'background:rgba(212,165,116,0.1);border:1px solid rgba(212,165,116,0.2);border-radius:var(--radius);padding:12px 14px;margin-top:8px;animation:fadeIn 0.3s ease;';
+      banner.innerHTML = `
+        <div class="text-xs" style="color:var(--gold);font-weight:600;margin-bottom:6px;">Photo metadata detected</div>
+        <div class="text-xs text-muted" style="margin-bottom:8px;">${items.join(' · ')}</div>
+        <div class="flex gap-2">
+          <button class="btn btn-sm" onclick="applyExifData(window._pendingExif);document.getElementById('exifBanner')?.remove();" style="background:var(--gold);color:var(--bg);font-size:0.7rem;padding:6px 12px;">Apply to form</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('exifBanner')?.remove();" style="font-size:0.7rem;padding:6px 12px;">Keep current values</button>
+        </div>
+      `;
+      window._pendingExif = exif;
+
+      // Insert after photo upload
+      const existing = document.getElementById('exifBanner');
+      if (existing) existing.remove();
+      const photoUpload = document.getElementById('photoUpload');
+      if (photoUpload) photoUpload.parentNode.insertBefore(banner, photoUpload.nextSibling);
+    }
+
+    function applyExifData(exif) {
+      if (!exif) return;
+      if (exif.lat && exif.lng) {
+        document.getElementById('lat').value = exif.lat.toFixed(6);
+        document.getElementById('lng').value = exif.lng.toFixed(6);
+        document.getElementById('mapHint').textContent = `${exif.lat.toFixed(4)}, ${exif.lng.toFixed(4)} (from photo)`;
+        if (catchMap) {
+          if (catchMarker) catchMap.removeLayer(catchMarker);
+          catchMarker = L.marker([exif.lat, exif.lng], {
+            icon: L.divIcon({
+              className: '',
+              html: `<div style="width:24px;height:24px;background:var(--gold);border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
+            }),
+          }).addTo(catchMap);
+          catchMap.setView([exif.lat, exif.lng], 16);
+        }
+        fetchWeather(exif.lat, exif.lng);
+      }
+      if (exif.date) {
+        document.getElementById('catchDate').value = exif.date;
+      }
+      if (exif.time) {
+        document.getElementById('catchTime').value = exif.time;
+      }
+      showToast('Photo metadata applied');
+    }
+
+    // ─── EXIF Data Extractor (GPS + DateTime, no dependencies) ──
+    function extractExifData(buffer) {
       try {
         const view = new DataView(buffer);
-        if (view.getUint16(0) !== 0xFFD8) return null; // Not JPEG
+        if (view.getUint16(0) !== 0xFFD8) return null;
 
         let offset = 2;
         while (offset < view.byteLength - 1) {
           const marker = view.getUint16(offset);
-          if (marker === 0xFFE1) { // APP1 (EXIF)
-            return parseExifGPS(view, offset + 4);
+          if (marker === 0xFFE1) {
+            return parseExifFull(view, offset + 4);
           }
           if ((marker & 0xFF00) !== 0xFF00) break;
           const len = view.getUint16(offset + 2);
@@ -1793,64 +2270,97 @@
       return null;
     }
 
-    function parseExifGPS(view, start) {
+    function parseExifFull(view, start) {
       try {
-        // Check for "Exif\0\0"
         if (view.getUint32(start) !== 0x45786966 || view.getUint16(start + 4) !== 0x0000) return null;
 
         const tiffStart = start + 6;
         const byteOrder = view.getUint16(tiffStart);
-        const le = byteOrder === 0x4949; // Little-endian
-
+        const le = byteOrder === 0x4949;
         const g = (o, s) => s === 2 ? view.getUint16(o, le) : view.getUint32(o, le);
 
-        // Find IFD0
         let ifdOffset = tiffStart + g(tiffStart + 4, 4);
         const ifd0Count = g(ifdOffset, 2);
 
-        // Find GPS IFD pointer in IFD0
         let gpsIFDOffset = null;
+        let exifIFDOffset = null;
+        let dateTimeOriginal = null;
+
         for (let i = 0; i < ifd0Count; i++) {
           const entryOffset = ifdOffset + 2 + i * 12;
           const tag = g(entryOffset, 2);
-          if (tag === 0x8825) { // GPSInfoIFDPointer
-            gpsIFDOffset = tiffStart + g(entryOffset + 8, 4);
-            break;
-          }
-        }
-        if (!gpsIFDOffset) return null;
-
-        // Parse GPS IFD
-        const gpsCount = g(gpsIFDOffset, 2);
-        let latRef = null, lngRef = null, latData = null, lngData = null;
-
-        for (let i = 0; i < gpsCount; i++) {
-          const entryOffset = gpsIFDOffset + 2 + i * 12;
-          const tag = g(entryOffset, 2);
-          const valueOffset = tiffStart + g(entryOffset + 8, 4);
-
-          if (tag === 1) { // GPSLatitudeRef
-            latRef = String.fromCharCode(view.getUint8(entryOffset + 8));
-          } else if (tag === 2) { // GPSLatitude
-            latData = readRationals(view, valueOffset, 3, le);
-          } else if (tag === 3) { // GPSLongitudeRef
-            lngRef = String.fromCharCode(view.getUint8(entryOffset + 8));
-          } else if (tag === 4) { // GPSLongitude
-            lngData = readRationals(view, valueOffset, 3, le);
+          if (tag === 0x8825) gpsIFDOffset = tiffStart + g(entryOffset + 8, 4);
+          if (tag === 0x8769) exifIFDOffset = tiffStart + g(entryOffset + 8, 4);
+          // 0x0132 = DateTime in IFD0
+          if (tag === 0x0132 && !dateTimeOriginal) {
+            const strOffset = tiffStart + g(entryOffset + 8, 4);
+            dateTimeOriginal = readExifString(view, strOffset, 19);
           }
         }
 
-        if (!latData || !lngData || !latRef || !lngRef) return null;
+        // Check ExifIFD for DateTimeOriginal (0x9003) which is more accurate
+        if (exifIFDOffset) {
+          try {
+            const exifCount = g(exifIFDOffset, 2);
+            for (let i = 0; i < exifCount; i++) {
+              const entryOffset = exifIFDOffset + 2 + i * 12;
+              const tag = g(entryOffset, 2);
+              if (tag === 0x9003) { // DateTimeOriginal
+                const strOffset = tiffStart + g(entryOffset + 8, 4);
+                dateTimeOriginal = readExifString(view, strOffset, 19);
+                break;
+              }
+            }
+          } catch (e) {}
+        }
 
-        let lat = latData[0] + latData[1] / 60 + latData[2] / 3600;
-        let lng = lngData[0] + lngData[1] / 60 + lngData[2] / 3600;
-        if (latRef === 'S') lat = -lat;
-        if (lngRef === 'W') lng = -lng;
+        // Parse GPS
+        let lat = null, lng = null;
+        if (gpsIFDOffset) {
+          const gpsCount = g(gpsIFDOffset, 2);
+          let latRef = null, lngRef = null, latData = null, lngData = null;
+          for (let i = 0; i < gpsCount; i++) {
+            const entryOffset = gpsIFDOffset + 2 + i * 12;
+            const tag = g(entryOffset, 2);
+            const valueOffset = tiffStart + g(entryOffset + 8, 4);
+            if (tag === 1) latRef = String.fromCharCode(view.getUint8(entryOffset + 8));
+            else if (tag === 2) latData = readRationals(view, valueOffset, 3, le);
+            else if (tag === 3) lngRef = String.fromCharCode(view.getUint8(entryOffset + 8));
+            else if (tag === 4) lngData = readRationals(view, valueOffset, 3, le);
+          }
+          if (latData && lngData && latRef && lngRef) {
+            lat = latData[0] + latData[1] / 60 + latData[2] / 3600;
+            lng = lngData[0] + lngData[1] / 60 + lngData[2] / 3600;
+            if (latRef === 'S') lat = -lat;
+            if (lngRef === 'W') lng = -lng;
+            if (lat === 0 && lng === 0) { lat = null; lng = null; }
+          }
+        }
 
-        if (lat === 0 && lng === 0) return null;
-        return { lat, lng };
+        // Parse date/time from "YYYY:MM:DD HH:MM:SS"
+        let date = null, time = null;
+        if (dateTimeOriginal && dateTimeOriginal.length >= 19) {
+          const parts = dateTimeOriginal.split(' ');
+          if (parts.length >= 2) {
+            date = parts[0].replace(/:/g, '-'); // "2025-03-15"
+            time = parts[1].substring(0, 5);     // "14:30"
+          }
+        }
+
+        if (!lat && !date) return null;
+        return { lat, lng, date, time };
       } catch (e) {}
       return null;
+    }
+
+    function readExifString(view, offset, maxLen) {
+      let str = '';
+      for (let i = 0; i < maxLen; i++) {
+        const ch = view.getUint8(offset + i);
+        if (ch === 0) break;
+        str += String.fromCharCode(ch);
+      }
+      return str;
     }
 
     function readRationals(view, offset, count, le) {
@@ -1922,6 +2432,12 @@
         waterTemp: document.getElementById('waterTemp').value || null,
         waterClarity: document.getElementById('waterClarity').value || null,
         fightTime: document.getElementById('fightTime').value || null,
+        // NDSFB fields
+        keptReleased: document.getElementById('keptReleased')?.value || null,
+        fishType: document.getElementById('fishType')?.value || null,
+        isGrilse: document.getElementById('isGrilse')?.value === 'true' ? true : false,
+        seaTroutType: document.getElementById('seaTroutType')?.value || null,
+        tags: catchTags.length > 0 ? catchTags : [],
       };
 
       try {
@@ -1932,6 +2448,7 @@
 
         showToast('Catch logged successfully!');
         photoData = null;
+        catchTags = [];
         catchMarker = null;
         catchMap = null;
         navigate('dashboard');
@@ -2246,8 +2763,28 @@
                 <div class="text-muted text-xs" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Location</div>
                 <div class="text-sm">${c.locationName}</div>
               </div>` : ''}
+              ${c.keptReleased ? `<div>
+                <div class="text-muted text-xs" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Fate</div>
+                <div class="text-sm"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:600;background:${c.keptReleased === 'Released' ? 'rgba(45,212,191,0.15);color:var(--teal)' : 'rgba(212,165,116,0.15);color:var(--gold)'};">${c.keptReleased}</span></div>
+              </div>` : ''}
+              ${c.fishType && c.species === 'Salmon' ? `<div>
+                <div class="text-muted text-xs" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Fish Type</div>
+                <div class="text-sm">${c.isGrilse ? 'Grilse' : 'Salmon'} — ${c.fishType}</div>
+              </div>` : ''}
+              ${c.seaTroutType && c.species === 'Sea Trout' ? `<div>
+                <div class="text-muted text-xs" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px;">Classification</div>
+                <div class="text-sm">${c.seaTroutType}</div>
+              </div>` : ''}
             </div>
           </div>
+          ${c.tags && c.tags.length > 0 ? `
+            <div class="card mb-3">
+              <div class="text-muted text-xs mb-2" style="text-transform:uppercase;letter-spacing:0.1em;">Tags</div>
+              <div class="flex gap-2" style="flex-wrap:wrap;">
+                ${c.tags.map(t => `<span style="padding:3px 10px;background:rgba(212,165,116,0.1);border-radius:20px;font-size:0.7rem;color:var(--gold);font-weight:500;">${t}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
           ${c.weather ? `
             <div class="card mb-3" style="background:linear-gradient(135deg, rgba(45,212,191,0.06), rgba(45,212,191,0.02));border-color:rgba(45,212,191,0.12);">
               <div class="text-muted text-xs mb-2" style="text-transform:uppercase;letter-spacing:0.1em;">Weather Conditions</div>
@@ -2262,7 +2799,7 @@
           ` : ''}
           ${c.notes ? `<div class="card mb-3"><div class="text-muted text-xs mb-2" style="text-transform:uppercase;letter-spacing:0.1em;">Notes</div><p class="text-sm">${c.notes}</p></div>` : ''}
           ${c.lat && c.lng ? `
-            <div class="card mb-3" style="padding:0;overflow:hidden;">
+            <div class="card mb-3" style="padding:0;overflow:hidden;position:relative;">
               <div id="detailMap" style="height:300px;width:100%;"></div>
               ${c.locationName ? `<div style="padding:10px 14px;border-top:1px solid var(--border);">
                 <div class="flex items-center gap-2">
@@ -2298,7 +2835,22 @@
       if (c.lat && c.lng) {
         setTimeout(() => {
           const dm = L.map('detailMap', { center: [c.lat, c.lng], zoom: 16, zoomControl: true, attributionControl: false });
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(dm);
+          const detStreet = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
+          const detSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
+          detStreet.addTo(dm);
+          let isSat = false;
+
+          // Satellite toggle
+          const tgl = document.createElement('div');
+          tgl.style.cssText = 'position:absolute;top:10px;right:10px;z-index:1000;';
+          tgl.innerHTML = `<button id="detMapToggle" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:0.7rem;color:var(--text-secondary);cursor:pointer;font-family:var(--font-body);backdrop-filter:blur(8px);">Satellite</button>`;
+          document.getElementById('detailMap').parentElement.appendChild(tgl);
+          document.getElementById('detMapToggle').onclick = () => {
+            if (isSat) { dm.removeLayer(detSatellite); detStreet.addTo(dm); document.getElementById('detMapToggle').textContent = 'Satellite'; }
+            else { dm.removeLayer(detStreet); detSatellite.addTo(dm); document.getElementById('detMapToggle').textContent = 'Standard'; }
+            isSat = !isSat;
+          };
+
           L.marker([c.lat, c.lng], {
             icon: L.divIcon({
               className: '',
@@ -2500,7 +3052,11 @@
             <div class="section-label">Analytics</div>
             <h1 class="heading-xl">Statistics</h1>
           </div>
-          <div class="flex justify-end mb-4 animate-in">
+          <div class="flex justify-end gap-2 mb-4 animate-in" style="flex-wrap:wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="exportNDSFB()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              NDSFB Return
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export CSV
@@ -2512,6 +3068,7 @@
               <p class="text-muted text-sm" style="margin-top:12px;">Crunching the numbers...</p>
             </div>
           </div>
+          <div id="fullLeagueTable" style="margin-top:24px;"></div>
         </div>
       `;
     }
@@ -2525,6 +3082,41 @@
       } catch (err) {
         console.error('Failed to load stats:', err);
       }
+      try { loadFullLeagueTable(); } catch (e) {}
+    }
+
+    async function loadFullLeagueTable() {
+      try {
+        const league = await api('/api/league');
+        const container = document.getElementById('fullLeagueTable');
+        if (!container || league.length === 0) return;
+        container.innerHTML = `
+          <div class="section-label mb-3 flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+            Season League Table
+          </div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            ${league.map((m, i) => {
+              const isMe = m.id === state.user?.id;
+              const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+              return `<div style="padding:12px 14px;border-bottom:${i < league.length - 1 ? '1px solid var(--border)' : 'none'};${isMe ? 'background:rgba(212,165,116,0.05);' : ''}">
+                <div class="flex items-center gap-3">
+                  <div style="width:24px;text-align:center;font-size:${medal ? '1.1rem' : '0.8rem'};color:var(--text-muted);font-weight:700;">${medal || (i + 1)}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div class="text-sm" style="font-weight:${isMe ? '700' : '500'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
+                    <div class="text-xs text-muted" style="margin-top:2px;">${m.species.join(', ') || 'No catches yet'}</div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;">
+                    <div><div class="text-sm" style="font-weight:600;">${m.totalCatches}</div><div class="text-xs text-muted">fish</div></div>
+                    <div><div class="text-sm">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div><div class="text-xs text-muted">best</div></div>
+                    <div><div class="text-sm">${m.catchRate}</div><div class="text-xs text-muted">per day</div></div>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        `;
+      } catch (e) { console.error('Full league error:', e); }
     }
 
     // Expandable card helper
@@ -3011,7 +3603,7 @@
 
     async function fetchWeather(lat, lng) {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&wind_speed_unit=mph&timezone=Europe%2FLondon`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&daily=precipitation_sum&wind_speed_unit=mph&timezone=Europe%2FLondon&past_days=2&forecast_days=1`;
         const res = await fetch(url);
         const data = await res.json();
 
@@ -3030,7 +3622,7 @@
             icon: wmo[1],
           };
 
-          // Update UI
+          // Update weather UI
           const group = document.getElementById('weatherGroup');
           if (group) {
             group.style.display = 'block';
@@ -3040,6 +3632,51 @@
             document.getElementById('weatherWind').textContent = `Wind: ${c.wind_speed_10m} mph`;
             document.getElementById('weatherExtra').textContent = `Humidity: ${c.relative_humidity_2m}% · ${c.pressure_msl} hPa`;
             document.getElementById('weatherData').value = JSON.stringify(weatherObj);
+          }
+
+          // Auto-fill water temp from air temp if field is empty
+          const waterTempField = document.getElementById('waterTemp');
+          const waterTempHint = document.getElementById('waterTempHint');
+          if (waterTempField && !waterTempField.value) {
+            // River temp is typically a few degrees below air temp in Scotland
+            const airTemp = c.temperature_2m;
+            const estimatedWaterTemp = Math.round((airTemp - 2) * 2) / 2; // round to 0.5
+            const clampedTemp = Math.max(1, Math.min(25, estimatedWaterTemp));
+            waterTempField.value = clampedTemp;
+            if (waterTempHint) {
+              waterTempHint.style.display = 'block';
+              waterTempHint.innerHTML = `Estimated from ${airTemp}°C air temp — overtype if you have a reading`;
+            }
+            waterTempField.addEventListener('input', function handler() {
+              if (waterTempHint) waterTempHint.style.display = 'none';
+              waterTempField.removeEventListener('input', handler);
+            }, { once: true });
+          }
+
+          // Auto-fill water clarity from recent rainfall
+          const clarityField = document.getElementById('waterClarity');
+          const clarityHint = document.getElementById('waterClarityHint');
+          if (clarityField && !clarityField.value && data.daily?.precipitation_sum) {
+            const precip = data.daily.precipitation_sum;
+            // Sum last 2 days of rainfall
+            const recentRain = precip.slice(0, -1).reduce((a, b) => a + (b || 0), 0);
+            let estimated = '';
+            let reason = '';
+            if (recentRain > 20) { estimated = 'Muddy'; reason = `${recentRain.toFixed(0)}mm rain in 48hrs`; }
+            else if (recentRain > 10) { estimated = 'Coloured'; reason = `${recentRain.toFixed(0)}mm rain in 48hrs`; }
+            else if (recentRain > 4) { estimated = 'Slightly Coloured'; reason = `${recentRain.toFixed(0)}mm rain in 48hrs`; }
+            else if (recentRain > 1) { estimated = 'Clear'; reason = 'light recent rain'; }
+            else { estimated = 'Clear'; reason = 'little/no recent rain'; }
+
+            clarityField.value = estimated;
+            if (clarityHint) {
+              clarityHint.style.display = 'block';
+              clarityHint.innerHTML = `Estimated: ${reason} — change if different on the day`;
+            }
+            clarityField.addEventListener('change', function handler() {
+              if (clarityHint) clarityHint.style.display = 'none';
+              clarityField.removeEventListener('change', handler);
+            }, { once: true });
           }
         }
       } catch (err) {
@@ -3133,9 +3770,334 @@
       }
     }
 
+    // ─── MORE PAGE ────────────────────────────────────────────
+    function renderMore() {
+      return `
+        <div class="page">
+          <div class="animate-in mb-4" style="margin-top:8px;">
+            <div class="section-label">Barjarg Fishings</div>
+            <h1 class="heading-xl">More</h1>
+          </div>
+          <div class="flex flex-col gap-2 animate-in animate-in-delay-1">
+            ${[
+              { page: 'gallery', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>', label: 'Photo Gallery', desc: 'Browse catch photos' },
+              { page: 'guests', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', label: 'Guest Book', desc: 'Log & track guest visits' },
+              { page: 'maintenance', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>', label: 'Maintenance', desc: 'Report & track tasks' },
+            ].map(item => `
+              <button class="card flex items-center gap-3" onclick="navigate('${item.page}')" style="cursor:pointer;text-align:left;width:100%;border:1px solid var(--border);background:var(--bg-card);">
+                <div style="color:var(--gold);">${item.icon}</div>
+                <div style="flex:1;">
+                  <div class="text-sm" style="font-weight:600;">${item.label}</div>
+                  <div class="text-xs text-muted">${item.desc}</div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="animate-in animate-in-delay-2" style="margin-top:24px;">
+            <div class="section-label mb-3">Quick Actions</div>
+            <div class="flex gap-2" style="flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="showSyndicateRules()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="8"/></svg>
+                Rules
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportCSV()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                CSV
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="exportNDSFB()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                NDSFB
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="handleLogout()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Log Out
+              </button>
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+        </div>
+      `;
+    }
+
+    // ─── GUEST MANAGEMENT ────────────────────────────────────────
+    function renderGuests() {
+      return `
+        <div class="page">
+          <div class="animate-in mb-4" style="margin-top:8px;">
+            <button class="btn btn-ghost btn-sm mb-2" onclick="navigate('more')" style="padding:4px 0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="section-label">Guest Book</div>
+                <h1 class="heading-xl">Guests</h1>
+              </div>
+              <button class="btn btn-sm" onclick="showAddGuestModal()" style="background:var(--gold);color:var(--bg);">Add Guest</button>
+            </div>
+          </div>
+          <div id="guestsList" class="animate-in animate-in-delay-1">
+            <div class="text-center" style="padding:48px;">
+              <div class="spinner" style="margin:0 auto;width:24px;height:24px;color:var(--gold);"></div>
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+        </div>
+      `;
+    }
+
+    async function loadGuestsData() {
+      try {
+        const guests = await api('/api/guests');
+        const container = document.getElementById('guestsList');
+        if (!container) return;
+        if (guests.length === 0) {
+          container.innerHTML = '<div class="empty-state"><h3>No guest visits logged</h3><p>Tap "Add Guest" to record a guest visit</p></div>';
+          return;
+        }
+        // Group by guest name and count visits
+        const guestCounts = {};
+        guests.forEach(g => {
+          if (!guestCounts[g.guestName]) guestCounts[g.guestName] = { visits: [], broughtBy: g.broughtByName };
+          guestCounts[g.guestName].visits.push(g);
+        });
+
+        container.innerHTML = `
+          <div class="card mb-3" style="background:linear-gradient(135deg, rgba(212,165,116,0.06), rgba(212,165,116,0.02));border-color:rgba(212,165,116,0.12);">
+            <div class="text-xs text-muted">Reminder: Repeat guests may only visit <strong style="color:var(--gold);">3 times</strong> per season (Rule 6)</div>
+          </div>
+          ${Object.entries(guestCounts).map(([name, data]) => {
+            const overLimit = data.visits.length >= 3;
+            return `
+              <div class="card mb-2">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <div class="text-sm" style="font-weight:600;">${name}</div>
+                    <div class="text-xs text-muted">Guest of ${data.broughtBy}</div>
+                  </div>
+                  <span style="padding:2px 10px;border-radius:20px;font-size:0.65rem;font-weight:600;background:${overLimit ? 'rgba(248,113,113,0.15);color:#f87171' : 'rgba(45,212,191,0.15);color:var(--teal)'};">
+                    ${data.visits.length}/3 visits
+                  </span>
+                </div>
+                <div style="margin-top:8px;">
+                  ${data.visits.map(v => `<div class="text-xs text-muted" style="padding:2px 0;">${formatDate(v.date)}${v.notes ? ' — ' + v.notes : ''}</div>`).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        `;
+      } catch (e) {
+        console.error('Guest load error:', e);
+      }
+    }
+
+    function showAddGuestModal() {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;';
+      modal.innerHTML = `
+        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius) var(--radius) 0 0;padding:24px;max-height:80vh;overflow-y:auto;">
+          <div class="flex justify-between items-center mb-4">
+            <h3 style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem;">Log Guest Visit</h3>
+            <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:4px;">${icons.x}</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Guest Name</label>
+            <input class="form-input" id="guestNameInput" placeholder="Guest's full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input class="form-input" type="date" id="guestDateInput" value="${new Date().toISOString().split('T')[0]}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes <span class="optional">(optional)</span></label>
+            <input class="form-input" id="guestNotesInput" placeholder="e.g. Family member, experienced angler...">
+          </div>
+          <button class="btn btn-primary btn-block" onclick="submitGuest(this)">Log Guest Visit</button>
+        </div>
+      `;
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      document.body.appendChild(modal);
+    }
+
+    async function submitGuest(btn) {
+      const name = document.getElementById('guestNameInput')?.value?.trim();
+      if (!name) { showToast('Please enter guest name', 'error'); return; }
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div>';
+      try {
+        await api('/api/guests', { method: 'POST', body: JSON.stringify({
+          guestName: name,
+          broughtBy: state.user.id,
+          broughtByName: state.user.name,
+          date: document.getElementById('guestDateInput')?.value || new Date().toISOString().split('T')[0],
+          notes: document.getElementById('guestNotesInput')?.value || null,
+        })});
+        btn.closest('div[style*=fixed]').remove();
+        showToast('Guest visit logged');
+        loadGuestsData();
+      } catch (e) { showToast(e.message || 'Failed to log guest', 'error'); btn.disabled = false; btn.textContent = 'Log Guest Visit'; }
+    }
+
+    // ─── MAINTENANCE TRACKER ─────────────────────────────────────
+    function renderMaintenance() {
+      return `
+        <div class="page">
+          <div class="animate-in mb-4" style="margin-top:8px;">
+            <button class="btn btn-ghost btn-sm mb-2" onclick="navigate('more')" style="padding:4px 0;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+            <div class="flex justify-between items-center">
+              <div>
+                <div class="section-label">Cabin & Banks</div>
+                <h1 class="heading-xl">Maintenance</h1>
+              </div>
+              <button class="btn btn-sm" onclick="showAddMaintenanceModal()" style="background:var(--gold);color:var(--bg);">Report Issue</button>
+            </div>
+          </div>
+          <div id="maintenanceList" class="animate-in animate-in-delay-1">
+            <div class="text-center" style="padding:48px;">
+              <div class="spinner" style="margin:0 auto;width:24px;height:24px;color:var(--gold);"></div>
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+        </div>
+      `;
+    }
+
+    async function loadMaintenanceData() {
+      try {
+        const tasks = await api('/api/maintenance');
+        const container = document.getElementById('maintenanceList');
+        if (!container) return;
+        if (tasks.length === 0) {
+          container.innerHTML = '<div class="empty-state"><h3>No maintenance tasks</h3><p>Tap "Report Issue" to create one</p></div>';
+          return;
+        }
+        const open = tasks.filter(t => t.status === 'open');
+        const done = tasks.filter(t => t.status === 'done');
+        container.innerHTML = `
+          ${open.length > 0 ? `
+            <div class="section-label mb-2">Open Tasks (${open.length})</div>
+            ${open.map(t => renderMaintenanceCard(t)).join('')}
+          ` : '<div class="card mb-3" style="text-align:center;"><div class="text-sm text-muted">All clear — no open tasks</div></div>'}
+          ${done.length > 0 ? `
+            <div class="section-label mb-2" style="margin-top:20px;">Completed (${done.length})</div>
+            ${done.slice(0, 10).map(t => renderMaintenanceCard(t)).join('')}
+          ` : ''}
+        `;
+      } catch (e) {
+        console.error('Maintenance load error:', e);
+      }
+    }
+
+    function renderMaintenanceCard(t) {
+      const isDone = t.status === 'done';
+      const priorityColor = t.priority === 'high' ? '#f87171' : t.priority === 'low' ? 'var(--text-muted)' : 'var(--gold)';
+      return `
+        <div class="card mb-2" style="${isDone ? 'opacity:0.6;' : ''}">
+          <div class="flex items-start gap-3">
+            <button onclick="toggleMaintenanceStatus('${t.id}', '${isDone ? 'open' : 'done'}')" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;border:2px solid ${isDone ? 'var(--teal)' : 'var(--border)'};background:${isDone ? 'var(--teal)' : 'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;">
+              ${isDone ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <div style="flex:1;min-width:0;">
+              <div class="text-sm" style="font-weight:600;${isDone ? 'text-decoration:line-through;' : ''}">${t.title}</div>
+              ${t.description ? `<div class="text-xs text-muted" style="margin-top:2px;">${t.description}</div>` : ''}
+              <div class="text-xs text-muted" style="margin-top:4px;">
+                ${isDone ? `Done by ${t.completedByName || 'Unknown'} · ${formatDate(t.completedAt?.split('T')[0])}` : `Reported by ${t.createdByName || 'Unknown'} · ${formatDate(t.createdAt?.split('T')[0])}`}
+              </div>
+            </div>
+            <div style="flex-shrink:0;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${priorityColor};" title="${t.priority} priority"></span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function toggleMaintenanceStatus(taskId, newStatus) {
+      try {
+        await api('/api/maintenance/update', { method: 'POST', body: JSON.stringify({ taskId, status: newStatus, memberId: state.user.id, memberName: state.user.name }) });
+        showToast(newStatus === 'done' ? 'Task completed' : 'Task reopened');
+        loadMaintenanceData();
+      } catch (e) { showToast('Failed to update task', 'error'); }
+    }
+
+    function showAddMaintenanceModal() {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;';
+      modal.innerHTML = `
+        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius) var(--radius) 0 0;padding:24px;max-height:80vh;overflow-y:auto;">
+          <div class="flex justify-between items-center mb-4">
+            <h3 style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem;">Report Issue</h3>
+            <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:4px;">${icons.x}</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">What needs done?</label>
+            <input class="form-input" id="maintTitleInput" placeholder="e.g. Cabin door hinge broken">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Details <span class="optional">(optional)</span></label>
+            <textarea class="form-textarea" id="maintDescInput" placeholder="Any extra info or location details..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <div class="flex gap-2">
+              <button type="button" class="btn btn-secondary btn-sm flex-1" id="prioLow" onclick="setMaintPriority('low')" style="padding:8px;">Low</button>
+              <button type="button" class="btn btn-secondary btn-sm flex-1" id="prioNormal" onclick="setMaintPriority('normal')" style="padding:8px;background:var(--gold);color:var(--bg);border-color:var(--gold);">Normal</button>
+              <button type="button" class="btn btn-secondary btn-sm flex-1" id="prioHigh" onclick="setMaintPriority('high')" style="padding:8px;">Urgent</button>
+            </div>
+            <input type="hidden" id="maintPriority" value="normal">
+          </div>
+          <button class="btn btn-primary btn-block" onclick="submitMaintenance(this)">Report Issue</button>
+        </div>
+      `;
+      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      document.body.appendChild(modal);
+    }
+
+    function setMaintPriority(p) {
+      document.getElementById('maintPriority').value = p;
+      ['low','normal','high'].forEach(v => {
+        const btn = document.getElementById('prio' + v.charAt(0).toUpperCase() + v.slice(1));
+        if (!btn) return;
+        const isActive = v === p;
+        const color = v === 'high' ? '#f87171' : v === 'low' ? 'var(--text-muted)' : 'var(--gold)';
+        btn.style.background = isActive ? color : '';
+        btn.style.color = isActive ? (v === 'low' ? 'white' : 'var(--bg)') : '';
+        btn.style.borderColor = isActive ? color : '';
+      });
+    }
+
+    async function submitMaintenance(btn) {
+      const title = document.getElementById('maintTitleInput')?.value?.trim();
+      if (!title) { showToast('Please describe the issue', 'error'); return; }
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;"></div>';
+      try {
+        await api('/api/maintenance', { method: 'POST', body: JSON.stringify({
+          title,
+          description: document.getElementById('maintDescInput')?.value || null,
+          priority: document.getElementById('maintPriority')?.value || 'normal',
+          createdBy: state.user.id,
+          createdByName: state.user.name,
+        })});
+        btn.closest('div[style*=fixed]').remove();
+        showToast('Issue reported');
+        loadMaintenanceData();
+      } catch (e) { showToast(e.message || 'Failed to report', 'error'); btn.disabled = false; btn.textContent = 'Report Issue'; }
+    }
+
     // ─── CSV EXPORT ─────────────────────────────────────────────
     function exportCSV() {
       const url = CONFIG.API_URL + '/api/export/csv';
+      window.open(url, '_blank');
+    }
+
+    function exportNDSFB() {
+      const url = CONFIG.API_URL + '/api/export/ndsfb';
       window.open(url, '_blank');
     }
 

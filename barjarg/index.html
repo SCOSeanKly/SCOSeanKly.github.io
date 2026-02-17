@@ -1322,6 +1322,7 @@
               ` : '';
             })()}
           `}
+          <div style="height:120px;"></div>
         </div>
       `;
     }
@@ -1441,18 +1442,16 @@
         container.innerHTML = top5.map((m, i) => {
           const isMe = m.id === state.user?.id;
           const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-          return `<div class="flex items-center gap-3" style="padding:10px 14px;border-bottom:${i < top5.length - 1 ? '1px solid var(--border)' : 'none'};${isMe ? 'background:rgba(212,165,116,0.05);' : ''}">
-            <div style="width:22px;text-align:center;font-size:${medal ? '1rem' : '0.75rem'};color:var(--text-muted);font-weight:600;">${medal || (i + 1)}</div>
-            <div style="flex:1;min-width:0;">
-              <div class="text-sm" style="font-weight:${isMe ? '600' : '500'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-sm" style="font-weight:600;">${m.totalCatches}</div>
-              <div class="text-xs text-muted">catches</div>
-            </div>
-            <div class="text-right" style="min-width:50px;">
-              <div class="text-sm">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div>
-              <div class="text-xs text-muted">best</div>
+          return `<div style="padding:10px 14px;border-bottom:${i < top5.length - 1 ? '1px solid var(--border)' : 'none'};${isMe ? 'background:rgba(212,165,116,0.05);' : ''}">
+            <div class="flex items-center gap-3">
+              <div style="width:22px;text-align:center;font-size:${medal ? '1rem' : '0.75rem'};color:var(--text-muted);font-weight:600;flex-shrink:0;">${medal || (i + 1)}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="text-sm" style="font-weight:${isMe ? '600' : '500'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
+              </div>
+              <div style="display:flex;gap:16px;flex-shrink:0;">
+                <div style="text-align:center;"><div class="text-sm" style="font-weight:600;">${m.totalCatches}</div><div style="font-size:0.6rem;color:var(--text-muted);">fish</div></div>
+                <div style="text-align:center;"><div class="text-sm">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div><div style="font-size:0.6rem;color:var(--text-muted);">best</div></div>
+              </div>
             </div>
           </div>`;
         }).join('');
@@ -3073,6 +3072,7 @@
             </div>
           </div>
           <div id="fullLeagueTable" style="margin-top:24px;"></div>
+          <div style="height:120px;"></div>
         </div>
       `;
     }
@@ -3099,26 +3099,27 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
             Season League Table
           </div>
-          <div class="card" style="padding:0;overflow:hidden;">
-            ${league.map((m, i) => {
-              const isMe = m.id === state.user?.id;
-              const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
-              return `<div style="padding:12px 14px;border-bottom:${i < league.length - 1 ? '1px solid var(--border)' : 'none'};${isMe ? 'background:rgba(212,165,116,0.05);' : ''}">
-                <div class="flex items-center gap-3">
-                  <div style="width:24px;text-align:center;font-size:${medal ? '1.1rem' : '0.8rem'};color:var(--text-muted);font-weight:700;">${medal || (i + 1)}</div>
-                  <div style="flex:1;min-width:0;">
-                    <div class="text-sm" style="font-weight:${isMe ? '700' : '500'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
-                    <div class="text-xs text-muted" style="margin-top:2px;">${m.species.join(', ') || 'No catches yet'}</div>
-                  </div>
-                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;">
-                    <div><div class="text-sm" style="font-weight:600;">${m.totalCatches}</div><div class="text-xs text-muted">fish</div></div>
-                    <div><div class="text-sm">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div><div class="text-xs text-muted">best</div></div>
-                    <div><div class="text-sm">${m.catchRate}</div><div class="text-xs text-muted">per day</div></div>
-                  </div>
+          ${league.map((m, i) => {
+            const isMe = m.id === state.user?.id;
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+            return `<div class="card mb-2" style="${isMe ? 'border-color:rgba(212,165,116,0.3);background:rgba(212,165,116,0.04);' : ''}">
+              <div class="flex items-center gap-3 mb-2">
+                <div style="width:28px;height:28px;border-radius:50%;background:${medal ? 'transparent' : 'var(--bg)'};border:${medal ? 'none' : '2px solid var(--border)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="font-size:${medal ? '1.2rem' : '0.75rem'};font-weight:700;color:var(--text-muted);">${medal || (i + 1)}</span>
                 </div>
-              </div>`;
-            }).join('')}
-          </div>
+                <div style="flex:1;min-width:0;">
+                  <div class="text-sm" style="font-weight:${isMe ? '700' : '600'};${isMe ? 'color:var(--gold);' : ''}">${m.name}</div>
+                  <div class="text-xs text-muted">${m.species.join(', ') || 'No catches yet'}</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0 0;border-top:1px solid var(--border);margin-left:40px;">
+                <div style="text-align:center;"><div style="font-size:0.95rem;font-weight:700;color:${isMe ? 'var(--gold)' : 'var(--text-heading)'};">${m.totalCatches}</div><div class="text-xs text-muted">catches</div></div>
+                <div style="text-align:center;"><div style="font-size:0.95rem;font-weight:600;">${m.biggestFish > 0 ? m.biggestFish + 'lb' : '-'}</div><div class="text-xs text-muted">best</div></div>
+                <div style="text-align:center;"><div style="font-size:0.95rem;font-weight:600;">${m.catchRate}</div><div class="text-xs text-muted">per day</div></div>
+                <div style="text-align:center;"><div style="font-size:0.95rem;font-weight:600;">${m.visits}</div><div class="text-xs text-muted">visits</div></div>
+              </div>
+            </div>`;
+          }).join('')}
         `;
       } catch (e) { console.error('Full league error:', e); }
     }

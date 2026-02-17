@@ -1073,6 +1073,10 @@
       function updateLoginBtn() {
         const pin = Array.from(inputs).map(i => i.value).join('');
         loginBtn.disabled = pin.length !== 4;
+        // Auto-login when all 4 digits entered
+        if (pin.length === 4) {
+          setTimeout(() => loginBtn.click(), 80);
+        }
       }
 
       loginBtn.addEventListener('click', async () => {

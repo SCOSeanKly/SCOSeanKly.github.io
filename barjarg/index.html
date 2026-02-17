@@ -1473,7 +1473,7 @@
         }
 
         const trendIcon = data.trend === 'rising' ? '↑' : data.trend === 'falling' ? '↓' : '→';
-        const trendColor = data.trend === 'rising' ? 'var(--teal)' : data.trend === 'falling' ? 'var(--salmon)' : 'var(--text-secondary)';
+        const trendColor = data.trend === 'rising' ? '#f87171' : data.trend === 'falling' ? 'var(--teal)' : 'var(--text-secondary)';
         const trendLabel = data.trend.charAt(0).toUpperCase() + data.trend.slice(1);
 
         // Build mini sparkline SVG from readings
@@ -2914,7 +2914,7 @@
 
         const atCatch = closestReading ? closestReading.value.toFixed(2) : null;
         const trendIcon = data.trend === 'rising' ? '↑' : data.trend === 'falling' ? '↓' : '→';
-        const trendColor = data.trend === 'rising' ? 'var(--teal)' : data.trend === 'falling' ? 'var(--salmon)' : 'var(--text-secondary)';
+        const trendColor = data.trend === 'rising' ? '#f87171' : data.trend === 'falling' ? 'var(--teal)' : 'var(--text-secondary)';
 
         // Build compact sparkline
         const chartHtml = buildDetailWaterChart(data.readings, closestReading);
@@ -3792,7 +3792,7 @@
               <button class="card flex items-center gap-3" onclick="navigate('${item.page}')" style="cursor:pointer;text-align:left;width:100%;border:1px solid var(--border);background:var(--bg-card);">
                 <div style="color:var(--gold);">${item.icon}</div>
                 <div style="flex:1;">
-                  <div class="text-sm" style="font-weight:600;">${item.label}</div>
+                  <div class="text-sm" style="font-weight:600;color:var(--text-heading);">${item.label}</div>
                   <div class="text-xs text-muted">${item.desc}</div>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -3912,9 +3912,9 @@
 
     function showAddGuestModal() {
       const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.2s ease;';
       modal.innerHTML = `
-        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius) var(--radius) 0 0;padding:24px;max-height:80vh;overflow-y:auto;">
+        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius);padding:24px;max-height:85vh;overflow-y:auto;">
           <div class="flex justify-between items-center mb-4">
             <h3 style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem;">Log Guest Visit</h3>
             <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:4px;">${icons.x}</button>
@@ -4079,9 +4079,9 @@
 
     function showAddMaintenanceModal() {
       const modal = document.createElement('div');
-      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.2s ease;';
+      modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn 0.2s ease;';
       modal.innerHTML = `
-        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius) var(--radius) 0 0;padding:24px;max-height:80vh;overflow-y:auto;">
+        <div style="max-width:540px;width:100%;background:var(--bg-card);border-radius:var(--radius);padding:24px;max-height:85vh;overflow-y:auto;">
           <div class="flex justify-between items-center mb-4">
             <h3 style="font-family:var(--font-heading);font-weight:700;font-size:1.1rem;">Report Issue</h3>
             <button class="btn btn-ghost" onclick="this.closest('div[style*=fixed]').remove()" style="padding:4px;">${icons.x}</button>

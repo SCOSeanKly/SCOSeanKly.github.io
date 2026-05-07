@@ -28,6 +28,28 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Loader -->
+    <div class="loader">
+        <div class="loader-mark">
+            <img src="images/logo.png" alt="" class="loader-logo">
+        </div>
+    </div>
+
+    <!-- Aurora Atmosphere (cinematic background glow) -->
+    <div class="aurora" aria-hidden="true">
+        <div class="aurora-blob aurora-blob-1"></div>
+        <div class="aurora-blob aurora-blob-2"></div>
+        <div class="aurora-blob aurora-blob-3"></div>
+    </div>
+
+    <!-- Cursor Spotlight -->
+    <div class="spotlight" aria-hidden="true"></div>
+
+    <!-- Scroll Progress -->
+    <div class="scroll-progress" aria-hidden="true">
+        <div class="scroll-progress-bar"></div>
+    </div>
+
     <!-- Custom Cursor -->
     <div class="cursor"></div>
     <div class="cursor-follower"></div>
@@ -90,10 +112,15 @@
 
     <!-- Hero Section -->
     <section class="hero">
+        <span class="hero-corner">est. Scotland — 2023</span>
         <div class="hero-content">
             <div class="hero-eyebrow">
                 <span class="eyebrow-line"></span>
                 <span>iOS Development Studio</span>
+                <span class="hero-live">
+                    <span class="hero-live-dot"></span>
+                    <span>13 apps live</span>
+                </span>
             </div>
             <h1 class="hero-title">
                 <span class="title-line">
@@ -128,7 +155,7 @@
         </div>
         
         <!-- App: Wall Board -->
-        <article class="app-card" id="wallboard">
+        <article class="app-card" id="wallboard" data-number="01">
             <div class="app-card-inner">
                 <div class="app-visual">
                     <div class="app-icon-wrapper">
@@ -156,7 +183,7 @@
         </article>
 
         <!-- App: iconWeb -->
-        <article class="app-card app-card-reverse" id="iconweb">
+        <article class="app-card app-card-reverse" id="iconweb" data-number="02">
             <div class="app-card-inner">
                 <div class="app-visual">
                     <div class="app-icon-wrapper">
@@ -184,7 +211,7 @@
         </article>
 
         <!-- App: mLiteWeb -->
-        <article class="app-card" id="mliteweb">
+        <article class="app-card" id="mliteweb" data-number="03">
             <div class="app-card-inner">
                 <div class="app-visual">
                     <div class="app-icon-wrapper">
@@ -212,7 +239,7 @@
         </article>
 
         <!-- App: pfp.MAKER -->
-        <article class="app-card app-card-reverse" id="pfpmaker">
+        <article class="app-card app-card-reverse" id="pfpmaker" data-number="04">
             <div class="app-card-inner">
                 <div class="app-visual">
                     <div class="app-icon-wrapper">
@@ -237,7 +264,7 @@
         </article>
 
         <!-- App: FunForge -->
-        <article class="app-card" id="funforge">
+        <article class="app-card" id="funforge" data-number="05">
             <div class="app-card-inner">
                 <div class="app-visual">
                     <div class="app-icon-wrapper">

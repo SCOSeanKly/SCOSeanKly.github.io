@@ -849,7 +849,9 @@ button {
     width: 20%;
     background: var(--color-accent);
     border-radius: 1px;
-    transition: transform 0.3s ease;
+    transform: translateX(var(--bar-translate, 0%));
+    transition: transform 0.15s linear;
+    will-change: transform;
 }
 
 /* --------------------------------------------------------------------------
@@ -1571,4 +1573,807 @@ html, body {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+
+/* ==========================================================================
+   SHOW CREATIVE — Enhancements Layer
+   Cinematic atmosphere, depth, and motion. Loaded AFTER styles.css.
+   Designed to layer on top of existing styles without breaking anything.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Extended palette + tokens
+   -------------------------------------------------------------------------- */
+:root {
+    /* Warm primary stays — matches existing amber but refined */
+    --color-accent-warm: #e8b87a;
+    --color-accent-soft: rgba(232, 184, 122, 0.18);
+
+    /* Sparing secondary accents — used in aurora/highlights only */
+    --color-ember: #ff6f4a;
+    --color-ember-glow: rgba(255, 111, 74, 0.14);
+    --color-teal: #4ddbc1;
+    --color-teal-glow: rgba(77, 219, 193, 0.10);
+    --color-violet: #8b6bff;
+    --color-violet-glow: rgba(139, 107, 255, 0.10);
+
+    /* Glass surfaces */
+    --glass-bg: rgba(20, 20, 22, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-border-strong: rgba(255, 255, 255, 0.12);
+
+    /* Cinematic easings */
+    --ease-cinema: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-bloom: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Selection treatment refined */
+::selection {
+    background: var(--color-accent-warm);
+    color: #0a0a0a;
+    text-shadow: none;
+}
+
+/* --------------------------------------------------------------------------
+   Loader — first impression. 900ms reveal, then dissolves.
+   -------------------------------------------------------------------------- */
+.loader {
+    position: fixed;
+    inset: 0;
+    background: var(--color-bg);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: opacity 0.7s var(--ease-cinema), visibility 0s linear 0.7s;
+}
+
+.loader.loaded {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-mark {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-mark::before,
+.loader-mark::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--color-accent-warm);
+    opacity: 0;
+    animation: loaderPulse 1.6s var(--ease-cinema) infinite;
+}
+
+.loader-mark::after {
+    animation-delay: 0.5s;
+}
+
+.loader-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px var(--glass-border-strong),
+                0 12px 40px var(--color-accent-soft);
+    animation: loaderBreath 1.8s var(--ease-cinema) infinite;
+}
+
+@keyframes loaderPulse {
+    0%   { transform: scale(0.9); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes loaderBreath {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.06); }
+}
+
+/* --------------------------------------------------------------------------
+   Aurora — the soul of the new look.
+   3 enormous, blurred, slowly drifting color fields.
+   Sits behind the grain layer, gives the whole page a living atmosphere.
+   -------------------------------------------------------------------------- */
+.aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    /* Slight desaturation prevents the colors from looking like a rainbow */
+    filter: saturate(1.1);
+}
+
+.aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    will-change: transform;
+    opacity: 0.5;
+    mix-blend-mode: screen;
+}
+
+.aurora-blob-1 {
+    width: 60vw;
+    height: 60vw;
+    top: -20vw;
+    right: -20vw;
+    background: radial-gradient(circle, var(--color-accent-warm) 0%, transparent 65%);
+    animation: aurora1 32s var(--ease-cinema) infinite;
+    opacity: 0.35;
+}
+
+.aurora-blob-2 {
+    width: 50vw;
+    height: 50vw;
+    bottom: -10vw;
+    left: -15vw;
+    background: radial-gradient(circle, var(--color-ember) 0%, transparent 65%);
+    animation: aurora2 38s var(--ease-cinema) infinite;
+    opacity: 0.18;
+}
+
+.aurora-blob-3 {
+    width: 45vw;
+    height: 45vw;
+    top: 35%;
+    left: 30%;
+    background: radial-gradient(circle, var(--color-teal) 0%, transparent 65%);
+    animation: aurora3 44s var(--ease-cinema) infinite;
+    opacity: 0.12;
+}
+
+@keyframes aurora1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%      { transform: translate(-12vw, 18vh) scale(1.15); }
+    66%      { transform: translate(8vw, 32vh) scale(0.9); }
+}
+
+@keyframes aurora2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%      { transform: translate(20vw, -25vh) scale(1.2); }
+}
+
+@keyframes aurora3 {
+    0%, 100% { transform: translate(0, 0) scale(0.95); }
+    25%      { transform: translate(-15vw, -10vh) scale(1.1); }
+    75%      { transform: translate(18vw, 15vh) scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   Cursor spotlight — ambient light that follows the mouse.
+   Invisible on its own; reveals warmth in the dark background.
+   -------------------------------------------------------------------------- */
+.spotlight {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 700px;
+    height: 700px;
+    pointer-events: none;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle,
+        rgba(232, 184, 122, 0.08) 0%,
+        rgba(232, 184, 122, 0.03) 30%,
+        transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    will-change: transform;
+    mix-blend-mode: screen;
+}
+
+.spotlight.active { opacity: 1; }
+
+@media (hover: none) {
+    .spotlight { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   Scroll progress — thin gleaming line at the top of the viewport.
+   -------------------------------------------------------------------------- */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    z-index: 10002;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.scroll-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(
+        to right,
+        var(--color-accent-warm),
+        var(--color-ember) 70%,
+        var(--color-accent-warm)
+    );
+    box-shadow: 0 0 12px var(--color-accent-warm),
+                0 0 24px var(--color-accent-soft);
+    transition: width 0.1s linear;
+}
+
+/* --------------------------------------------------------------------------
+   Hero enhancements — italic "iOS" gets a shimmer + live indicator.
+   -------------------------------------------------------------------------- */
+.hero {
+    position: relative;
+}
+
+/* Cursor-tracked spotlight on the non-italic title words.
+   Letters live as ghost outlines + faded white by default; a warm amber
+   spotlight illuminates the letters the cursor passes over.
+   JS updates --word-cursor-x / --word-cursor-y per word, computed as the
+   cursor position relative to that word's bounding box. We can't use
+   background-attachment: fixed here because it doesn't compose reliably
+   with background-clip: text across browsers.
+   The italic "iOS" word keeps its own shimmer rule below. */
+.title-word:not(.title-italic) {
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.32);
+
+    background-image: radial-gradient(
+        circle 600px at var(--word-cursor-x, 50%) var(--word-cursor-y, 50%),
+        var(--color-ember) 0%,
+        var(--color-accent-warm) 14%,
+        #ffe4be 26%,
+        rgba(255, 255, 255, 0.95) 42%,
+        rgba(255, 255, 255, 0.55) 78%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Touch / no-hover devices: skip the spotlight, render plain white.
+   Avoids the gradient sitting frozen in one place on mobile. */
+@media (hover: none), (pointer: coarse) {
+    .title-word:not(.title-italic) {
+        background-image: none;
+        color: var(--color-text);
+        -webkit-text-fill-color: var(--color-text);
+        -webkit-text-stroke: 0;
+    }
+}
+
+/* Reduced motion: drop the spotlight entirely. */
+@media (prefers-reduced-motion: reduce) {
+    .title-word:not(.title-italic) {
+        background-image: none;
+        color: var(--color-text);
+        -webkit-text-fill-color: var(--color-text);
+        -webkit-text-stroke: 0;
+    }
+}
+
+/* Shimmer the italic accent word */
+.title-italic {
+    background: linear-gradient(
+        110deg,
+        var(--color-accent-warm) 0%,
+        #ffd9a8 35%,
+        var(--color-ember) 50%,
+        #ffd9a8 65%,
+        var(--color-accent-warm) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: italicShimmer 8s linear infinite;
+    /* keeps the existing italic + serif from styles.css intact */
+}
+
+@keyframes italicShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Live indicator — small badge in the eyebrow */
+.hero-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 18px;
+    padding: 4px 10px;
+    border: 1px solid var(--glass-border-strong);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: var(--color-text-secondary);
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.hero-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80, 0 0 14px rgba(74, 222, 128, 0.5);
+    animation: livePulse 2s var(--ease-cinema) infinite;
+}
+
+@keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Hero corner ornament — subtle brand mark */
+.hero-corner {
+    position: absolute;
+    top: calc(var(--nav-height) + 1.5rem);
+    right: var(--container-padding);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    opacity: 0;
+    animation: fadeIn 1.4s ease 1.4s forwards;
+    pointer-events: none;
+}
+
+.hero-corner::before {
+    content: "✦";
+    margin-right: 8px;
+    color: var(--color-accent-warm);
+}
+
+/* --------------------------------------------------------------------------
+   App card upgrades — number badge, hover spotlight, refined glow
+   -------------------------------------------------------------------------- */
+.app-card {
+    position: relative;
+    transition: transform 0.6s var(--ease-cinema);
+}
+
+/* Number badge: 01 / 13 in serif italic, sits above the card */
+.app-card[data-number]::before {
+    content: attr(data-number) " / 13";
+    position: absolute;
+    top: var(--space-md);
+    left: var(--container-padding);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.05em;
+    z-index: 3;
+}
+
+.app-card[data-number]::after {
+    content: "";
+    position: absolute;
+    top: calc(var(--space-md) + 0.5rem);
+    left: calc(var(--container-padding) + 4.5rem);
+    width: 0;
+    height: 1px;
+    background: var(--color-accent-warm);
+    transition: width 0.8s var(--ease-cinema);
+}
+
+.app-card.revealed[data-number]::after {
+    width: 80px;
+}
+
+/* Hover spotlight on the card — JS sets --mx, --my */
+.app-card-inner {
+    position: relative;
+    border-radius: 24px;
+    transition: background 0.5s ease;
+}
+
+.app-card-inner::before {
+    content: "";
+    position: absolute;
+    inset: -2rem;
+    border-radius: 32px;
+    background: radial-gradient(
+        600px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(232, 184, 122, 0.06),
+        transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.app-card:hover .app-card-inner::before {
+    opacity: 1;
+}
+
+/* App icon glow — upgrade existing */
+.app-icon-glow {
+    background: radial-gradient(
+        circle,
+        var(--color-accent-soft),
+        var(--color-ember-glow) 50%,
+        transparent 75%
+    ) !important;
+    filter: blur(16px);
+}
+
+/* Banner reveal — clip-path mask animates open on scroll into view */
+.app-banner-wrapper {
+    position: relative;
+    /* Feather the top edge so the dark banner dissolves into the
+       aurora-lit atmosphere instead of stopping with a hard line.
+       Bottom is already softened by the existing .banner-overlay-effect. */
+    -webkit-mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.6) 3%,
+        #000 7%,
+        #000 100%);
+    mask-image: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(0,0,0,0.6) 3%,
+        #000 7%,
+        #000 100%);
+}
+
+.app-banner-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--color-bg);
+    transform-origin: right center;
+    transition: transform 1.1s var(--ease-cinema) 0.2s;
+    z-index: 4;
+}
+
+.app-card.revealed .app-banner-wrapper::after {
+    transform: scaleX(0);
+}
+
+/* Soft drop shadow only — no 1px ring (it drew a hard outline on top
+   when the aurora glow lit the surrounding area). */
+.app-banner-wrapper {
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+    transition: box-shadow 0.6s var(--ease-cinema);
+}
+
+.app-card:hover .app-banner-wrapper {
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8),
+                0 0 80px -30px var(--color-accent-warm);
+}
+
+/* --------------------------------------------------------------------------
+   CTA shine sweep — light gleam crosses primary buttons on hover.
+   Targets the existing .app-cta and .contact-cta — no markup change.
+   -------------------------------------------------------------------------- */
+.app-cta:not(.app-cta-store),
+.contact-cta,
+.gallery-link {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.app-cta:not(.app-cta-store)::before,
+.contact-cta::before,
+.gallery-link::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 100%;
+    background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.18) 50%,
+        transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: left 0.7s var(--ease-cinema);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.app-cta:not(.app-cta-store):hover::before,
+.contact-cta:hover::before,
+.gallery-link:hover::before {
+    left: 130%;
+}
+
+/* CTAs become magnetic via JS — give them a pleasant ease */
+.app-cta:not(.app-cta-store),
+.contact-cta {
+    transition: transform 0.4s var(--ease-cinema),
+                background 0.3s ease,
+                color 0.3s ease,
+                box-shadow 0.4s var(--ease-cinema);
+}
+
+/* Subtle accent ring on contact CTA */
+.contact-cta {
+    box-shadow: 0 0 0 0 var(--color-accent-soft);
+}
+
+.contact-cta:hover {
+    box-shadow: 0 0 0 6px var(--color-accent-soft),
+                0 20px 50px -10px var(--color-accent-soft);
+}
+
+/* --------------------------------------------------------------------------
+   Section number — rotating ring orbit
+   -------------------------------------------------------------------------- */
+.section-number {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding-left: 1.6rem;
+}
+
+.section-number::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--color-accent-warm);
+    border-top-color: transparent;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation: orbit 4s linear infinite;
+}
+
+@keyframes orbit {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to   { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Gallery item refinements — glassmorphism + accent line on hover
+   -------------------------------------------------------------------------- */
+.gallery-item-inner {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.5s var(--ease-cinema),
+                border-color 0.4s ease,
+                background 0.4s ease;
+}
+
+.gallery-item-inner::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--color-accent-warm), transparent);
+    transition: width 0.6s var(--ease-cinema);
+}
+
+.gallery-item:hover .gallery-item-inner {
+    transform: translateY(-6px);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.gallery-item:hover .gallery-item-inner::after {
+    width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Stats — depth without backdrop-filter.
+   backdrop-filter: blur is one of the most expensive CSS properties to
+   paint. With four cards each updating their text content 60×/sec during
+   the count-up animation, it caused scroll stutter. Replaced with a
+   layered linear-gradient background that reads as similar depth at a
+   fraction of the paint cost. `contain: paint` isolates repaint scope.
+   -------------------------------------------------------------------------- */
+.stat-item {
+    position: relative;
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.04) 0%,
+            rgba(255, 255, 255, 0.015) 100%
+        ),
+        rgba(20, 20, 22, 0.6);
+    border: 1px solid var(--glass-border);
+    transition: transform 0.5s var(--ease-cinema),
+                border-color 0.4s ease;
+    overflow: hidden;
+    contain: layout style paint;
+}
+
+.stat-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--color-accent-warm),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-4px);
+    border-color: var(--glass-border-strong);
+}
+
+.stat-item:hover::before {
+    opacity: 1;
+}
+
+.stat-number {
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        var(--color-accent-warm) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Contact orb — multi-layer breathing
+   -------------------------------------------------------------------------- */
+.contact-visual {
+    position: relative;
+}
+
+.contact-orb {
+    background: radial-gradient(
+        circle at 30% 30%,
+        var(--color-accent-warm) 0%,
+        var(--color-ember) 40%,
+        transparent 70%
+    ) !important;
+    filter: blur(40px);
+    animation: contactBreath 6s var(--ease-cinema) infinite;
+}
+
+.contact-orb::before,
+.contact-orb::after {
+    content: "";
+    position: absolute;
+    inset: 20%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--color-teal-glow), transparent 60%);
+    filter: blur(30px);
+    animation: contactBreath 8s var(--ease-cinema) infinite reverse;
+}
+
+.contact-orb::after {
+    inset: 40%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15), transparent 60%);
+    animation-duration: 4s;
+}
+
+@keyframes contactBreath {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50%      { transform: scale(1.15); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   Footer mega-wordmark — big subtle "Show Creative" behind footer content
+   -------------------------------------------------------------------------- */
+.footer {
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: "Show Creative";
+    position: absolute;
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(6rem, 18vw, 18rem);
+    font-weight: 400;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 0;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.footer-content,
+.footer-bottom {
+    position: relative;
+    z-index: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Reveal refinements — staggered, smoother
+   -------------------------------------------------------------------------- */
+.reveal {
+    transition: opacity 1s var(--ease-cinema),
+                transform 1s var(--ease-cinema);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile considerations
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    /* Reduce aurora intensity on small screens */
+    .aurora-blob { filter: blur(80px); }
+    .aurora-blob-1 { opacity: 0.25; }
+    .aurora-blob-2 { opacity: 0.12; }
+    .aurora-blob-3 { opacity: 0.08; }
+
+    /* Hero corner ornament hides on mobile */
+    .hero-corner { display: none; }
+
+    /* Section number ring smaller */
+    .section-number {
+        padding-left: 1.3rem;
+    }
+    .section-number::before {
+        width: 0.8rem;
+        height: 0.8rem;
+    }
+
+    /* App card number badge smaller */
+    .app-card[data-number]::before {
+        font-size: 0.85rem;
+        top: 1rem;
+    }
+    .app-card[data-number]::after {
+        top: calc(1rem + 0.4rem);
+        left: calc(var(--container-padding) + 3.8rem);
+    }
+
+    /* Footer mega-wordmark even bigger relative to viewport */
+    .footer::before {
+        bottom: -1rem;
+        font-size: 24vw;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion — respect user preference
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .aurora-blob,
+    .title-italic,
+    .section-number::before,
+    .hero-live-dot,
+    .loader-mark::before,
+    .loader-mark::after,
+    .loader-logo,
+    .contact-orb,
+    .contact-orb::before,
+    .contact-orb::after {
+        animation: none !important;
+    }
+
+    .spotlight { display: none; }
+
+    .app-banner-wrapper::after {
+        transform: scaleX(0) !important;
+    }
 }

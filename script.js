@@ -183,24 +183,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const duration = 2000;
         const start = performance.now();
         const startValue = 0;
-        
+        let lastValue = -1;
+
         function update(currentTime) {
             const elapsed = currentTime - start;
             const progress = Math.min(elapsed / duration, 1);
-            
+
             // Easing function (ease-out-expo)
             const eased = 1 - Math.pow(2, -10 * progress);
             const current = Math.floor(startValue + (target - startValue) * eased);
-            
-            element.textContent = current;
-            
+
+            // Only touch the DOM when the displayed integer actually changes.
+            // During the slow tail of ease-out, the same value gets recomputed
+            // many frames in a row — skipping those writes avoids needless
+            // style invalidation and helps keep scroll smooth.
+            if (current !== lastValue) {
+                element.textContent = current;
+                lastValue = current;
+            }
+
             if (progress < 1) {
                 requestAnimationFrame(update);
-            } else {
+            } else if (lastValue !== target) {
                 element.textContent = target;
             }
         }
-        
+
         requestAnimationFrame(update);
     }
     
@@ -241,32 +249,21 @@ document.addEventListener('DOMContentLoaded', function() {
             galleryTrack.scrollLeft = scrollLeft - walk;
         });
         
-        // Progress bar update
-        galleryTrack.addEventListener('scroll', () => {
-            const scrollWidth = galleryTrack.scrollWidth - galleryTrack.clientWidth;
-            const scrollPercent = (galleryTrack.scrollLeft / scrollWidth) * 100;
-            const barWidth = (galleryTrack.clientWidth / galleryTrack.scrollWidth) * 100;
-            
-            progressBar.style.setProperty('--progress', `${scrollPercent}%`);
-            progressBar.querySelector('::after') || updateProgressBar(scrollPercent, barWidth);
-        });
-        
-        function updateProgressBar(percent, width) {
-            const afterStyle = progressBar.style;
-            afterStyle.setProperty('width', `${width}%`);
-            progressBar.style.transform = `translateX(${(percent / (100 - width)) * 100}%)`;
-        }
-        
-        // Update progress on scroll
-        galleryTrack.addEventListener('scroll', () => {
-            const maxScroll = galleryTrack.scrollWidth - galleryTrack.clientWidth;
-            const progress = (galleryTrack.scrollLeft / maxScroll) * 80; // 80% max position
-            progressBar.style.cssText = `
-                --progress: ${progress}%;
-            `;
-            // Update the ::after pseudo-element via CSS variable
-            progressBar.style.setProperty('--bar-translate', `${progress}%`);
-        });
+        // Progress bar update — bar is 20% wide, so it travels 80% of the
+        // track which equals 400% of its own width via translateX.
+        const updateProgress = () => {
+            const max = galleryTrack.scrollWidth - galleryTrack.clientWidth;
+            if (max <= 0) {
+                progressBar.style.setProperty('--bar-translate', '0%');
+                return;
+            }
+            const progress = Math.min(Math.max(galleryTrack.scrollLeft / max, 0), 1);
+            progressBar.style.setProperty('--bar-translate', (progress * 400) + '%');
+        };
+
+        galleryTrack.addEventListener('scroll', updateProgress, { passive: true });
+        window.addEventListener('resize', updateProgress);
+        updateProgress();
     }
     
     // --------------------------------------------------------------------------
@@ -426,3 +423,224 @@ console.log(
     '%c Crafting Beautiful iOS Experiences ',
     'color: #888; font-size: 12px; padding: 5px 0;'
 );
+
+
+/* ==========================================================================
+   SHOW CREATIVE — Enhancements Controller
+   Loaded AFTER script.js. Adds spotlight tracking, magnetic CTAs,
+   scroll progress, app card spotlight, and loader.
+   ========================================================================== */
+
+(function () {
+    'use strict';
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hasHover = window.matchMedia('(hover: hover)').matches;
+
+    // ----------------------------------------------------------------------
+    // Loader — fades out 600ms after window.load
+    // ----------------------------------------------------------------------
+    function initLoader() {
+        const loader = document.querySelector('.loader');
+        if (!loader) return;
+
+        const dismiss = () => {
+            setTimeout(() => loader.classList.add('loaded'), 500);
+        };
+
+        if (document.readyState === 'complete') {
+            dismiss();
+        } else {
+            window.addEventListener('load', dismiss);
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // Cursor spotlight — large radial that follows the mouse
+    // ----------------------------------------------------------------------
+    function initSpotlight() {
+        if (!hasHover || reduceMotion) return;
+
+        const spotlight = document.querySelector('.spotlight');
+        // Note: don't early-return if .spotlight is missing — the title
+        // spotlight CSS variables still need to be driven for the hero text.
+
+        // Cache the title words that should receive the per-word spotlight.
+        // Excludes .title-italic (it has its own shimmer animation).
+        const titleWords = Array.from(
+            document.querySelectorAll('.hero-title .title-word:not(.title-italic)')
+        );
+
+        let targetX = window.innerWidth / 2;
+        let targetY = window.innerHeight / 2;
+        let currentX = targetX;
+        let currentY = targetY;
+        let active = false;
+
+        document.addEventListener('mousemove', (e) => {
+            targetX = e.clientX;
+            targetY = e.clientY;
+            if (!active && spotlight) {
+                spotlight.classList.add('active');
+                active = true;
+            }
+        });
+
+        document.addEventListener('mouseleave', () => {
+            if (spotlight) spotlight.classList.remove('active');
+            active = false;
+        });
+
+        function tick() {
+            currentX += (targetX - currentX) * 0.12;
+            currentY += (targetY - currentY) * 0.12;
+
+            if (spotlight) {
+                spotlight.style.transform =
+                    `translate(${currentX}px, ${currentY}px) translate(-50%, -50%)`;
+            }
+
+            // Hero title spotlight: each word reads --word-cursor-x / -y
+            // in its own local coordinate space (background-clip: text + a
+            // viewport-fixed gradient is unreliable across browsers, so we
+            // translate the cursor into each word's box manually).
+            for (let i = 0; i < titleWords.length; i++) {
+                const word = titleWords[i];
+                const rect = word.getBoundingClientRect();
+                word.style.setProperty('--word-cursor-x', (currentX - rect.left) + 'px');
+                word.style.setProperty('--word-cursor-y', (currentY - rect.top) + 'px');
+            }
+
+            requestAnimationFrame(tick);
+        }
+        tick();
+    }
+
+    // ----------------------------------------------------------------------
+    // Scroll progress bar
+    // ----------------------------------------------------------------------
+    function initScrollProgress() {
+        const bar = document.querySelector('.scroll-progress-bar');
+        if (!bar) return;
+
+        let ticking = false;
+        const update = () => {
+            const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+            const pct = scrollable > 0
+                ? (window.scrollY / scrollable) * 100
+                : 0;
+            bar.style.width = pct + '%';
+            ticking = false;
+        };
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(update);
+                ticking = true;
+            }
+        }, { passive: true });
+        update();
+    }
+
+    // ----------------------------------------------------------------------
+    // App card spotlight — radial gradient follows cursor over each card
+    // ----------------------------------------------------------------------
+    function initCardSpotlight() {
+        if (!hasHover || reduceMotion) return;
+
+        document.querySelectorAll('.app-card').forEach((card) => {
+            const inner = card.querySelector('.app-card-inner');
+            if (!inner) return;
+
+            card.addEventListener('mousemove', (e) => {
+                const rect = inner.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                inner.style.setProperty('--mx', x + '%');
+                inner.style.setProperty('--my', y + '%');
+            });
+        });
+    }
+
+    // ----------------------------------------------------------------------
+    // Magnetic CTAs — buttons gently pull toward the cursor
+    // ----------------------------------------------------------------------
+    function initMagnetic() {
+        if (!hasHover || reduceMotion) return;
+
+        const STRENGTH = 0.25;        // How much the button moves
+        const RADIUS = 1.5;            // Activation radius (multiplier of button size)
+
+        const targets = document.querySelectorAll(
+            '.app-cta:not(.app-cta-store), .contact-cta'
+        );
+
+        targets.forEach((el) => {
+            let raf;
+            let cx = 0, cy = 0;       // current translate
+            let tx = 0, ty = 0;       // target translate
+
+            const onMove = (e) => {
+                const rect = el.getBoundingClientRect();
+                const ex = rect.left + rect.width / 2;
+                const ey = rect.top + rect.height / 2;
+                const dx = e.clientX - ex;
+                const dy = e.clientY - ey;
+                const dist = Math.hypot(dx, dy);
+                const max = Math.max(rect.width, rect.height) * RADIUS;
+
+                if (dist < max) {
+                    tx = dx * STRENGTH;
+                    ty = dy * STRENGTH;
+                } else {
+                    tx = 0;
+                    ty = 0;
+                }
+
+                if (!raf) raf = requestAnimationFrame(animate);
+            };
+
+            const onLeave = () => {
+                tx = 0;
+                ty = 0;
+                if (!raf) raf = requestAnimationFrame(animate);
+            };
+
+            const animate = () => {
+                cx += (tx - cx) * 0.18;
+                cy += (ty - cy) * 0.18;
+                el.style.transform = `translate(${cx.toFixed(2)}px, ${cy.toFixed(2)}px)`;
+
+                if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1) {
+                    raf = requestAnimationFrame(animate);
+                } else {
+                    el.style.transform = `translate(${tx}px, ${ty}px)`;
+                    raf = null;
+                }
+            };
+
+            // Track on the parent so the button continues moving when cursor
+            // is just outside it (creates the magnetic "pull" feel)
+            const parent = el.closest('.app-info, .contact-content, .contact-links') || el.parentElement;
+            parent.addEventListener('mousemove', onMove);
+            parent.addEventListener('mouseleave', onLeave);
+        });
+    }
+
+    // ----------------------------------------------------------------------
+    // Boot
+    // ----------------------------------------------------------------------
+    function boot() {
+        initLoader();
+        initSpotlight();
+        initScrollProgress();
+        initCardSpotlight();
+        initMagnetic();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
+    }
+})();

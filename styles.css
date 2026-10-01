@@ -2387,6 +2387,30 @@ html {
     text-size-adjust: 100%;
 }
 
+/* "iOS" was invisible: the shimmer `animation` shorthand replaced the
+   revealWord animation, so the word stayed at opacity: 0 forever.
+   Run both animations together. */
+.title-italic {
+    animation: revealWord 1.2s var(--ease-out-expo) forwards,
+               italicShimmer 8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .title-italic {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Hero title: Syne 800 is very wide ("Experiences" is ~11em), so size the
+   font from the space actually available rather than a fixed vw guess. */
+@media (max-width: 1024px) {
+    .hero-title {
+        font-size: clamp(1.4rem, calc((100vw - 2 * var(--container-padding)) / 11.8), 6rem);
+        letter-spacing: -0.02em;
+    }
+}
+
 @media (max-width: 768px) {
     /* Hero eyebrow: let the "13 apps live" badge wrap instead of running off-screen */
     .hero-eyebrow {
@@ -2398,13 +2422,6 @@ html {
     .hero-live {
         margin-left: 0;
         letter-spacing: 0.12em;
-    }
-
-    /* Hero title: Syne 800 is wide, so size it to fit "Experiences" */
-    .hero-title {
-        font-size: clamp(2rem, 10.5vw, 4.5rem);
-        letter-spacing: -0.02em;
-        overflow-wrap: break-word;
     }
 
     /* Italic serif "iOS" is clipped by background-clip:text — give the glyph room */

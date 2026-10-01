@@ -1944,7 +1944,7 @@ html, body {
 
 /* Number badge: 01 / 13 in serif italic, sits above the card */
 .app-card[data-number]::before {
-    content: attr(data-number) " / 13";
+    content: attr(data-number) " / 14";
     position: absolute;
     top: var(--space-md);
     left: var(--container-padding);
@@ -2376,4 +2376,89 @@ html, body {
     .app-banner-wrapper::after {
         transform: scaleX(0) !important;
     }
+}
+
+/* ==========================================================================
+   MOBILE FIXES — text cut-off, overflow, overlaps
+   Loaded last so it overrides the earlier mobile rules.
+   ========================================================================== */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+@media (max-width: 768px) {
+    /* Hero eyebrow: let the "13 apps live" badge wrap instead of running off-screen */
+    .hero-eyebrow {
+        flex-wrap: wrap;
+        row-gap: 0.75rem;
+        letter-spacing: 0.14em;
+    }
+    .eyebrow-line { flex-shrink: 0; }
+    .hero-live {
+        margin-left: 0;
+        letter-spacing: 0.12em;
+    }
+
+    /* Hero title: Syne 800 is wide, so size it to fit "Experiences" */
+    .hero-title {
+        font-size: clamp(2rem, 10.5vw, 4.5rem);
+        letter-spacing: -0.02em;
+        overflow-wrap: break-word;
+    }
+
+    /* Italic serif "iOS" is clipped by background-clip:text — give the glyph room */
+    .title-italic {
+        padding: 0 0.14em 0.06em 0.04em;
+    }
+
+    /* Card number badge was absolutely positioned over the app icon — put it in flow */
+    .app-card[data-number]::before {
+        position: static;
+        display: block;
+        margin-bottom: var(--space-sm);
+        font-size: 0.85rem;
+    }
+    .app-card[data-number]::after {
+        display: none;
+    }
+
+    /* Long words / names must wrap, never clip */
+    .app-name,
+    .app-tagline,
+    .app-description,
+    .gallery-name,
+    .gallery-tagline,
+    .contact-title,
+    .menu-link {
+        overflow-wrap: anywhere;
+    }
+
+    /* Stats: allow grid cells to shrink and labels to wrap */
+    .stats-grid > * { min-width: 0; }
+    .stat-item {
+        padding: 1.25rem 0.75rem;
+    }
+    .stat-label {
+        letter-spacing: 0.06em;
+        overflow-wrap: anywhere;
+    }
+
+    /* Menu: use dynamic viewport height (iOS toolbar) and keep the bottom reachable */
+    .menu-content {
+        max-height: calc(100dvh - 60px);
+        padding-bottom: 6rem;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Footer wordmark must not push layout */
+    .footer-content > * { min-width: 0; }
+    .footer-bottom span { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+    .hero-eyebrow { font-size: 0.65rem; }
+    .hero-live { font-size: 0.65rem; }
+    .contact-cta { width: 100%; justify-content: center; }
 }
